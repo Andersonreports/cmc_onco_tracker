@@ -1,10 +1,7 @@
 # CMC-ONCO Tracker — Server Edition
 
-Server-hosted version of the Anderson Lab Wetlab/Report Tracker. This repo
-replicates [Wetlab_tracker](https://github.com/Andersonreports/Wetlab_tracker)
-(which stays published on GitHub Pages) with a small FastAPI backend added so
-it can also run on your own server. No login — open access, same as the
-GitHub Pages copy.
+Server-hosted version of the Anderson Lab Wetlab/Report Tracker, now served
+by a small FastAPI backend instead of GitHub Pages. No login — open access.
 
 ## Architecture
 
@@ -17,10 +14,25 @@ GitHub Pages copy.
 - **`backend/`** — a minimal FastAPI app (`backend.py`) that serves
   `frontend/` as a static site (`index.html` at `/`, plus `xlsx.full.min.js`
   and `header_logo.png`).
-- **`index.html`** at the repo root — a copy of `frontend/index.html`, kept
-  in sync for quick viewing/reference or an alternate static host.
 
 ## Run locally
+
+### Windows — one-click start
+
+Double-click `start.bat` in the repo root. It creates a virtual environment
+on first run, installs dependencies, starts the server, and opens the
+tracker in your default browser automatically. Close the "CMC-ONCO Tracker
+Server" window to stop it.
+
+### macOS/Linux — one-click start
+
+Double-click `start.command` in the repo root (macOS may require
+right-click → Open the first time, since it's from an unidentified
+developer). It creates a virtual environment on first run, installs
+dependencies, starts the server, and opens the tracker in your default
+browser automatically. Press Ctrl+C in the terminal window to stop it.
+
+### Manual (any OS)
 
 ```bash
 cd backend
@@ -67,11 +79,11 @@ balancer) in front of port 8000 — the app itself doesn't handle TLS.
 4. Reverse-proxy `https://your-domain/` → `http://127.0.0.1:8000/` with
    nginx or Caddy, and obtain a TLS cert (e.g. via `certbot`).
 
-## Relationship to the GitHub Pages copy
+## Migrating off GitHub Pages
 
-`Wetlab_tracker` (the original repo) continues to publish the same tracker
-page publicly via GitHub Pages. This repo is the same frontend served from a
-real backend process instead, for hosting on your own server. Both run
-against the same Google Sheet / Apps Script backend. When you update the
-tracker UI or `apps_script/Code.gs`, apply the change in both repos and
-redeploy the Apps Script Web App (see `apps_script/DEPLOY.md`).
+This tracker was previously hosted via GitHub Pages. That hosting has been
+disabled in favor of the server deployment above (see "Deploy on a server").
+Both still run against the same Google Sheet / Apps Script backend, so no
+data migration is needed — only where the page is served from changed. When
+you update the tracker UI or `apps_script/Code.gs`, redeploy the Apps Script
+Web App (see `apps_script/DEPLOY.md`).
