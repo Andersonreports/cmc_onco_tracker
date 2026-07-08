@@ -1,16 +1,11 @@
+from pathlib import Path
+
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
-from tracker_auth import router as tracker_router
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
-# No CORS middleware: the frontend is served same-origin by this app (under
-# /tracker), and it talks to the Google Apps Script backend directly from the
-# browser — that's a separate origin governed by Google's own CORS, not ours.
-# A wildcard allow_origins combined with allow_credentials would be an open
-# security hole for no functional benefit.
 app = FastAPI(title="Anderson Lab Report Tracker")
-
-app.include_router(tracker_router)
 
 
 @app.get("/health")
@@ -18,6 +13,6 @@ def health():
     return {"status": "Anderson Report Tracker running"}
 
 
-@app.get("/")
-def root():
-    return RedirectResponse("/tracker/login")
+# Serves frontend/index.html at "/" and the rest of frontend/ (xlsx.full.min.js,
+# header_logo.png, etc.) as static files. No auth — same as the GitHub Pages copy.
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
