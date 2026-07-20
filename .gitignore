@@ -3,3 +3,13 @@ __pycache__/
 venv/
 .venv/
 .DS_Store
+
+# API collections — contain live secrets (service + user passwords, tokens)
+*.postman_collection*.json
+
+# Auth — secrets & local role mappings (never commit; auto-seeded on first run)
+backend/.env
+backend/.auth_secret
+backend/roles.json
+backend/users.json
+backend/db_setup.sql

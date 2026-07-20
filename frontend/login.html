@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in · Anderson Trackings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --accent-light: #5eead4;
+      --accent-glow: rgba(13, 148, 136, 0.20);
+      --main-bg: #f0faf7;
+      --card-bg: #ffffff;
+      --text-main: #0c3528;
+      --text-muted: #4a7a6d;
+      --border: #b2e4d9;
+      --border-strong: #6dc8b8;
+      --sidebar-bg: #0e4f40;
+      --danger: #dc2626;
+      --shadow-lg: 0 8px 40px rgba(14, 79, 64, 0.16);
+      --tr: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(1200px 600px at 15% -10%, rgba(94, 234, 212, 0.28), transparent 60%),
+        radial-gradient(1000px 500px at 100% 0%, rgba(13, 148, 136, 0.14), transparent 55%),
+        var(--main-bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .brand .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: #fff;
+      box-shadow: 0 6px 18px var(--accent-glow);
+    }
+
+    .brand .logo [data-lucide] { width: 24px; height: 24px; }
+
+    .brand .name { font-size: 18px; font-weight: 700; }
+    .brand .name span { font-weight: 400; color: var(--accent); }
+
+    h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .subtitle { margin-top: 6px; font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+    form { margin-top: 26px; display: flex; flex-direction: column; gap: 16px; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+
+    label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+
+    .input-wrap { position: relative; }
+
+    .input-wrap [data-lucide] {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text-main);
+      padding: 13px 14px 13px 42px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #f8fdfb;
+      transition: var(--tr);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+
+    input.otp {
+      padding-left: 14px;
+      text-align: center;
+      letter-spacing: 10px;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    button.submit {
+      margin-top: 4px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      border: none;
+      border-radius: 11px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--tr);
+    }
+
+    button.submit:hover { filter: brightness(1.05); box-shadow: 0 6px 18px var(--accent-glow); }
+    button.submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.submit [data-lucide] { width: 18px; height: 18px; }
+
+    .msg {
+      font-size: 13.5px;
+      line-height: 1.5;
+      padding: 11px 14px;
+      border-radius: 10px;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.error { background: rgba(220, 38, 38, 0.09); color: var(--danger); }
+    .msg.info  { background: rgba(13, 148, 136, 0.10); color: var(--accent-hover); }
+
+    .otp-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .linkbtn {
+      background: none; border: none; padding: 0;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      color: var(--accent); cursor: pointer;
+    }
+    .linkbtn:hover { text-decoration: underline; }
+    .linkbtn:disabled { color: var(--text-muted); cursor: default; text-decoration: none; }
+
+    .step { display: none; }
+    .step.active { display: block; }
+
+    .foot {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 480px) {
+      .login-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-card">
+    <div class="brand">
+      <div class="logo"><i data-lucide="activity-square"></i></div>
+      <div class="name">Anderson <span>Trackings</span></div>
+    </div>
+
+    <!-- STEP 1 — credentials -->
+    <div class="step active" id="step-credentials">
+      <h1>Sign in</h1>
+      <p class="subtitle">Enter your credentials to access your tracking suite.</p>
+
+      <div class="msg error" id="cred-error"></div>
+
+      <form id="credentials-form" autocomplete="on">
+        <div class="field">
+          <label for="mobile">Mobile number</label>
+          <div class="input-wrap">
+            <i data-lucide="smartphone"></i>
+            <input id="mobile" name="mobile" type="tel" autocomplete="tel"
+                   inputmode="numeric" maxlength="14" pattern="[0-9+ \-]{10,14}"
+                   placeholder="Your registered mobile number" required autofocus>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <i data-lucide="lock"></i>
+            <input id="password" name="password" type="password" autocomplete="current-password"
+                   placeholder="Your password" required>
+          </div>
+        </div>
+
+        <button class="submit" type="submit" id="cred-submit">
+          <span>Continue</span><i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- STEP 2 — OTP -->
+    <div class="step" id="step-otp">
+      <h1>Verify it's you</h1>
+      <p class="subtitle">We sent a 6-digit code to <strong id="otp-target">your registered contact</strong>. Enter it below to continue.</p>
+
+      <div class="msg info" id="otp-info"></div>
+      <div class="msg error" id="otp-error"></div>
+
+      <form id="otp-form">
+        <div class="field">
+          <label for="code">Verification code</label>
+          <input id="code" class="otp" name="code" type="text" inputmode="numeric"
+                 autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"
+                 placeholder="••••••" required>
+        </div>
+
+        <div class="otp-meta">
+          <span id="otp-timer"></span>
+          <button type="button" class="linkbtn" id="resend-btn">Resend code</button>
+        </div>
+
+        <button class="submit" type="submit" id="otp-submit">
+          <span>Verify &amp; continue</span><i data-lucide="shield-check"></i>
+        </button>
+
+        <button type="button" class="linkbtn" id="back-btn" style="align-self:center;margin-top:2px;">
+          ← Use a different account
+        </button>
+      </form>
+    </div>
+
+    <div class="foot">© Anderson Genetics · Secure sign-in</div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const $ = (id) => document.getElementById(id);
+    let challenge = null;
+    let expiryTimer = null;
+
+    function show(el, text, on = true) {
+      el.textContent = text;
+      el.classList.toggle('show', on && !!text);
+    }
+    function hide(el) { el.classList.remove('show'); }
+
+    function goStep(name) {
+      $('step-credentials').classList.toggle('active', name === 'credentials');
+      $('step-otp').classList.toggle('active', name === 'otp');
+    }
+
+    function startTimer(seconds) {
+      clearInterval(expiryTimer);
+      let left = seconds;
+      const tick = () => {
+        if (left <= 0) {
+          clearInterval(expiryTimer);
+          show($('otp-timer'), 'Code expired — please resend.');
+          return;
+        }
+        const m = String(Math.floor(left / 60)).padStart(1, '0');
+        const s = String(left % 60).padStart(2, '0');
+        $('otp-timer').textContent = `Expires in ${m}:${s}`;
+        left--;
+      };
+      tick();
+      expiryTimer = setInterval(tick, 1000);
+    }
+
+    // Request (or re-request) an OTP using the credentials still in the form.
+    // Re-calling this is exactly how "resend" works — it triggers a fresh code.
+    async function requestOtp() {
+      const r = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: $('mobile').value.trim(), password: $('password').value }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Sign-in failed. Please try again.');
+      challenge = data.challenge;
+      $('otp-target').textContent = data.sent_to || 'your registered number';
+      hide($('otp-error'));
+      if (data.dev_code) show($('otp-info'), `Demo mode — your code is ${data.dev_code}`);
+      else hide($('otp-info'));
+      startTimer(data.expires_in || 300);
+      return data;
+    }
+
+    // ── Step 1: credentials → request OTP ──
+    $('credentials-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hide($('cred-error'));
+      const btn = $('cred-submit');
+      btn.disabled = true;
+      try {
+        await requestOtp();
+        goStep('otp');
+        $('code').focus();
+      } catch (err) {
+        show($('cred-error'), err.message || 'Network error. Please try again.');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ── Step 2: verify OTP ──
+    $('otp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hide($('otp-error'));
+      const btn = $('otp-submit');
+      btn.disabled = true;
+      try {
+        const r = await fetch('/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ challenge, code: $('code').value.trim() }),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          show($('otp-error'), data.error || 'Verification failed.');
+          if (r.status === 400 || r.status === 429) {
+            // challenge gone — send them back to step 1
+            setTimeout(() => { goStep('credentials'); $('password').value = ''; }, 1500);
+          }
+          return;
+        }
+        window.location.href = data.redirect || '/';
+      } catch {
+        show($('otp-error'), 'Network error. Please try again.');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ── Resend — re-run the login call, which triggers a fresh OTP ──
+    $('resend-btn').addEventListener('click', async () => {
+      const btn = $('resend-btn');
+      btn.disabled = true;
+      hide($('otp-error'));
+      try {
+        const data = await requestOtp();
+        if (!data.dev_code) show($('otp-info'), 'A new code has been sent.');
+        $('code').value = '';
+        $('code').focus();
+      } catch (err) {
+        show($('otp-error'), err.message || 'Could not resend the code.');
+      } finally {
+        setTimeout(() => { btn.disabled = false; }, 4000);
+      }
+    });
+
+    // ── Back to credentials ──
+    $('back-btn').addEventListener('click', () => {
+      clearInterval(expiryTimer);
+      challenge = null;
+      $('code').value = '';
+      hide($('otp-error')); hide($('otp-info'));
+      goStep('credentials');
+      $('mobile').focus();
+    });
+  </script>
+</body>
+
+</html>

@@ -1,6 +1,13 @@
-# Anderson Report Tracker - Requirements
+# Anderson Trackings - Requirements
 # Install with: pip install -r requirements.txt
 
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
 gunicorn>=21.2.0
+
+# Loads backend/.env (OTP API settings, session secret). Optional but recommended.
+python-dotenv>=1.0.0
+
+# MySQL driver for the role-mapping store (pure-Python, no build step).
+# Only used when MYSQL_* is set in .env; otherwise the app uses roles.json.
+PyMySQL>=1.1.0

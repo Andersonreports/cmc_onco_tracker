@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anderson Trackings</title>
+  <title>CMC Trackers · Anderson Trackings</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -103,14 +103,45 @@
     .logout-btn:hover { background: rgba(255, 255, 255, 0.22); }
     .logout-btn [data-lucide] { width: 16px; height: 16px; }
 
+    /* === BACK LINK === */
+    .backbar {
+      max-width: 1160px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 22px 32px 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      transition: var(--tr);
+    }
+
+    .back-link:hover {
+      background: rgba(13, 148, 136, 0.10);
+      color: var(--accent-hover);
+    }
+
+    .back-link [data-lucide] {
+      width: 16px;
+      height: 16px;
+    }
+
     /* === HERO === */
     .hero {
       text-align: center;
-      padding: 64px 24px 20px;
+      padding: 24px 24px 8px;
     }
 
     .hero h1 {
-      font-size: clamp(32px, 5vw, 52px);
+      font-size: clamp(30px, 5vw, 46px);
       font-weight: 800;
       letter-spacing: -1px;
       background: linear-gradient(120deg, #0e4f40, #0d9488 60%, #14b8a6);
@@ -132,12 +163,13 @@
     .grid {
       flex: 1;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 28px;
-      max-width: 860px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+      justify-content: center;
+      gap: 24px;
+      max-width: 1160px;
       width: 100%;
       margin: 0 auto;
-      padding: 48px 32px 72px;
+      padding: 40px 32px 72px;
     }
 
     .card {
@@ -145,26 +177,29 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 32px 28px;
+      padding: 28px 26px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      min-height: 240px;
+      min-height: 210px;
       text-decoration: none;
       color: inherit;
       box-shadow: var(--shadow);
       transition: var(--tr);
       overflow: hidden;
+    }
+
+    .card.active {
       cursor: pointer;
     }
 
-    .card:hover {
+    .card.active:hover {
       transform: translateY(-6px);
       border-color: var(--border-strong);
       box-shadow: var(--shadow-lg);
     }
 
-    .card::before {
+    .card.active::before {
       content: "";
       position: absolute;
       inset: 0 0 auto 0;
@@ -173,8 +208,8 @@
     }
 
     .card .icon {
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border-radius: 14px;
       display: grid;
       place-items: center;
@@ -184,12 +219,12 @@
     }
 
     .card .icon [data-lucide] {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
     }
 
     .card h3 {
-      font-size: 22px;
+      font-size: 19px;
       font-weight: 700;
     }
 
@@ -200,25 +235,47 @@
       flex: 1;
     }
 
-    .card .enter {
+    .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       align-self: flex-start;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      color: var(--accent);
-      transition: var(--tr);
+      padding: 5px 12px;
+      border-radius: 999px;
     }
 
-    .card .enter [data-lucide] {
-      width: 16px;
-      height: 16px;
-      transition: var(--tr);
+    .badge [data-lucide] {
+      width: 14px;
+      height: 14px;
     }
 
-    .card:hover .enter [data-lucide] {
-      transform: translateX(4px);
+    .badge.live {
+      background: rgba(22, 163, 74, 0.12);
+      color: #16a34a;
+    }
+
+    .badge.soon {
+      background: rgba(74, 122, 109, 0.12);
+      color: var(--text-muted);
+    }
+
+    /* === PLACEHOLDER CARDS === */
+    .card.placeholder {
+      border-style: dashed;
+      background: rgba(255, 255, 255, 0.55);
+      box-shadow: none;
+    }
+
+    .card.placeholder .icon {
+      background: var(--border);
+      color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .card.placeholder h3 {
+      color: var(--text-muted);
     }
 
     /* === FOOTER === */
@@ -232,6 +289,7 @@
 
     @media (max-width: 600px) {
       .app-header { padding: 0 18px; }
+      .backbar { padding: 18px 18px 0; }
       .grid { padding: 28px 18px 56px; }
     }
   </style>
@@ -239,33 +297,30 @@
 
 <body>
   <header class="app-header">
-    <div class="app-logo"><i data-lucide="activity-square"></i></div>
+    <div class="app-logo"><i data-lucide="microscope"></i></div>
     <div class="brand">Anderson <span>Trackings</span></div>
     <div class="spacer"></div>
     <a class="logout-btn" href="/auth/logout"><i data-lucide="log-out"></i> Sign out</a>
   </header>
 
+  <nav class="backbar">
+    <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
+  </nav>
+
   <section class="hero">
-    <h1>Anderson Trackings</h1>
-    <p>A unified home for Anderson Lab's tracking platforms. Choose a suite below to get started.</p>
+    <h1>CMC Trackers</h1>
+    <p>Wetlab &amp; report tracking for the CMC oncology workflow and related pipelines. Select a tracker to get started.</p>
   </section>
 
   <main class="grid">
-    <!-- CMC Trackers -->
-    <a class="card" href="cmc/">
+    <!-- CMC ONCO Tracker — LIVE -->
+    <a class="card active" href="../cmc-onco/">
       <div class="icon"><i data-lucide="microscope"></i></div>
-      <h3>CMC Trackers</h3>
-      <div class="desc">Wetlab &amp; report tracking for the CMC oncology workflow and related pipelines — samples, runs, and deliverables in one place.</div>
-      <span class="enter">Open CMC Trackers <i data-lucide="arrow-right"></i></span>
+      <h3>CMC ONCO Tracker</h3>
+      <div class="desc">Wetlab &amp; report tracking for the CMC oncology workflow — samples, runs, and deliverables in one place.</div>
+      <span class="badge live"><i data-lucide="circle-dot"></i> Live</span>
     </a>
 
-    <!-- Anderson Trackers -->
-    <a class="card" href="anderson/">
-      <div class="icon"><i data-lucide="layout-grid"></i></div>
-      <h3>Anderson Trackers</h3>
-      <div class="desc">General Anderson Lab tracking platforms — operational dashboards and workflow trackers across the lab.</div>
-      <span class="enter">Open Anderson Trackers <i data-lucide="arrow-right"></i></span>
-    </a>
   </main>
 
   <footer>
@@ -274,6 +329,15 @@
 
   <script>
     lucide.createIcons();
+    // Back button: use real browser-back when we arrived from within the app,
+    // otherwise follow the href to the parent page.
+    document.getElementById('back-link').addEventListener('click', function (e) {
+      const sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
+      if (sameOrigin && history.length > 1) {
+        e.preventDefault();
+        history.back();
+      }
+    });
   </script>
 </body>
 
