@@ -322,8 +322,7 @@
       challenge = data.challenge;
       $('otp-target').textContent = data.sent_to || 'your registered number';
       hide($('otp-error'));
-      if (data.dev_code) show($('otp-info'), `Demo mode — your code is ${data.dev_code}`);
-      else hide($('otp-info'));
+      hide($('otp-info'));
       startTimer(data.expires_in || 300);
       return data;
     }
@@ -380,8 +379,8 @@
       btn.disabled = true;
       hide($('otp-error'));
       try {
-        const data = await requestOtp();
-        if (!data.dev_code) show($('otp-info'), 'A new code has been sent.');
+        await requestOtp();
+        show($('otp-info'), 'A new code has been sent.');
         $('code').value = '';
         $('code').focus();
       } catch (err) {

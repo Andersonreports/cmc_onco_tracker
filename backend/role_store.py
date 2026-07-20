@@ -35,20 +35,13 @@ import db
 
 ROLES_FILE = Path(__file__).parent / "roles.json"
 
-# Demo role mappings, seeded on first run so localhost testing works before IT's
-# real accounts exist. The demo password for all of these is IT_DEMO_PASSWORD
-# (see it_auth.py). Manage real mappings with manage_roles.py.
+
 DEFAULT_ROLES = [
-    {"mobile": "9000000001", "role": "admin"},
+    {"mobile": "7358752950", "role": "admin"},
     {"mobile": "9000000002", "role": "cmc"},
     {"mobile": "9000000003", "role": "anderson"},
 ]
 
-
-# ── Mobile-number normalization ───────────────────────────────
-# Canonical form is the bare 10-digit national number, so the same person's
-# number matches however they type it (with +91, a leading 0, spaces, dashes).
-# Adjust here if IT standardizes on a different format (e.g. E.164 "+91…").
 
 def normalize_mobile(raw: str) -> str:
     digits = re.sub(r"\D", "", raw or "")
@@ -59,15 +52,13 @@ def normalize_mobile(raw: str) -> str:
     return digits
 
 
-# ── Backend selection (resolved once, with graceful fallback) ─
 _backend: str | None = None  # "mysql" | "file"
 
 
 def _print_seed_banner(where: str) -> None:
     print("=" * 62)
-    print(f" role_store: seeded DEMO role mappings in {where}.")
-    print(" Sign in with these mobile numbers + IT_DEMO_PASSWORD (default 'demo').")
-    print(" Manage real mappings with manage_roles.py.")
+    print(f" role_store: seeded initial role mappings in {where}.")
+    print(" Edit them anytime with manage_roles.py (set / delete).")
     for r in DEFAULT_ROLES:
         print(f"   - {r['mobile']:<12} -> {r['role']}")
     print("=" * 62)
@@ -85,7 +76,8 @@ def backend_name() -> str:
                     db.set_role(r["mobile"], r["role"])
                 _print_seed_banner(f"MySQL ({db.DB})")
             _backend = "mysql"
-            print(f"role_store: using MySQL backend ({db.USER}@{db.HOST}/{db.DB}).")
+            print(
+                f"role_store: using MySQL backend ({db.USER}@{db.HOST}/{db.DB}).")
             return _backend
         except Exception as e:
             print("=" * 62)
@@ -100,7 +92,8 @@ def backend_name() -> str:
 
 def _file_load() -> list[dict]:
     if not ROLES_FILE.exists():
-        ROLES_FILE.write_text(json.dumps({"roles": DEFAULT_ROLES}, indent=2), encoding="utf-8")
+        ROLES_FILE.write_text(json.dumps(
+            {"roles": DEFAULT_ROLES}, indent=2), encoding="utf-8")
         _print_seed_banner("backend/roles.json")
     try:
         return json.loads(ROLES_FILE.read_text(encoding="utf-8")).get("roles", [])
@@ -109,7 +102,8 @@ def _file_load() -> list[dict]:
 
 
 def _file_save(rows: list[dict]) -> None:
-    ROLES_FILE.write_text(json.dumps({"roles": rows}, indent=2), encoding="utf-8")
+    ROLES_FILE.write_text(json.dumps(
+        {"roles": rows}, indent=2), encoding="utf-8")
 
 
 # ── Public API ────────────────────────────────────────────────

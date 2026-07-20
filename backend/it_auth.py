@@ -1,40 +1,24 @@
 """
-it_auth.py — adapter for IT's authentication + OTP service (integration.andrsn.in).
+it_auth.py — client for IT's authentication + OTP service (integration.andrsn.in).
 
-IT owns the accounts (mobile numbers, passwords) and the ENTIRE OTP flow. This
-app never sees or stores a password or an OTP code beyond relaying it once.
+IT owns the accounts (mobile numbers, passwords) and the whole OTP flow. This
+app never stores or sees a password or an OTP code beyond relaying it once.
 
-── IT's API (two tiers) ───────────────────────────────────────────────────────
-1. SERVICE auth — this app authenticates ITSELF with a machine account and gets
-   a short-lived Bearer JWT (~15 min), refreshed automatically / on 401:
-       POST {IT_BASE_URL}/auth/login   {username, password}   (no auth header)
-         → {"success": true, "token": "<JWT>", "expiresIn": "15m"}
-           (response shape confirmed live 2026-07-20)
+Two tiers:
+  1. Service auth  — POST /auth/login {username, password} → Bearer JWT (cached,
+     auto-refreshed). This app's own machine account (GENETICS_API_*).
+  2. User auth     — with the Bearer token:
+       POST /genetics/login      {mobile_number, password} → sends OTP, returns `hash`
+       POST /genetics/verify_otp {otp, hash, mobile}
+     Success on both = HTTP 2xx or {"message": "success"}.
 
-2. USER auth — carried out with the service Bearer token in the header:
-       POST {IT_BASE_URL}/genetics/login       {mobile_number, password}
-         → IT verifies the password, sends the OTP by SMS, returns a `hash`
-           (top-level, or nested under "data"); success flagged by 2xx or
-           {"message": "success"}
-       POST {IT_BASE_URL}/genetics/verify_otp  {otp, hash, mobile}
-         → IT checks the code (same success convention)
-   (payload keys + success convention verified against the working
-    Report-Automation client, not just the Postman collection.)
+Public API used by auth.py:
+  is_configured() · login(mobile, password) · verify(reference, code, mobile)
+  · resend(reference, mobile)
 
-We expose three calls to auth.py, hiding both tiers:
-    login(mobile, password)          → {ok, reference(=hash), sent_to} | {ok:False,…}
-    verify(reference, code, mobile)  → {ok} | {ok:False,…}
-    resend(reference, mobile)        → {ok, sent_to} | {ok:False,…}
-
-NOTE: the collection has no resend endpoint, so in real mode resend asks the
-user to sign in again (see resend()). Response field names are best-effort with
-fallbacks — adjust _extract() keys once a real response body is confirmed.
-
-── Demo mode (no GENETICS_API_USERNAME / GENETICS_API_PASSWORD) ────────────────
-For localhost testing: any mobile logs in with IT_DEMO_PASSWORD (default "demo");
-a 6-digit code is generated, verified locally, and shown on the login screen.
-
-No external deps — stdlib only.
+REQUIRES GENETICS_API_USERNAME + GENETICS_API_PASSWORD in backend/.env. Without
+them every call returns a clear "not configured" error (503) — the app never
+falls back to any offline/demo login. Stdlib only.
 """
 
 from __future__ import annotations
@@ -42,7 +26,6 @@ from __future__ import annotations
 import base64
 import json
 import os
-import secrets
 import ssl
 import time
 import urllib.error
@@ -55,9 +38,6 @@ try:
 except Exception:
     pass
 
-# ── Config ────────────────────────────────────────────────────
-# Env var names match the Report-Automation project (the proven client), so the
-# same GENETICS_API_* credentials block works for both apps.
 IT_BASE_URL = os.getenv("GENETICS_API_BASE", "https://integration.andrsn.in").strip().rstrip("/")
 IT_SERVICE_USERNAME = os.getenv("GENETICS_API_USERNAME", "").strip()
 IT_SERVICE_PASSWORD = os.getenv("GENETICS_API_PASSWORD", "")
@@ -66,20 +46,17 @@ IT_LOGIN_PATH = os.getenv("GENETICS_LOGIN_PATH", "/genetics/login").strip()
 IT_VERIFY_PATH = os.getenv("GENETICS_VERIFY_PATH", "/genetics/verify_otp").strip()
 IT_TIMEOUT = int(os.getenv("GENETICS_API_TIMEOUT", "15"))
 
-OTP_TTL_SECS = int(os.getenv("OTP_TTL_SECONDS", "300"))   # demo mode only
-_DEMO_PASSWORD = os.getenv("IT_DEMO_PASSWORD", "demo")
-_DEMO_MAX_TRIES = 5
+_NOT_CONFIGURED = {
+    "ok": False, "status": 503,
+    "error": "The sign-in service is not configured on the server. Contact the administrator.",
+}
 
 
 def is_configured() -> bool:
-    """True when IT's real API is wired up (otherwise demo mode)."""
     return bool(IT_BASE_URL and IT_SERVICE_USERNAME and IT_SERVICE_PASSWORD)
 
 
-# ── small helpers ─────────────────────────────────────────────
-
 def _extract(data: dict | None, *keys: str):
-    """First non-empty value among keys, checking top level then a nested `data`."""
     for src in (data, (data or {}).get("data") if isinstance(data, dict) else None):
         if isinstance(src, dict):
             for k in keys:
@@ -89,7 +66,6 @@ def _extract(data: dict | None, *keys: str):
 
 
 def _jwt_exp(token: str) -> int:
-    """Unix exp claim from a JWT, or 0 if it can't be read."""
     try:
         seg = token.split(".")[1]
         seg += "=" * (-len(seg) % 4)
@@ -102,8 +78,6 @@ def _mask_mobile(mobile: str) -> str:
     digits = "".join(c for c in mobile if c.isdigit())
     return ("••••••" + digits[-4:]) if len(digits) >= 4 else "your registered number"
 
-
-# ── HTTP ──────────────────────────────────────────────────────
 
 def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = True):
     """POST JSON to IT. Returns (status:int, data:dict|None, error:str|None)."""
@@ -124,7 +98,7 @@ def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = Tr
             return resp.status, json.loads(body), None
     except urllib.error.HTTPError as e:
         if e.code == 401 and with_auth and _retry:
-            _service_token(force=True)              # token likely expired — refresh once
+            _service_token(force=True)   # token likely expired — refresh once
             return _request(path, payload, with_auth, _retry=False)
         try:
             data = json.loads(e.read().decode() or "{}")
@@ -136,7 +110,6 @@ def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = Tr
         return 502, None, "Sign-in service unreachable."
 
 
-# ── Service token (cached, auto-refreshed) ────────────────────
 _svc_token: str | None = None
 _svc_exp: float = 0.0
 
@@ -162,43 +135,10 @@ def _service_token(force: bool = False) -> str | None:
     return _svc_token
 
 
-# ── Demo mode state (self-contained; not used when IT is configured) ─
-# reference -> {code, exp, tries}
-_demo: dict[str, dict] = {}
-
-
-def _prune_demo() -> None:
-    now = time.time()
-    for ref in [r for r, v in _demo.items() if v["exp"] < now]:
-        _demo.pop(ref, None)
-
-
-def _demo_issue() -> tuple[str, str]:
-    _prune_demo()
-    reference = secrets.token_urlsafe(18)
-    code = f"{secrets.randbelow(1_000_000):06d}"
-    _demo[reference] = {"code": code, "exp": time.time() + OTP_TTL_SECS, "tries": 0}
-    print(f"[it_auth][demo] code {code} (ref {reference[:8]}…, valid {OTP_TTL_SECS//60} min)")
-    return reference, code
-
-
-# ── Public flow ───────────────────────────────────────────────
-
 def login(mobile: str, password: str) -> dict:
-    """Verify the password with IT and trigger the OTP send.
-
-    Success: {ok: True, reference, sent_to} (+ dev_code in demo mode).
-    Failure: {ok: False, status, error}.
-    """
+    """Verify the password with IT and trigger the OTP send."""
     if not is_configured():
-        if password != _DEMO_PASSWORD:
-            return {"ok": False, "status": 401, "error": "Invalid mobile number or password."}
-        reference, code = _demo_issue()
-        return {"ok": True, "reference": reference, "sent_to": _mask_mobile(mobile), "dev_code": code}
-
-    # NOTE: /genetics/login expects the mobile under "mobile_number" (verified
-    # against the working Report-Automation client). Success is 2xx OR
-    # message=="success"; the OTP handle "hash" may be top-level or under "data".
+        return dict(_NOT_CONFIGURED)
     status, data, err = _request(IT_LOGIN_PATH, {"mobile_number": mobile, "password": password})
     data = data or {}
     if 200 <= status < 300 or data.get("message") == "success":
@@ -217,26 +157,10 @@ def login(mobile: str, password: str) -> dict:
 
 
 def verify(reference: str, code: str, mobile: str = "") -> dict:
-    """Ask IT to check the OTP. Returns {ok} or {ok: False, status, error}."""
+    """Ask IT to check the OTP."""
     if not is_configured():
-        _prune_demo()
-        pending = _demo.get(reference)
-        if not pending:
-            return {"ok": False, "status": 400, "error": "This code has expired. Please sign in again."}
-        pending["tries"] += 1
-        if pending["tries"] > _DEMO_MAX_TRIES:
-            _demo.pop(reference, None)
-            return {"ok": False, "status": 429, "error": "Too many incorrect codes. Please sign in again."}
-        if not secrets.compare_digest(code.strip(), pending["code"]):
-            return {"ok": False, "status": 401, "error": "Incorrect code. Please try again."}
-        _demo.pop(reference, None)
-        return {"ok": True}
-
-    # verify_otp expects the mobile under "mobile" (not "mobile_number").
-    # Success is 2xx OR message=="success", matching the Report-Automation client.
-    status, data, err = _request(
-        IT_VERIFY_PATH, {"otp": code, "hash": reference, "mobile": mobile}
-    )
+        return dict(_NOT_CONFIGURED)
+    status, data, err = _request(IT_VERIFY_PATH, {"otp": code, "hash": reference, "mobile": mobile})
     data = data or {}
     if 200 <= status < 300 or data.get("message") == "success":
         return {"ok": True}
@@ -247,18 +171,8 @@ def verify(reference: str, code: str, mobile: str = "") -> dict:
 
 
 def resend(reference: str, mobile: str = "") -> dict:
-    """Re-send the OTP. Returns {ok, sent_to} or {ok: False, status, error}."""
+    """IT has no resend endpoint; the frontend re-runs login for a fresh OTP."""
     if not is_configured():
-        _prune_demo()
-        if reference not in _demo:
-            return {"ok": False, "status": 400, "error": "Session expired. Please sign in again."}
-        code = f"{secrets.randbelow(1_000_000):06d}"
-        _demo[reference] = {"code": code, "exp": time.time() + OTP_TTL_SECS, "tries": 0}
-        print(f"[it_auth][demo] resent code {code} (ref {reference[:8]}…)")
-        return {"ok": True, "sent_to": _mask_mobile(mobile), "dev_code": code}
-
-    # IT's collection exposes no resend endpoint. Without re-sending the password
-    # we can't re-trigger /genetics/login, so ask the user to start over.
-    # If IT adds a resend endpoint, wire it here.
+        return dict(_NOT_CONFIGURED)
     return {"ok": False, "status": 400,
             "error": "To get a new code, please go back and sign in again."}

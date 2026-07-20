@@ -7,7 +7,7 @@ Ownership split
   • IT owns accounts + the whole OTP flow (verify password, send SMS code,
     check code). This app relays to IT's API via it_auth.py and never stores
     or sees passwords or OTP codes.
-  • This app owns only the role mapping (username → role) via role_store.py.
+  • This app owns only the role mapping (mobile → role) via role_store.py.
 
 Flow
   1. POST /auth/login   {mobile, password}
@@ -60,10 +60,7 @@ SESSION_HOURS = int(os.getenv("AUTH_SESSION_HOURS", "8"))
 # works on http://127.0.0.1 during local use.
 COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "false").strip().lower() == "true"
 
-OTP_TTL_SECS  = int(os.getenv("OTP_TTL_SECONDS", "300"))   # 5 minutes
-# In demo mode (no IT_AUTH_URL) the code is shown on the login screen unless
-# this is explicitly disabled.
-DEV_SHOW_OTP  = os.getenv("AUTH_DEV_SHOW_OTP", "true").strip().lower() != "false"
+OTP_TTL_SECS  = int(os.getenv("OTP_TTL_SECONDS", "300"))   # login/OTP window (5 min)
 
 ROLE_HOME = {
     "admin":    "/",
@@ -96,7 +93,7 @@ SECRET = _load_secret()
 
 
 # ── Pending login challenges ──────────────────────────────────
-# challenge_id -> {username, role, reference, exp, tries}
+# challenge_id -> {mobile, role, reference, exp, tries}
 # `reference` is IT's opaque handle for the OTP; we carry it to /verify + /resend.
 _pending: dict[str, dict] = {}
 _OTP_MAX_TRIES = 5
@@ -213,17 +210,12 @@ def login(body: LoginBody, request: Request):
     # IT owns credentials + OTP: verify the password and send the code.
     result = it_auth.login(mobile, body.password)
     if not result.get("ok"):
-        _record_fail(ip)
         status = int(result.get("status", 401))
-        # Map IT's outage to a clean message; keep credential errors generic.
-        if status >= 500:
-            return JSONResponse(
-                {"error": "Could not reach the sign-in service. Please try again."},
-                status_code=502,
-            )
+        if status < 500:                       # count only credential failures
+            _record_fail(ip)
         return JSONResponse(
-            {"error": result.get("error", "Invalid username or password.")},
-            status_code=401,
+            {"error": result.get("error", "Sign-in failed. Please try again.")},
+            status_code=status,
         )
 
     _fail_counts[ip] = 0
@@ -238,16 +230,11 @@ def login(body: LoginBody, request: Request):
         "tries": 0,
     }
 
-    resp = {
+    return JSONResponse({
         "challenge": challenge,
         "sent_to": result.get("sent_to", "your registered number"),
         "expires_in": OTP_TTL_SECS,
-        "demo": not it_auth.is_configured(),
-    }
-    # On localhost/demo, surface the code so it can be tested without a phone.
-    if not it_auth.is_configured() and DEV_SHOW_OTP and result.get("dev_code"):
-        resp["dev_code"] = result["dev_code"]
-    return JSONResponse(resp)
+    })
 
 
 @router.post("/verify")
@@ -301,10 +288,7 @@ def resend(body: ChallengeBody):
         )
     pending["exp"] = time.time() + OTP_TTL_SECS
     pending["tries"] = 0
-    out = {"ok": True, "sent_to": result.get("sent_to", "your registered number")}
-    if not it_auth.is_configured() and DEV_SHOW_OTP and result.get("dev_code"):
-        out["dev_code"] = result["dev_code"]
-    return JSONResponse(out)
+    return JSONResponse({"ok": True, "sent_to": result.get("sent_to", "your registered number")})
 
 
 @router.get("/me")
