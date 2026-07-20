@@ -1,26 +1,3 @@
-"""
-backend.py
-───────────────────────────────────────────────────────────────
-Anderson Trackings server.
-
-Serves the frontend with role-based access control:
-
-  Public
-    GET /login          → sign-in page (id + password + OTP)
-    /auth/*             → auth API (see auth.py)
-    non-HTML assets     → images / js / css served statically
-
-  Authenticated (role-gated)
-    GET /               → admin only  → suite-picker landing.
-                          cmc  → redirected to /cmc/
-                          anderson → redirected to /anderson/
-    GET /cmc/           → admin + cmc        → CMC trackers page
-    GET /cmc-onco/      → admin + cmc        → CMC ONCO tracker app
-    GET /anderson/      → admin + anderson   → Anderson trackers page
-
-Anyone not signed in is redirected to /login. A signed-in user who requests a
-page outside their role is sent back to their own home page.
-"""
 
 from pathlib import Path
 
@@ -29,11 +6,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from auth import router as auth_router, read_session, ROLE_HOME
+from admin_api import router as admin_router
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 app = FastAPI(title="Anderson Trackings")
 app.include_router(auth_router)
+app.include_router(admin_router)
 
 
 @app.get("/health")
@@ -44,11 +23,11 @@ def health():
 # ── Helpers ───────────────────────────────────────────────────
 
 def _serve(rel_path: str) -> HTMLResponse:
-    # no-store: these pages are auth-gated and must never be cached by the
-    # browser (prevents stale pages and back/forward showing gated content).
+
     return HTMLResponse(
         (FRONTEND_DIR / rel_path).read_text(encoding="utf-8"),
-        headers={"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"},
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate",
+                 "Pragma": "no-cache"},
     )
 
 
@@ -65,7 +44,7 @@ def _home_for(role: str) -> RedirectResponse:
 @app.get("/login", response_class=HTMLResponse)
 def login_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
-    if sess:  # already signed in → go to your home
+    if sess:
         return _home_for(sess["role"])
     return _serve("login.html")
 
@@ -78,8 +57,25 @@ def landing(anderson_session: str | None = Cookie(default=None)):
     if not sess:
         return _to_login()
     if sess["role"] == "admin":
-        return _serve("index.html")
-    return _home_for(sess["role"])  # cmc/anderson → their own suite
+        return _serve("landing.html")
+    return _home_for(sess["role"])
+
+
+# ── Admin: user management dashboard (admin only) ─────────────
+
+@app.get("/admin", include_in_schema=False)
+def admin_slash():
+    return RedirectResponse("/admin/")
+
+
+@app.get("/admin/", response_class=HTMLResponse)
+def admin_page(anderson_session: str | None = Cookie(default=None)):
+    sess = read_session(anderson_session)
+    if not sess:
+        return _to_login()
+    if sess["role"] == "admin":
+        return _serve("admin.html")
+    return _home_for(sess["role"])
 
 
 # ── CMC suite (admin + cmc) ───────────────────────────────────
@@ -95,7 +91,7 @@ def cmc_page(anderson_session: str | None = Cookie(default=None)):
     if not sess:
         return _to_login()
     if sess["role"] in ("admin", "cmc"):
-        return _serve("cmc/index.html")
+        return _serve("cmc.html")
     return _home_for(sess["role"])
 
 
@@ -110,7 +106,7 @@ def cmc_onco_page(anderson_session: str | None = Cookie(default=None)):
     if not sess:
         return _to_login()
     if sess["role"] in ("admin", "cmc"):
-        return _serve("cmc-onco/index.html")
+        return _serve("cmc-onco.html")
     return _home_for(sess["role"])
 
 
@@ -127,14 +123,10 @@ def anderson_page(anderson_session: str | None = Cookie(default=None)):
     if not sess:
         return _to_login()
     if sess["role"] in ("admin", "anderson"):
-        return _serve("anderson/index.html")
+        return _serve("anderson.html")
     return _home_for(sess["role"])
 
 
-# ── Static assets — non-HTML only ─────────────────────────────
-# HTML is served exclusively through the role-gated routes above; this mount
-# (registered last, so it's a fallback) blocks .html so pages can't be fetched
-# directly to bypass auth, while images / js / css load normally.
 class AssetFiles(StaticFiles):
     async def get_response(self, path, scope):
         if path.lower().endswith((".html", ".htm")) or path in ("", "."):

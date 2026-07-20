@@ -36,10 +36,10 @@ import db
 ROLES_FILE = Path(__file__).parent / "roles.json"
 
 
+# Seeded on first run only, to bootstrap the first admin so the dashboard is
+# reachable. Everyone else is added from the admin dashboard / manage_roles.py.
 DEFAULT_ROLES = [
-    {"mobile": "7358752950", "role": "admin"},
-    {"mobile": "9000000002", "role": "cmc"},
-    {"mobile": "9000000003", "role": "anderson"},
+    {"mobile": "7358752950", "name": "Admin", "role": "admin"},
 ]
 
 
@@ -73,7 +73,7 @@ def backend_name() -> str:
             db.init_schema()
             if db.count_roles() == 0:
                 for r in DEFAULT_ROLES:
-                    db.set_role(r["mobile"], r["role"])
+                    db.set_role(r["mobile"], r["role"], r.get("name"))
                 _print_seed_banner(f"MySQL ({db.DB})")
             _backend = "mysql"
             print(
@@ -115,7 +115,7 @@ def all() -> list[dict]:
 
 
 def get(mobile: str) -> dict | None:
-    """Return {mobile, role} for the given mobile number, or None if unmapped."""
+    """Return {mobile, name, role} for the given mobile number, or None."""
     key = normalize_mobile(mobile)
     if backend_name() == "mysql":
         return db.get_role(key)
@@ -125,19 +125,24 @@ def get(mobile: str) -> dict | None:
     return None
 
 
-def set_role(mobile: str, role: str) -> None:
-    """Create the mapping, or update the role if the mobile already exists."""
+def set_role(mobile: str, role: str, name: str | None = None) -> None:
+    """Create the mapping, or update role/name if the mobile already exists.
+
+    A None `name` leaves any existing name untouched.
+    """
     key = normalize_mobile(mobile)
     if backend_name() == "mysql":
-        db.set_role(key, role)
+        db.set_role(key, role, name)
         return
     rows = _file_load()
     for r in rows:
         if normalize_mobile(r["mobile"]) == key:
             r["role"] = role
+            if name is not None:
+                r["name"] = name
             _file_save(rows)
             return
-    rows.append({"mobile": key, "role": role})
+    rows.append({"mobile": key, "name": name or "", "role": role})
     _file_save(rows)
 
 

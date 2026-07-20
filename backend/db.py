@@ -1,9 +1,10 @@
 """
-db.py — MySQL storage layer for the role mapping (mobile → role).
+db.py — MySQL storage layer for the role mapping (mobile → role, with name).
 
 This table is the ONLY account data this app owns. Identity (passwords, the
 accounts themselves) and the OTP flow are owned by IT's auth API — see
-it_auth.py. Here we only record which role a mobile number is allowed to use.
+it_auth.py. Here we only record which role a mobile number is allowed to use
+(plus a display name shown on the admin dashboard).
 
 Enabled only when MySQL settings are present in backend/.env:
 
@@ -66,6 +67,7 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS user_roles (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     mobile     VARCHAR(32) UNIQUE NOT NULL,
+    name       VARCHAR(191),
     role       VARCHAR(32) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -77,6 +79,14 @@ def init_schema() -> None:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(_SCHEMA)
+            # Migration: add `name` to tables created before this column existed.
+            cur.execute(
+                "SELECT COUNT(*) AS n FROM information_schema.columns "
+                "WHERE table_schema=%s AND table_name='user_roles' AND column_name='name'",
+                (DB,),
+            )
+            if cur.fetchone()["n"] == 0:
+                cur.execute("ALTER TABLE user_roles ADD COLUMN name VARCHAR(191) AFTER mobile")
 
 
 def count_roles() -> int:
@@ -89,7 +99,7 @@ def count_roles() -> int:
 def list_roles() -> list[dict]:
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT mobile, role FROM user_roles ORDER BY mobile")
+            cur.execute("SELECT mobile, name, role FROM user_roles ORDER BY name, mobile")
             return list(cur.fetchall())
 
 
@@ -97,20 +107,24 @@ def get_role(mobile: str) -> dict | None:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT mobile, role FROM user_roles WHERE mobile=%s",
+                "SELECT mobile, name, role FROM user_roles WHERE mobile=%s",
                 (mobile,),
             )
             return cur.fetchone()
 
 
-def set_role(mobile: str, role: str) -> None:
-    """Insert the mapping, or update the role if the mobile already exists."""
+def set_role(mobile: str, role: str, name: str | None = None) -> None:
+    """Insert the mapping, or update role/name if the mobile already exists.
+
+    A NULL `name` on update keeps the existing name (so callers that don't
+    manage names — e.g. the CLI's plain `set` — don't wipe it).
+    """
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO user_roles (mobile, role) VALUES (%s, %s) "
-                "ON DUPLICATE KEY UPDATE role=VALUES(role)",
-                (mobile, role),
+                "INSERT INTO user_roles (mobile, name, role) VALUES (%s, %s, %s) "
+                "ON DUPLICATE KEY UPDATE role=VALUES(role), name=COALESCE(VALUES(name), name)",
+                (mobile, name, role),
             )
 
 

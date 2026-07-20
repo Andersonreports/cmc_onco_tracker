@@ -8,7 +8,7 @@ if configured in .env, otherwise backend/roles.json). Run from the backend/
 folder with the venv active:
 
   python manage_roles.py list
-  python manage_roles.py set <mobile> <role>     # add or change a mapping
+  python manage_roles.py set <mobile> <role> [name...]   # add or change a mapping
   python manage_roles.py delete <mobile>
 
 Mobile numbers are normalized (+91 / leading 0 / spaces are stripped), so any
@@ -33,23 +33,24 @@ def cmd_list(_):
     if not rows:
         print("No role mappings yet.")
         return
-    print(f"{'MOBILE':<16}{'ROLE'}")
-    print("-" * 28)
+    print(f"{'MOBILE':<16}{'ROLE':<12}{'NAME'}")
+    print("-" * 44)
     for r in rows:
-        print(f"{r['mobile']:<16}{r['role']}")
+        print(f"{r['mobile']:<16}{r['role']:<12}{r.get('name') or ''}")
 
 
 def cmd_set(args):
     mobile, role = args[0], args[1]
+    name = " ".join(args[2:]).strip() or None
     if role not in ROLES:
         sys.exit(f"Invalid role '{role}'. Choose one of: {', '.join(sorted(ROLES))}")
     key = role_store.normalize_mobile(mobile)
     if not key:
         sys.exit(f"Invalid mobile number: {mobile}")
     existed = role_store.get(key) is not None
-    role_store.set_role(key, role)
+    role_store.set_role(key, role, name)
     verb = "Updated" if existed else "Added"
-    print(f"{verb} {key} -> {role}.")
+    print(f"{verb} {key} -> {role}" + (f" ({name})" if name else "") + ".")
 
 
 def cmd_delete(args):
