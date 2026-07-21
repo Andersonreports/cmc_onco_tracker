@@ -20,7 +20,7 @@ HOST = os.getenv("MYSQL_HOST", "").strip()
 PORT = int(os.getenv("MYSQL_PORT", "3306"))
 USER = os.getenv("MYSQL_USER", "").strip()
 PASSWORD = os.getenv("MYSQL_PASSWORD", "")
-DB = os.getenv("MYSQL_DB", "").strip()
+DB = os.getenv("MYSQL_DATABASE", "").strip()
 
 
 def is_configured() -> bool:
