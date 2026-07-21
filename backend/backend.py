@@ -20,10 +20,7 @@ def health():
     return {"status": "Anderson Trackings running"}
 
 
-# ── Helpers ───────────────────────────────────────────────────
-
 def _serve(rel_path: str) -> HTMLResponse:
-
     return HTMLResponse(
         (FRONTEND_DIR / rel_path).read_text(encoding="utf-8"),
         headers={"Cache-Control": "no-store, no-cache, must-revalidate",
@@ -39,8 +36,6 @@ def _home_for(role: str) -> RedirectResponse:
     return RedirectResponse(ROLE_HOME.get(role, "/login"))
 
 
-# ── Login page (public) ───────────────────────────────────────
-
 @app.get("/login", response_class=HTMLResponse)
 def login_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
@@ -48,8 +43,6 @@ def login_page(anderson_session: str | None = Cookie(default=None)):
         return _home_for(sess["role"])
     return _serve("login.html")
 
-
-# ── Landing (admin only) ──────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
 def landing(anderson_session: str | None = Cookie(default=None)):
@@ -60,8 +53,6 @@ def landing(anderson_session: str | None = Cookie(default=None)):
         return _serve("landing.html")
     return _home_for(sess["role"])
 
-
-# ── Admin: user management dashboard (admin only) ─────────────
 
 @app.get("/admin", include_in_schema=False)
 def admin_slash():
@@ -77,8 +68,6 @@ def admin_page(anderson_session: str | None = Cookie(default=None)):
         return _serve("admin.html")
     return _home_for(sess["role"])
 
-
-# ── CMC suite (admin + cmc) ───────────────────────────────────
 
 @app.get("/cmc", include_in_schema=False)
 def cmc_slash():
@@ -109,8 +98,6 @@ def cmc_onco_page(anderson_session: str | None = Cookie(default=None)):
         return _serve("cmc-onco.html")
     return _home_for(sess["role"])
 
-
-# ── Anderson suite (admin + anderson) ─────────────────────────
 
 @app.get("/anderson", include_in_schema=False)
 def anderson_slash():

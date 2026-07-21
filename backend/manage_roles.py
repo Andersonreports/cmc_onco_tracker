@@ -1,30 +1,17 @@
-"""
-manage_roles.py — manage the Anderson Trackings role mapping (mobile → role).
-
-Accounts (passwords, the accounts themselves) are owned by IT's auth API; this
-tool only manages which role each mobile number is allowed to use. Users sign
-in with their mobile number. Works against whichever backend is active (MySQL
-if configured in .env, otherwise backend/roles.json). Run from the backend/
-folder with the venv active:
-
-  python manage_roles.py list
-  python manage_roles.py set <mobile> <role> [name...]   # add or change a mapping
-  python manage_roles.py delete <mobile>
-
-Mobile numbers are normalized (+91 / leading 0 / spaces are stripped), so any
-format that resolves to the same 10-digit number is treated as one account.
-
-Roles: admin | cmc | anderson
-  admin    → sees the suite-picker landing (both suites)
-  cmc      → CMC trackers only
-  anderson → Anderson trackers only
-"""
-
 import sys
 
 import role_store
 
 ROLES = {"admin", "cmc", "anderson"}
+
+USAGE = """\
+Usage:
+  python manage_roles.py list
+  python manage_roles.py set <mobile> <role> [name...]
+  python manage_roles.py delete <mobile>
+
+Roles: admin | cmc | anderson
+"""
 
 
 def cmd_list(_):
@@ -68,7 +55,7 @@ COMMANDS = {
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in COMMANDS:
-        print(__doc__)
+        print(USAGE)
         sys.exit(1)
     fn, min_args = COMMANDS[sys.argv[1]]
     args = sys.argv[2:]

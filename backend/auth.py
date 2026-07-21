@@ -1,35 +1,3 @@
-"""
-auth.py
-───────────────────────────────────────────────────────────────
-Role-based authentication for Anderson Trackings.
-
-Ownership split
-  • IT owns accounts + the whole OTP flow (verify password, send SMS code,
-    check code). This app relays to IT's API via it_auth.py and never stores
-    or sees passwords or OTP codes.
-  • This app owns only the role mapping (mobile → role) via role_store.py.
-
-Flow
-  1. POST /auth/login   {mobile, password}
-       → looks up the mobile number's role locally (DENY if none),
-         asks IT to verify the password + send the OTP by message,
-         returns a `challenge`.
-  2. POST /auth/verify  {challenge, code}
-       → asks IT to check the OTP; on success issues an HttpOnly signed
-         session cookie and returns the role-specific landing URL.
-  3. POST /auth/resend  {challenge}      → asks IT to re-send the code.
-  4. POST /auth/logout  (or GET)         → clears the session cookie.
-  5. GET  /auth/me                       → { authenticated, role }.
-
-Roles & landing pages
-  admin    → "/"          (the suite-picker landing, admin only)
-  cmc      → "/cmc/"      (CMC trackers)
-  anderson → "/anderson/" (Anderson trackers)
-
-No external crypto dependencies — session-token signing (HMAC-SHA256) uses the
-Python standard library. Password checking and OTP delivery live in IT's API.
-"""
-
 from __future__ import annotations
 
 import base64
@@ -51,16 +19,13 @@ try:
 except Exception:
     pass
 
-# ── Config ────────────────────────────────────────────────────
 BASE_DIR      = Path(__file__).parent
 SECRET_FILE   = BASE_DIR / ".auth_secret"
 COOKIE_NAME   = "anderson_session"
 SESSION_HOURS = int(os.getenv("AUTH_SESSION_HOURS", "8"))
-# Set AUTH_COOKIE_SECURE=true when served over real HTTPS. Default false so it
-# works on http://127.0.0.1 during local use.
 COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "false").strip().lower() == "true"
 
-OTP_TTL_SECS  = int(os.getenv("OTP_TTL_SECONDS", "300"))   # login/OTP window (5 min)
+OTP_TTL_SECS  = int(os.getenv("OTP_TTL_SECONDS", "300"))
 
 ROLE_HOME = {
     "admin":    "/",
@@ -68,12 +33,9 @@ ROLE_HOME = {
     "anderson": "/anderson/",
 }
 
-# Accounts + OTP belong to IT (it_auth); roles belong to us (role_store).
 import it_auth
 import role_store
 
-
-# ── Session-signing secret (persisted so restarts don't log everyone out) ──
 
 def _load_secret() -> str:
     env_secret = os.getenv("AUTH_SECRET", "").strip()
@@ -92,9 +54,6 @@ def _load_secret() -> str:
 SECRET = _load_secret()
 
 
-# ── Pending login challenges ──────────────────────────────────
-# challenge_id -> {mobile, role, reference, exp, tries}
-# `reference` is IT's opaque handle for the OTP; we carry it to /verify + /resend.
 _pending: dict[str, dict] = {}
 _OTP_MAX_TRIES = 5
 
@@ -105,8 +64,6 @@ def _prune_pending() -> None:
         _pending.pop(cid, None)
 
 
-# ── Session token helpers ─────────────────────────────────────
-
 def _sign_session(username: str, role: str) -> str:
     payload = {"sub": username, "role": role, "exp": int(time.time()) + SESSION_HOURS * 3600}
     body = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=")
@@ -116,7 +73,6 @@ def _sign_session(username: str, role: str) -> str:
 
 
 def read_session(token: str | None) -> dict | None:
-    """Return {sub, role} for a valid, unexpired session cookie, else None."""
     if not token or "." not in token:
         return None
     try:
@@ -145,7 +101,6 @@ def _set_session_cookie(response, token: str) -> None:
     )
 
 
-# ── Simple per-IP brute-force limiter ─────────────────────────
 _fail_counts: dict[str, int] = {}
 _fail_times: dict[str, float] = {}
 _MAX_FAILS = 8
@@ -165,7 +120,6 @@ def _record_fail(ip: str) -> None:
     _fail_times[ip] = time.time()
 
 
-# ── Router ────────────────────────────────────────────────────
 router = APIRouter(prefix="/auth")
 
 
@@ -197,8 +151,6 @@ def login(body: LoginBody, request: Request):
         _record_fail(ip)
         return JSONResponse({"error": "Enter a valid mobile number."}, status_code=400)
 
-    # We own authorization: no role mapping → no access, and we don't even bother
-    # IT (or send an OTP) for someone who couldn't get in anyway.
     mapping = role_store.get(mobile)
     if not mapping:
         _record_fail(ip)
@@ -207,11 +159,10 @@ def login(body: LoginBody, request: Request):
             status_code=403,
         )
 
-    # IT owns credentials + OTP: verify the password and send the code.
     result = it_auth.login(mobile, body.password)
     if not result.get("ok"):
         status = int(result.get("status", 401))
-        if status < 500:                       # count only credential failures
+        if status < 500:
             _record_fail(ip)
         return JSONResponse(
             {"error": result.get("error", "Sign-in failed. Please try again.")},
@@ -256,7 +207,6 @@ def verify(body: VerifyBody):
     result = it_auth.verify(pending["reference"], body.code, pending["mobile"])
     if not result.get("ok"):
         status = int(result.get("status", 401))
-        # A dead/expired reference means the whole attempt must restart.
         if status == 400:
             _pending.pop(body.challenge, None)
         return JSONResponse(

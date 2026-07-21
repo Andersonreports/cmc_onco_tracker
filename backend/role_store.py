@@ -1,22 +1,3 @@
-"""
-role_store.py — single source of truth for the role mapping (mobile → role).
-
-This is the ONLY account data this app owns. Identity (passwords, the accounts
-themselves) and the whole OTP flow belong to IT's auth API (see it_auth.py).
-Here we only decide which suite a mobile number is allowed to see.
-
-Users sign in with their mobile number, so mappings are keyed by the number.
-Numbers are normalized (see normalize_mobile) so "+91 98765 43210",
-"09876543210" and "9876543210" all resolve to the same key.
-
-Chooses its backend automatically:
-  • MySQL   — when MySQL settings are present in .env AND reachable (see db.py)
-  • file    — otherwise, backend/roles.json (zero-setup local default)
-
-Either way it exposes the same small API used by auth.py and manage_roles.py:
-  get(mobile) · all() · set_role(mobile, role) · delete(mobile)
-  · normalize_mobile(raw) · backend_name()
-"""
 
 from __future__ import annotations
 
@@ -35,9 +16,6 @@ import db
 
 ROLES_FILE = Path(__file__).parent / "roles.json"
 
-
-# Seeded on first run only, to bootstrap the first admin so the dashboard is
-# reachable. Everyone else is added from the admin dashboard / manage_roles.py.
 DEFAULT_ROLES = [
     {"mobile": "7358752950", "name": "Admin", "role": "admin"},
 ]
@@ -45,14 +23,14 @@ DEFAULT_ROLES = [
 
 def normalize_mobile(raw: str) -> str:
     digits = re.sub(r"\D", "", raw or "")
-    if len(digits) == 12 and digits.startswith("91"):   # +91XXXXXXXXXX
+    if len(digits) == 12 and digits.startswith("91"):
         digits = digits[2:]
-    elif len(digits) == 11 and digits.startswith("0"):  # 0XXXXXXXXXX
+    elif len(digits) == 11 and digits.startswith("0"):
         digits = digits[1:]
     return digits
 
 
-_backend: str | None = None  # "mysql" | "file"
+_backend: str | None = None
 
 
 def _print_seed_banner(where: str) -> None:
@@ -88,8 +66,6 @@ def backend_name() -> str:
     return _backend
 
 
-# ── File backend helpers ──────────────────────────────────────
-
 def _file_load() -> list[dict]:
     if not ROLES_FILE.exists():
         ROLES_FILE.write_text(json.dumps(
@@ -106,8 +82,6 @@ def _file_save(rows: list[dict]) -> None:
         {"roles": rows}, indent=2), encoding="utf-8")
 
 
-# ── Public API ────────────────────────────────────────────────
-
 def all() -> list[dict]:
     if backend_name() == "mysql":
         return db.list_roles()
@@ -115,7 +89,6 @@ def all() -> list[dict]:
 
 
 def get(mobile: str) -> dict | None:
-    """Return {mobile, name, role} for the given mobile number, or None."""
     key = normalize_mobile(mobile)
     if backend_name() == "mysql":
         return db.get_role(key)
@@ -126,10 +99,6 @@ def get(mobile: str) -> dict | None:
 
 
 def set_role(mobile: str, role: str, name: str | None = None) -> None:
-    """Create the mapping, or update role/name if the mobile already exists.
-
-    A None `name` leaves any existing name untouched.
-    """
     key = normalize_mobile(mobile)
     if backend_name() == "mysql":
         db.set_role(key, role, name)

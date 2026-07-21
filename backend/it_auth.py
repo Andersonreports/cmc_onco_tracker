@@ -1,26 +1,3 @@
-"""
-it_auth.py — client for IT's authentication + OTP service (integration.andrsn.in).
-
-IT owns the accounts (mobile numbers, passwords) and the whole OTP flow. This
-app never stores or sees a password or an OTP code beyond relaying it once.
-
-Two tiers:
-  1. Service auth  — POST /auth/login {username, password} → Bearer JWT (cached,
-     auto-refreshed). This app's own machine account (GENETICS_API_*).
-  2. User auth     — with the Bearer token:
-       POST /genetics/login      {mobile_number, password} → sends OTP, returns `hash`
-       POST /genetics/verify_otp {otp, hash, mobile}
-     Success on both = HTTP 2xx or {"message": "success"}.
-
-Public API used by auth.py:
-  is_configured() · login(mobile, password) · verify(reference, code, mobile)
-  · resend(reference, mobile)
-
-REQUIRES GENETICS_API_USERNAME + GENETICS_API_PASSWORD in backend/.env. Without
-them every call returns a clear "not configured" error (503) — the app never
-falls back to any offline/demo login. Stdlib only.
-"""
-
 from __future__ import annotations
 
 import base64
@@ -38,12 +15,14 @@ try:
 except Exception:
     pass
 
-IT_BASE_URL = os.getenv("GENETICS_API_BASE", "https://integration.andrsn.in").strip().rstrip("/")
+IT_BASE_URL = os.getenv("GENETICS_API_BASE",
+                        "https://integration.andrsn.in").strip().rstrip("/")
 IT_SERVICE_USERNAME = os.getenv("GENETICS_API_USERNAME", "").strip()
 IT_SERVICE_PASSWORD = os.getenv("GENETICS_API_PASSWORD", "")
 IT_TOKEN_PATH = os.getenv("GENETICS_TOKEN_PATH", "/auth/login").strip()
 IT_LOGIN_PATH = os.getenv("GENETICS_LOGIN_PATH", "/genetics/login").strip()
-IT_VERIFY_PATH = os.getenv("GENETICS_VERIFY_PATH", "/genetics/verify_otp").strip()
+IT_VERIFY_PATH = os.getenv("GENETICS_VERIFY_PATH",
+                           "/genetics/verify_otp").strip()
 IT_TIMEOUT = int(os.getenv("GENETICS_API_TIMEOUT", "15"))
 
 _NOT_CONFIGURED = {
@@ -80,7 +59,6 @@ def _mask_mobile(mobile: str) -> str:
 
 
 def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = True):
-    """POST JSON to IT. Returns (status:int, data:dict|None, error:str|None)."""
     url = f"{IT_BASE_URL}{path}"
     headers = {"Content-Type": "application/json"}
     if with_auth:
@@ -98,7 +76,7 @@ def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = Tr
             return resp.status, json.loads(body), None
     except urllib.error.HTTPError as e:
         if e.code == 401 and with_auth and _retry:
-            _service_token(force=True)   # token likely expired — refresh once
+            _service_token(force=True)
             return _request(path, payload, with_auth, _retry=False)
         try:
             data = json.loads(e.read().decode() or "{}")
@@ -126,9 +104,11 @@ def _service_token(force: bool = False) -> str | None:
     if status != 200 or not data:
         print(f"[it_auth] service login failed ({status}): {err}")
         return None
-    token = _extract(data, "token", "access_token", "jwt", "accessToken", "bearer")
+    token = _extract(data, "token", "access_token",
+                     "jwt", "accessToken", "bearer")
     if not token:
-        print(f"[it_auth] service login: no token in response keys {list(data)}")
+        print(
+            f"[it_auth] service login: no token in response keys {list(data)}")
         return None
     _svc_token = token
     _svc_exp = _jwt_exp(token) or (time.time() + 600)
@@ -136,16 +116,17 @@ def _service_token(force: bool = False) -> str | None:
 
 
 def login(mobile: str, password: str) -> dict:
-    """Verify the password with IT and trigger the OTP send."""
     if not is_configured():
         return dict(_NOT_CONFIGURED)
-    status, data, err = _request(IT_LOGIN_PATH, {"mobile_number": mobile, "password": password})
+    status, data, err = _request(
+        IT_LOGIN_PATH, {"mobile_number": mobile, "password": password})
     data = data or {}
     if 200 <= status < 300 or data.get("message") == "success":
         reference = data.get("hash")
         if not reference:
             nested = data.get("data")
-            reference = nested if isinstance(nested, str) else (nested or {}).get("hash")
+            reference = nested if isinstance(
+                nested, str) else (nested or {}).get("hash")
         if reference:
             return {"ok": True, "reference": reference, "sent_to": _mask_mobile(mobile)}
         return {"ok": False, "status": 502,
@@ -157,10 +138,10 @@ def login(mobile: str, password: str) -> dict:
 
 
 def verify(reference: str, code: str, mobile: str = "") -> dict:
-    """Ask IT to check the OTP."""
     if not is_configured():
         return dict(_NOT_CONFIGURED)
-    status, data, err = _request(IT_VERIFY_PATH, {"otp": code, "hash": reference, "mobile": mobile})
+    status, data, err = _request(
+        IT_VERIFY_PATH, {"otp": code, "hash": reference, "mobile": mobile})
     data = data or {}
     if 200 <= status < 300 or data.get("message") == "success":
         return {"ok": True}
@@ -171,7 +152,6 @@ def verify(reference: str, code: str, mobile: str = "") -> dict:
 
 
 def resend(reference: str, mobile: str = "") -> dict:
-    """IT has no resend endpoint; the frontend re-runs login for a fresh OTP."""
     if not is_configured():
         return dict(_NOT_CONFIGURED)
     return {"ok": False, "status": 400,
