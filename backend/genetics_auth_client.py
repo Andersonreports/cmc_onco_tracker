@@ -15,15 +15,15 @@ try:
 except Exception:
     pass
 
-IT_BASE_URL = os.getenv("GENETICS_API_BASE",
+GENETICS_BASE_URL = os.getenv("GENETICS_API_BASE",
                         "https://integration.andrsn.in").strip().rstrip("/")
-IT_SERVICE_USERNAME = os.getenv("GENETICS_API_USERNAME", "").strip()
-IT_SERVICE_PASSWORD = os.getenv("GENETICS_API_PASSWORD", "")
-IT_TOKEN_PATH = os.getenv("GENETICS_TOKEN_PATH", "/auth/login").strip()
-IT_LOGIN_PATH = os.getenv("GENETICS_LOGIN_PATH", "/genetics/login").strip()
-IT_VERIFY_PATH = os.getenv("GENETICS_VERIFY_PATH",
+GENETICS_SERVICE_USERNAME = os.getenv("GENETICS_API_USERNAME", "").strip()
+GENETICS_SERVICE_PASSWORD = os.getenv("GENETICS_API_PASSWORD", "")
+GENETICS_TOKEN_PATH = os.getenv("GENETICS_TOKEN_PATH", "/auth/login").strip()
+GENETICS_LOGIN_PATH = os.getenv("GENETICS_LOGIN_PATH", "/genetics/login").strip()
+GENETICS_VERIFY_PATH = os.getenv("GENETICS_VERIFY_PATH",
                            "/genetics/verify_otp").strip()
-IT_TIMEOUT = int(os.getenv("GENETICS_API_TIMEOUT", "15"))
+GENETICS_TIMEOUT = int(os.getenv("GENETICS_API_TIMEOUT", "15"))
 
 _NOT_CONFIGURED = {
     "ok": False, "status": 503,
@@ -32,7 +32,7 @@ _NOT_CONFIGURED = {
 
 
 def is_configured() -> bool:
-    return bool(IT_BASE_URL and IT_SERVICE_USERNAME and IT_SERVICE_PASSWORD)
+    return bool(GENETICS_BASE_URL and GENETICS_SERVICE_USERNAME and GENETICS_SERVICE_PASSWORD)
 
 
 def _extract(data: dict | None, *keys: str):
@@ -59,7 +59,7 @@ def _mask_mobile(mobile: str) -> str:
 
 
 def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = True):
-    url = f"{IT_BASE_URL}{path}"
+    url = f"{GENETICS_BASE_URL}{path}"
     headers = {"Content-Type": "application/json"}
     if with_auth:
         token = _service_token()
@@ -71,7 +71,7 @@ def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = Tr
             url, data=json.dumps(payload).encode(), headers=headers, method="POST"
         )
         ctx = ssl.create_default_context()
-        with urllib.request.urlopen(req, timeout=IT_TIMEOUT, context=ctx) as resp:
+        with urllib.request.urlopen(req, timeout=GENETICS_TIMEOUT, context=ctx) as resp:
             body = resp.read().decode() or "{}"
             return resp.status, json.loads(body), None
     except urllib.error.HTTPError as e:
@@ -84,7 +84,7 @@ def _request(path: str, payload: dict, with_auth: bool = True, _retry: bool = Tr
             data = {}
         return e.code, data, _extract(data, "message", "error") or "Request failed."
     except Exception as e:
-        print(f"[it_auth][error] {url}: {e}")
+        print(f"[genetics_auth][error] {url}: {e}")
         return 502, None, "Sign-in service unreachable."
 
 
@@ -97,18 +97,18 @@ def _service_token(force: bool = False) -> str | None:
     if not force and _svc_token and time.time() < _svc_exp - 30:
         return _svc_token
     status, data, err = _request(
-        IT_TOKEN_PATH,
-        {"username": IT_SERVICE_USERNAME, "password": IT_SERVICE_PASSWORD},
+        GENETICS_TOKEN_PATH,
+        {"username": GENETICS_SERVICE_USERNAME, "password": GENETICS_SERVICE_PASSWORD},
         with_auth=False,
     )
     if status != 200 or not data:
-        print(f"[it_auth] service login failed ({status}): {err}")
+        print(f"[genetics_auth] service login failed ({status}): {err}")
         return None
     token = _extract(data, "token", "access_token",
                      "jwt", "accessToken", "bearer")
     if not token:
         print(
-            f"[it_auth] service login: no token in response keys {list(data)}")
+            f"[genetics_auth] service login: no token in response keys {list(data)}")
         return None
     _svc_token = token
     _svc_exp = _jwt_exp(token) or (time.time() + 600)
@@ -119,7 +119,7 @@ def login(mobile: str, password: str) -> dict:
     if not is_configured():
         return dict(_NOT_CONFIGURED)
     status, data, err = _request(
-        IT_LOGIN_PATH, {"mobile_number": mobile, "password": password})
+        GENETICS_LOGIN_PATH, {"mobile_number": mobile, "password": password})
     data = data or {}
     if 200 <= status < 300 or data.get("message") == "success":
         reference = data.get("hash")
@@ -141,7 +141,7 @@ def verify(reference: str, code: str, mobile: str = "") -> dict:
     if not is_configured():
         return dict(_NOT_CONFIGURED)
     status, data, err = _request(
-        IT_VERIFY_PATH, {"otp": code, "hash": reference, "mobile": mobile})
+        GENETICS_VERIFY_PATH, {"otp": code, "hash": reference, "mobile": mobile})
     data = data or {}
     if 200 <= status < 300 or data.get("message") == "success":
         return {"ok": True}

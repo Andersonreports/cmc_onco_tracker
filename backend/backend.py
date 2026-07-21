@@ -1,11 +1,11 @@
 
 from pathlib import Path
 
-from fastapi import FastAPI, Cookie
+from fastapi import FastAPI, Cookie, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from auth import router as auth_router, read_session, ROLE_HOME
+from auth import router as auth_router, read_session, renew_session_cookie, COOKIE_NAME, ROLE_HOME
 from admin_api import router as admin_router
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
@@ -13,6 +13,17 @@ FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 app = FastAPI(title="Anderson Trackings")
 app.include_router(auth_router)
 app.include_router(admin_router)
+
+
+@app.middleware("http")
+async def renew_idle_session(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/auth/logout"):
+        return response
+    sess = read_session(request.cookies.get(COOKIE_NAME))
+    if sess:
+        renew_session_cookie(response, sess)
+    return response
 
 
 @app.get("/health")

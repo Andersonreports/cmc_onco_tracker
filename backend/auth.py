@@ -1,4 +1,6 @@
 from __future__ import annotations
+import role_store
+import genetics_auth_client as genetics_auth
 
 import base64
 import hashlib
@@ -19,22 +21,20 @@ try:
 except Exception:
     pass
 
-BASE_DIR      = Path(__file__).parent
-SECRET_FILE   = BASE_DIR / ".auth_secret"
-COOKIE_NAME   = "anderson_session"
-SESSION_HOURS = int(os.getenv("AUTH_SESSION_HOURS", "8"))
-COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "false").strip().lower() == "true"
+BASE_DIR = Path(__file__).parent
+SECRET_FILE = BASE_DIR / ".auth_secret"
+COOKIE_NAME = "anderson_session"
+IDLE_SECS = int(os.getenv("AUTH_IDLE_HOURS", "5")) * 3600
+COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE",
+                          "false").strip().lower() == "true"
 
-OTP_TTL_SECS  = int(os.getenv("OTP_TTL_SECONDS", "300"))
+OTP_TTL_SECS = int(os.getenv("OTP_TTL_SECONDS", "300"))
 
 ROLE_HOME = {
     "admin":    "/",
     "cmc":      "/cmc/",
     "anderson": "/anderson/",
 }
-
-import it_auth
-import role_store
 
 
 def _load_secret() -> str:
@@ -65,7 +65,8 @@ def _prune_pending() -> None:
 
 
 def _sign_session(username: str, role: str) -> str:
-    payload = {"sub": username, "role": role, "exp": int(time.time()) + SESSION_HOURS * 3600}
+    payload = {"sub": username, "role": role,
+               "exp": int(time.time()) + IDLE_SECS}
     body = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=")
     sig = hmac.new(SECRET.encode(), body, hashlib.sha256).digest()
     sig_b64 = base64.urlsafe_b64encode(sig).rstrip(b"=")
@@ -77,11 +78,13 @@ def read_session(token: str | None) -> dict | None:
         return None
     try:
         body, sig = token.split(".", 1)
-        expected = hmac.new(SECRET.encode(), body.encode(), hashlib.sha256).digest()
+        expected = hmac.new(SECRET.encode(), body.encode(),
+                            hashlib.sha256).digest()
         got = base64.urlsafe_b64decode(sig + "=" * (-len(sig) % 4))
         if not hmac.compare_digest(expected, got):
             return None
-        payload = json.loads(base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)))
+        payload = json.loads(base64.urlsafe_b64decode(
+            body + "=" * (-len(body) % 4)))
         if payload.get("exp", 0) < int(time.time()):
             return None
         return payload
@@ -96,9 +99,14 @@ def _set_session_cookie(response, token: str) -> None:
         httponly=True,
         samesite="lax",
         secure=COOKIE_SECURE,
-        max_age=SESSION_HOURS * 3600,
+        max_age=IDLE_SECS,
         path="/",
     )
+
+
+def renew_session_cookie(response, sess: dict) -> None:
+    token = _sign_session(sess["sub"], sess["role"])
+    _set_session_cookie(response, token)
 
 
 _fail_counts: dict[str, int] = {}
@@ -159,13 +167,14 @@ def login(body: LoginBody, request: Request):
             status_code=403,
         )
 
-    result = it_auth.login(mobile, body.password)
+    result = genetics_auth.login(mobile, body.password)
     if not result.get("ok"):
         status = int(result.get("status", 401))
         if status < 500:
             _record_fail(ip)
         return JSONResponse(
-            {"error": result.get("error", "Sign-in failed. Please try again.")},
+            {"error": result.get(
+                "error", "Sign-in failed. Please try again.")},
             status_code=status,
         )
 
@@ -204,20 +213,22 @@ def verify(body: VerifyBody):
             {"error": "Too many incorrect codes. Please sign in again."}, status_code=429
         )
 
-    result = it_auth.verify(pending["reference"], body.code, pending["mobile"])
+    result = genetics_auth.verify(pending["reference"], body.code, pending["mobile"])
     if not result.get("ok"):
         status = int(result.get("status", 401))
         if status == 400:
             _pending.pop(body.challenge, None)
         return JSONResponse(
-            {"error": result.get("error", "Incorrect code. Please try again.")},
+            {"error": result.get(
+                "error", "Incorrect code. Please try again.")},
             status_code=status,
         )
 
     _pending.pop(body.challenge, None)
     token = _sign_session(pending["mobile"], pending["role"])
     redirect = ROLE_HOME.get(pending["role"], "/")
-    resp = JSONResponse({"ok": True, "redirect": redirect, "role": pending["role"]})
+    resp = JSONResponse(
+        {"ok": True, "redirect": redirect, "role": pending["role"]})
     _set_session_cookie(resp, token)
     return resp
 
@@ -230,7 +241,7 @@ def resend(body: ChallengeBody):
         return JSONResponse(
             {"error": "Session expired. Please sign in again."}, status_code=400
         )
-    result = it_auth.resend(pending["reference"], pending["mobile"])
+    result = genetics_auth.resend(pending["reference"], pending["mobile"])
     if not result.get("ok"):
         return JSONResponse(
             {"error": result.get("error", "Could not resend the code.")},
