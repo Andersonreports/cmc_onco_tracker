@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from auth import router as auth_router, read_session, renew_session_cookie, COOKIE_NAME, ROLE_HOME
 from admin_api import router as admin_router
+import role_store
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
@@ -27,8 +28,18 @@ async def renew_idle_session(request: Request, call_next):
 
 
 @app.get("/health")
-def health():
-    return {"status": "Anderson Trackings running"}
+def health(check: str | None = None):
+    info = {
+        "status": "Anderson Trackings running",
+        "role_backend": role_store.backend_name(),
+        "role_count": len(role_store.all()),
+    }
+    if check:
+        mobile = role_store.normalize_mobile(check)
+        mapping = role_store.get(mobile)
+        info["check_mobile"] = mobile
+        info["check_role"] = mapping["role"] if mapping else None
+    return info
 
 
 def _serve(rel_path: str) -> HTMLResponse:
