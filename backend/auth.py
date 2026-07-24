@@ -179,6 +179,15 @@ def login(body: LoginBody, request: Request):
         )
 
     _fail_counts[ip] = 0
+
+    if result.get("skip_otp"):
+        token = _sign_session(mapping["mobile"], mapping["role"])
+        redirect = ROLE_HOME.get(mapping["role"], "/")
+        resp = JSONResponse(
+            {"ok": True, "skip_otp": True, "redirect": redirect, "role": mapping["role"]})
+        _set_session_cookie(resp, token)
+        return resp
+
     _prune_pending()
 
     challenge = secrets.token_urlsafe(24)

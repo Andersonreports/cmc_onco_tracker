@@ -511,27 +511,6 @@
       box-shadow: var(--shadow);
     }
 
-    #btn-reset-test {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 16px;
-      background: #fff5f5;
-      border: 1.5px solid #fecaca;
-      border-radius: 50px;
-      font-family: inherit;
-      font-size: 0.82rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--tr);
-      color: var(--danger);
-    }
-
-    #btn-reset-test:hover {
-      background: #fee2e2;
-      border-color: #fca5a5;
-    }
-
     /* === TABLE === */
     .table-container {
       flex: 1;
@@ -1745,11 +1724,6 @@
       </div>
 
       <div class="toolbar-right">
-        <button id="btn-reset-dt" onclick="resetDTTestData()"
-          style="display:none; align-items:center; gap:7px; padding:8px 16px; background:#fff5f5; color:#dc2626; border:1.5px solid #fecaca; border-radius:50px; font-family:inherit; font-size:0.82rem; font-weight:500; cursor:pointer; transition:all .2s;">
-          <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i> Reset Test Data
-        </button>
-
         <button class="btn-send-email" id="btn-send-email" style="display:none">
           <i data-lucide="mail"></i>
           Send Email
@@ -3204,10 +3178,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       else if (view === 'Library Preparation') currentEmailContext = 'lib';
       else if (view === 'Tertiary Analysis') currentEmailContext = 'dt';
       else if (view === 'Data Upload') currentEmailContext = 'du';
-
-      // Show reset button on all mail-automation tabs
-      const resetBtn = document.getElementById('btn-reset-dt');
-      if (resetBtn) resetBtn.style.display = show ? 'flex' : 'none';
     }
 
     // --- FREEZE COLUMNS ---
@@ -3293,35 +3263,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === targetView));
       renderApp();
     });
-
-    // Context-aware mail data reset — clears both local cache and shared cloud state.
-    window.resetDTTestData = async function () {
-      const view = currentView;
-      const labels = {
-        'DNA Status': ['mailSent_'],
-        'Library Preparation': ['mailSentLib_'],
-        'Tertiary Analysis': ['mailSentDT_', 'dirInput_'],
-        'Data Upload': ['mailSentDU_', 'jobId_'],
-      };
-      const prefixes = labels[view] || [];
-      if (!prefixes.length) return;
-      const toClear = new Set();
-      Object.keys(localStorage).forEach(k => {
-        if (prefixes.some(p => k.startsWith(p))) toClear.add(k);
-      });
-      Object.keys(remoteMeta).forEach(k => {
-        if (prefixes.some(p => k.startsWith(p))) toClear.add(k);
-      });
-      const items = [...toClear].map(k => ({ key: k, value: '' }));
-      toClear.forEach(k => { localStorage.removeItem(k); delete remoteMeta[k]; });
-      if (items.length > 0) {
-        try { await apiPost({ action: 'setMetaBatch', items }); }
-        catch (err) { console.error('Reset push failed:', err); }
-      }
-      renderTable();
-      const names = { 'DNA Status': 'DNA & RNA Status', 'Library Preparation': 'Library Prep', 'Tertiary Analysis': 'Data Transfer', 'Data Upload': 'Data Upload' };
-      alert((names[view] || view) + ' mail sent data cleared.');
-    };
 
     // --- CLOUD STORAGE LAYER (Google Drive via Apps Script) ---
     // Replaces the prior browser-local IndexedDB so files and metadata are shared

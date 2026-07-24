@@ -129,6 +129,8 @@ def login(mobile: str, password: str) -> dict:
                 nested, str) else (nested or {}).get("hash")
         if reference:
             return {"ok": True, "reference": reference, "sent_to": _mask_mobile(mobile)}
+        if data.get("success") is True and data.get("message") == "Login successful":
+            return {"ok": True, "skip_otp": True}
         return {"ok": False, "status": 502,
                 "error": "Login succeeded but the sign-in service returned no OTP hash."}
     if status >= 500:

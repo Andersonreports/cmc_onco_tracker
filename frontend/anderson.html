@@ -35,18 +35,36 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background:
-        radial-gradient(1200px 600px at 15% -10%, rgba(94, 234, 212, 0.28), transparent 60%),
-        radial-gradient(1000px 500px at 100% 0%, rgba(13, 148, 136, 0.14), transparent 55%),
-        var(--main-bg);
+      background: var(--main-bg);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
+    /* === HERO BAND (photo background, fades into page) === */
+    .hero-band {
+      position: relative;
+      overflow: hidden;
+      background-image:
+        linear-gradient(180deg, transparent 0%, transparent 68%, var(--main-bg) 100%),
+        url('/hero-bg.png');
+      background-size: cover, cover;
+      background-position: center, center;
+      background-repeat: no-repeat, no-repeat;
+    }
+
+    .hero-band .backbar,
+    .hero-band .hero,
+    .hero-band .grid {
+      position: relative;
+      z-index: 1;
+    }
+
     /* === TOP HEADER === */
     .app-header {
+      position: relative;
+      z-index: 2;
       height: 64px;
       flex-shrink: 0;
       display: flex;
@@ -219,7 +237,7 @@
     /* === PLACEHOLDER CARDS === */
     .card.placeholder {
       border-style: dashed;
-      background: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.85);
       box-shadow: none;
     }
 
@@ -270,37 +288,39 @@
     <a class="logout-btn" href="/auth/logout"><i data-lucide="log-out"></i> Sign out</a>
   </header>
 
-  <nav class="backbar">
-    <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
-  </nav>
+  <div class="hero-band">
+    <nav class="backbar">
+      <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
+    </nav>
 
-  <section class="hero">
-    <h1>Anderson Trackers</h1>
-    <p>General Anderson Lab tracking platforms — operational dashboards and workflow trackers across the lab.</p>
-  </section>
+    <section class="hero">
+      <h1>Anderson Trackers</h1>
+      <p>General Anderson Lab tracking platforms — operational dashboards and workflow trackers across the lab.</p>
+    </section>
 
-  <main class="grid">
-    <div class="card placeholder">
-      <div class="icon"><i data-lucide="plus"></i></div>
-      <h3>Anderson Tracker 1</h3>
-      <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
-      <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
-    </div>
+    <main class="grid">
+      <div class="card placeholder">
+        <div class="icon"><i data-lucide="plus"></i></div>
+        <h3>Anderson Tracker 1</h3>
+        <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
+        <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
+      </div>
 
-    <div class="card placeholder">
-      <div class="icon"><i data-lucide="plus"></i></div>
-      <h3>Anderson Tracker 2</h3>
-      <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
-      <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
-    </div>
+      <div class="card placeholder">
+        <div class="icon"><i data-lucide="plus"></i></div>
+        <h3>Anderson Tracker 2</h3>
+        <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
+        <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
+      </div>
 
-    <div class="card placeholder">
-      <div class="icon"><i data-lucide="plus"></i></div>
-      <h3>Anderson Tracker 3</h3>
-      <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
-      <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
-    </div>
-  </main>
+      <div class="card placeholder">
+        <div class="icon"><i data-lucide="plus"></i></div>
+        <h3>Anderson Tracker 3</h3>
+        <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
+        <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
+      </div>
+    </main>
+  </div>
 
   <footer>
     &copy; Anderson Genetics · Anderson Lab Tracking Platform

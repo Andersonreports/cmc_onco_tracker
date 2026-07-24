@@ -319,6 +319,7 @@
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Sign-in failed. Please try again.');
+      if (data.skip_otp) return data;
       challenge = data.challenge;
       $('otp-target').textContent = data.sent_to || 'your registered number';
       hide($('otp-error'));
@@ -334,7 +335,11 @@
       const btn = $('cred-submit');
       btn.disabled = true;
       try {
-        await requestOtp();
+        const data = await requestOtp();
+        if (data.skip_otp) {
+          window.location.href = data.redirect || '/';
+          return;
+        }
         goStep('otp');
         $('code').focus();
       } catch (err) {

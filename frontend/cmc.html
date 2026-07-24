@@ -35,18 +35,36 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background:
-        radial-gradient(1200px 600px at 15% -10%, rgba(94, 234, 212, 0.28), transparent 60%),
-        radial-gradient(1000px 500px at 100% 0%, rgba(13, 148, 136, 0.14), transparent 55%),
-        var(--main-bg);
+      background: var(--main-bg);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
+    /* === HERO BAND (photo background, fades into page) === */
+    .hero-band {
+      position: relative;
+      overflow: hidden;
+      background-image:
+        linear-gradient(180deg, transparent 0%, transparent 68%, var(--main-bg) 100%),
+        url('/hero-bg.png');
+      background-size: cover, cover;
+      background-position: center, center;
+      background-repeat: no-repeat, no-repeat;
+    }
+
+    .hero-band .backbar,
+    .hero-band .hero,
+    .hero-band .grid {
+      position: relative;
+      z-index: 1;
+    }
+
     /* === TOP HEADER === */
     .app-header {
+      position: relative;
+      z-index: 2;
       height: 64px;
       flex-shrink: 0;
       display: flex;
@@ -303,23 +321,25 @@
     <a class="logout-btn" href="/auth/logout"><i data-lucide="log-out"></i> Sign out</a>
   </header>
 
-  <nav class="backbar">
-    <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
-  </nav>
+  <div class="hero-band">
+    <nav class="backbar">
+      <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
+    </nav>
 
-  <section class="hero">
-    <h1>CMC Trackers</h1>
-  </section>
+    <section class="hero">
+      <h1>CMC Trackers</h1>
+    </section>
 
-  <main class="grid">
-    <!-- CMC ONCO Tracker — LIVE -->
-    <a class="card active" href="../cmc-onco/">
-      <div class="icon"><i data-lucide="microscope"></i></div>
-      <h3>CMC ONCO Tracker</h3>
-      <span class="badge live"><i data-lucide="circle-dot"></i> Live</span>
-    </a>
+    <main class="grid">
+      <!-- CMC ONCO Tracker — LIVE -->
+      <a class="card active" href="../cmc-onco/">
+        <div class="icon"><i data-lucide="microscope"></i></div>
+        <h3>CMC ONCO Tracker</h3>
+        <span class="badge live"><i data-lucide="circle-dot"></i> Live</span>
+      </a>
 
-  </main>
+    </main>
+  </div>
 
   <footer>
     &copy; Anderson Genetics · Anderson Lab Tracking Platform
