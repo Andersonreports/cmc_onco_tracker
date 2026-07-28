@@ -167,6 +167,19 @@ def login(body: LoginBody, request: Request):
             status_code=403,
         )
 
+    if mapping.get("password_hash"):
+        if not role_store.verify_local_password(mobile, body.password):
+            _record_fail(ip)
+            return JSONResponse(
+                {"error": "Invalid mobile number or password."}, status_code=401)
+        _fail_counts[ip] = 0
+        token = _sign_session(mapping["mobile"], mapping["role"])
+        redirect = ROLE_HOME.get(mapping["role"], "/")
+        resp = JSONResponse(
+            {"ok": True, "skip_otp": True, "redirect": redirect, "role": mapping["role"]})
+        _set_session_cookie(resp, token)
+        return resp
+
     result = genetics_auth.login(mobile, body.password)
     if not result.get("ok"):
         status = int(result.get("status", 401))

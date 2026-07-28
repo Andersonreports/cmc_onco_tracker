@@ -1,23 +1,8 @@
-/**
- * Wetlab Tracker — Apps Script backend
- *
- * Responsibilities:
- *   1. Serve spreadsheet rows as JSON (existing).
- *   2. Send tracker emails (existing).
- *   3. Cloud file storage in Google Drive (new — shared across users).
- *   4. Shared metadata via hidden _meta sheet (new — replaces per-browser localStorage
- *      for keys that must be visible to every user of the tracker link).
- */
 
-// ─── Configuration ─────────────────────────────────────────────────────────────
 var DRIVE_FOLDER_ID = '1nWYIKZKppCHEhuc9WSG5mwLnHGqLeYjq';
 var META_SHEET_NAME = '_meta';
 var DATA_SHEET_NAME = 'Sheet1';
-// ──────────────────────────────────────────────────────────────────────────────
 
-// Always resolve the main data sheet by name (never by tab position/index —
-// if the hidden _meta sheet or Email Log ever gets dragged to position 0,
-// index-based lookup would silently serve the wrong sheet to the whole app).
 function getDataSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(DATA_SHEET_NAME);
@@ -27,10 +12,8 @@ function getDataSheet() {
   return sheet;
 }
 
-// ─── Recipient constants ───────────────────────────────────────────────────────
-var MAIL_TO = 'jeevav936@gmail.com';
-var MAIL_CC = 'andersonreportautomation@gmail.com';
-// ──────────────────────────────────────────────────────────────────────────────
+var MAIL_TO = 'drsriharikrishnaa@andersondiagnostics.in';
+
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.action) {
@@ -84,17 +67,7 @@ function handleAction(params) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CLOUD STORAGE (Google Drive)
-// ═══════════════════════════════════════════════════════════════════════════════
 
-// Categories:
-//   ppt     — DNA Status PPT (singular)
-//   lib_ppt — Library Prep PPT (singular)
-//   dna     — DNA Status batch files (multiple)
-//   lib     — Library Prep batch files (multiple)
-//   dt      — Data Transfer batch files (multiple)
-//   du      — Data Upload images (multiple)
 var FILE_CATEGORIES = ['ppt','lib_ppt','dna','lib','dt','du'];
 
 function uploadFileAction(batch, category, fileName, base64) {
@@ -105,7 +78,6 @@ function uploadFileAction(batch, category, fileName, base64) {
   var batchFolder = getOrCreateFolder(root, sanitizeFolderName(batch));
   var catFolder   = getOrCreateFolder(batchFolder, category);
 
-  // Replace existing file with same name (handles PPT re-upload)
   var existing = catFolder.getFilesByName(fileName);
   while (existing.hasNext()) existing.next().setTrashed(true);
 
@@ -154,8 +126,6 @@ function listFilesAction(batch) {
 }
 
 function listAllFilesAction() {
-  // Returns { batchName: { <cat>: [...], ... }, ... }
-  // One request to populate the whole UI on page load.
   var out = {};
   var root = DriveApp.getFolderById(DRIVE_FOLDER_ID);
   var bIt = root.getFolders();
@@ -169,9 +139,6 @@ function listAllFilesAction() {
       var fIt = cf.getFiles();
       while (fIt.hasNext()) {
         var f = fIt.next();
-        // Folder.getFiles() still returns trashed files in Apps Script, so a
-        // deleted (trashed) file would otherwise reappear in the index for
-        // every user. Skip anything in the trash.
         if (f.isTrashed()) continue;
         perBatch[cat].push({
           fileId:   f.getId(),
@@ -186,22 +153,13 @@ function listAllFilesAction() {
   return jsonOut(out);
 }
 
-// Returns sheet rows + meta + file index in a single call to eliminate
-// the two extra round-trips that the frontend previously made separately.
 function getAllAction(includeFiles) {
   includeFiles = includeFiles !== false;
   try {
-    // 1. Sheet rows
     var sheet = getDataSheet();
     var data  = sheet.getDataRange().getDisplayValues();
     var headers = data[0];
 
-    // Sanity check: if the resolved sheet doesn't look like the tracker data
-    // (e.g. someone renamed/replaced "Sheet1"), fail loudly instead of
-    // silently serving the wrong columns to every user. Uses the same
-    // whitespace/case-tolerant header match as the rest of the file (a
-    // strict === match broke on a real sheet whose "Batch" header had
-    // stray whitespace).
     if (findHeaderIndex(headers, 'batch') === -1) {
       throw new Error('"' + DATA_SHEET_NAME + '" does not look like the tracker data sheet (no "Batch" column found). Check that the correct sheet is named "' + DATA_SHEET_NAME + '".');
     }
@@ -214,14 +172,12 @@ function getAllAction(includeFiles) {
         return obj;
       });
 
-    // 2. Shared metadata
     var metaData = getMetaSheet().getDataRange().getValues();
     var meta = {};
     for (var i = 1; i < metaData.length; i++) {
       if (metaData[i][0]) meta[String(metaData[i][0])] = String(metaData[i][1]);
     }
 
-    // 3. File index (only fileId + fileName — the frontend doesn't use size/mimeType/url)
     var response = { rows: rows, meta: meta };
     if (includeFiles) {
       var files = {};
@@ -237,8 +193,6 @@ function getAllAction(includeFiles) {
           var fIt = cf.getFiles();
           while (fIt.hasNext()) {
             var f = fIt.next();
-            // Skip trashed files — getFiles() still lists them, which would make a
-            // deleted file reappear in the index for every user.
             if (f.isTrashed()) continue;
             perBatch[cat].push({ fileId: f.getId(), fileName: f.getName() });
           }
@@ -271,9 +225,6 @@ function deleteFileAction(fileId) {
   return jsonOut({ success: true });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SHARED METADATA (hidden _meta sheet)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function getMetaSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -337,9 +288,6 @@ function setMetaBatchAction(items) {
   return jsonOut({ success: true });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function jsonOut(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
@@ -494,9 +442,6 @@ function getMetaValue(key) {
   return null;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// EMAIL FUNCTIONS (unchanged from your existing script)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 function sendDNARNAEmail(batch, pptBase64, pptName, customSubject, customBody, to, cc) {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sheet = getDataSheet();
@@ -521,7 +466,8 @@ function sendDNARNAEmail(batch, pptBase64, pptName, customSubject, customBody, t
   var htmlBody  = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#222;"><p>Dear team,</p><p>DNA samples were received from Department of Haematology , CMC Vellore. Quality Control assessment was performed using Qubit and sample order is attached as PDF.</p><p>Submission Date: '+submissionDate+'<br>Panel Name/Kit Type: Myeloid ARCHER Variant Plex , FUSION Plex</p><p>Total Samples Received: '+total+'<br>Myeloid ARCHER Variant Plex - '+pad(variantCount)+'<br>FUSION Plex - '+pad(fusionCount)+'<br>'+qcHtmlLine+'</p><p>Library sample order , concentration and pooled library tapestation profiles will be shared by '+tatDate+' .</p></div>';
   var mailKey = 'mailSent_' + batch;
   if (getMetaValue(mailKey)) return jsonOut({ success:true, message: 'Email already sent for ' + batch });
-  var opts = { to: to || MAIL_TO, cc: cc || MAIL_CC, subject:customSubject||subject, body:customBody||plainBody, htmlBody:customBody?('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;">'+toHtml(customBody)+'</div>'):htmlBody };
+  var opts = { to: to || MAIL_TO, subject:customSubject||subject, body:customBody||plainBody, htmlBody:customBody?('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;">'+toHtml(customBody)+'</div>'):htmlBody };
+  if (cc) opts.cc = cc;
   if (pptBase64&&pptName) { var m=pptName.toLowerCase().endsWith('.pdf')?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'; opts.attachments=[Utilities.newBlob(Utilities.base64Decode(pptBase64),m,pptName)]; }
   try {
     MailApp.sendEmail(opts);
@@ -548,7 +494,8 @@ function sendLibraryPrepEmail(batch, pptBase64, pptName, customSubject, customBo
   var htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#222;"><p>Dear Team,</p><p>Please find attached the library concentration and TapeStation QC report for <b>'+batch+'</b> (dated '+libDate+').</p><p>The report includes:</p><ul><li>Library concentration details</li><li>Individual sample concentrations for DNA Myeloid , RNA Fusion panel</li><li>TapeStation QC profiles for all pooled libraries using:<ul><li>D1000 ScreenTape assay (DNA libraries)</li><li>High sensitivity RNA ScreenTape assay (RNA Libraries)</li></ul></li></ul><p>All pooled libraries have <b>passed QC criteria</b> and are suitable for downstream sequencing.</p></div>';
   var mailKey = 'mailSentLib_' + batch;
   if (getMetaValue(mailKey)) return jsonOut({ success:true, message: 'Email already sent for ' + batch });
-  var opts = { to: to || MAIL_TO, cc: cc || MAIL_CC, subject:customSubject||subject, body:customBody||plainBody, htmlBody:customBody?('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;">'+toHtml(customBody)+'</div>'):htmlBody };
+  var opts = { to: to || MAIL_TO, subject:customSubject||subject, body:customBody||plainBody, htmlBody:customBody?('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;">'+toHtml(customBody)+'</div>'):htmlBody };
+  if (cc) opts.cc = cc;
   if (pptBase64&&pptName) { var m=pptName.toLowerCase().endsWith('.pdf')?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'; opts.attachments=[Utilities.newBlob(Utilities.base64Decode(pptBase64),m,pptName)]; }
   try {
     MailApp.sendEmail(opts);
@@ -573,8 +520,8 @@ function sendDataTransferEmail(batch, customSubject, customBody, files, fileIds,
   var subject = 'Regarding '+batch+' fastq and QC result files';
   var plain = customBody || ('Dear Team,\n\nGreetings of the day,\n\nPlease find the '+batch+' sequencing data and QC report shared through Filezilla for the following:\n\nFilezilla Credentials:\n\nHostname: 123.176.34.25\nPort: 6621\nUser: client4\nPassword: Bioinfo@567\nFile Protocol: FTP\n\n\nFolder(s) for '+batch+' sequencing data:\n'+dtDate+'\n\nNote: We strongly recommend using Filezilla FTP client to download the files.\n\nPlease find attached the SOP for downloading files via FileZilla for your reference.\n\nPlease note that these files will be available for download for 10 days from the date of this email, after which they will be automatically deleted.');
   var htmlB = customBody ? ('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;">'+toHtml(customBody)+'</div>') : ('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#222;"><p>Dear Team,</p><p>Greetings of the day,</p><p>Please find the <b>'+batch+'</b> sequencing data and QC report shared through Filezilla for the following:</p><p><b>Filezilla Credentials:</b><br>Hostname: 123.176.34.25<br>Port: 6621<br>User: client4<br>Password: Bioinfo@567<br>File Protocol: FTP</p><p><b>Folder(s) for '+batch+' sequencing data:</b><br>'+dtDate+'</p><p><i>Note: We strongly recommend using Filezilla FTP client to download the files.</i></p><p>Please find attached the SOP for downloading files via FileZilla for your reference.</p><p>Please note that these files will be available for download for <b>10 days</b> from the date of this email, after which they will be automatically deleted.</p></div>');
-  var opts = { to: to || MAIL_TO, cc: cc || MAIL_CC, subject:customSubject||subject, body:plain, htmlBody:htmlB };
-  // Prefer fileIds (direct Drive fetch) over pre-encoded base64 blobs.
+  var opts = { to: to || MAIL_TO, subject:customSubject||subject, body:plain, htmlBody:htmlB };
+  if (cc) opts.cc = cc;
   var attachments = [];
   if (fileIds && fileIds.length > 0) {
     fileIds.forEach(function(id) {
@@ -625,14 +572,14 @@ function sendDataUploadEmail(batch, customSubject, customBody, files, fileIds, t
       try {
         attachments.push(DriveApp.getFileById(id).getBlob());
       } catch (e) {
-        // ignore missing or invalid file ids
       }
     });
   }
   var mailKey = 'mailSentDU_' + batch;
   if (getMetaValue(mailKey)) return jsonOut({ success:true, message: 'Email already sent for ' + batch });
   var htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#222;">' + toHtml(mainText) + imgHtml + '<br><br>Thank you' + signatureHtml() + '</div>';
-  var opts = { to: to || MAIL_TO, cc: cc || MAIL_CC, subject: subject, body: plainBody, htmlBody: htmlBody };
+  var opts = { to: to || MAIL_TO, subject: subject, body: plainBody, htmlBody: htmlBody };
+  if (cc) opts.cc = cc;
   if (Object.keys(inlineImages).length > 0) opts.inlineImages = inlineImages;
   if (attachments.length > 0) opts.attachments = attachments;
   try {

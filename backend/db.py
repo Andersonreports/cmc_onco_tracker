@@ -53,17 +53,22 @@ CREATE TABLE IF NOT EXISTS user_roles (
 """
 
 
+def _ensure_column(cur, column: str, ddl: str) -> None:
+    cur.execute(
+        "SELECT COUNT(*) AS n FROM information_schema.columns "
+        "WHERE table_schema=%s AND table_name='user_roles' AND column_name=%s",
+        (DB, column),
+    )
+    if cur.fetchone()["n"] == 0:
+        cur.execute(f"ALTER TABLE user_roles ADD COLUMN {ddl}")
+
+
 def init_schema() -> None:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(_SCHEMA)
-            cur.execute(
-                "SELECT COUNT(*) AS n FROM information_schema.columns "
-                "WHERE table_schema=%s AND table_name='user_roles' AND column_name='name'",
-                (DB,),
-            )
-            if cur.fetchone()["n"] == 0:
-                cur.execute("ALTER TABLE user_roles ADD COLUMN name VARCHAR(191) AFTER mobile")
+            _ensure_column(cur, "name", "name VARCHAR(191) AFTER mobile")
+            _ensure_column(cur, "password_hash", "password_hash VARCHAR(255)")
 
 
 def count_roles() -> int:
@@ -76,7 +81,8 @@ def count_roles() -> int:
 def list_roles() -> list[dict]:
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT mobile, name, role FROM user_roles ORDER BY name, mobile")
+            cur.execute(
+                "SELECT mobile, name, role, password_hash FROM user_roles ORDER BY name, mobile")
             return list(cur.fetchall())
 
 
@@ -84,7 +90,7 @@ def get_role(mobile: str) -> dict | None:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT mobile, name, role FROM user_roles WHERE mobile=%s",
+                "SELECT mobile, name, role, password_hash FROM user_roles WHERE mobile=%s",
                 (mobile,),
             )
             return cur.fetchone()
@@ -105,4 +111,13 @@ def delete_role(mobile: str) -> int:
         with conn.cursor() as cur:
             return cur.execute(
                 "DELETE FROM user_roles WHERE mobile=%s", (mobile,)
+            )
+
+
+def set_password_hash(mobile: str, password_hash: str | None) -> int:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            return cur.execute(
+                "UPDATE user_roles SET password_hash=%s WHERE mobile=%s",
+                (password_hash, mobile),
             )

@@ -12,7 +12,6 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <style>
     :root {
-      /* === Forest Teal — Professional Clinical Theme === */
       --accent: #0d9488;
       --accent-hover: #0f766e;
       --accent-light: #5eead4;
@@ -31,7 +30,6 @@
       --shadow-xl: 0 16px 60px rgba(14, 79, 64, 0.25);
       --tr: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
       --radius: 12px;
-      /* compat aliases */
       --sidebar-bg: #0e4f40;
       --sidebar-active-bg: rgba(255, 255, 255, 0.14);
       --sidebar-active-text: #fff;
@@ -72,7 +70,6 @@
       overflow: hidden;
     }
 
-    /* === TOP HEADER BAR === */
     .app-header {
       height: 60px;
       flex-shrink: 0;
@@ -188,7 +185,6 @@
       white-space: nowrap;
     }
 
-    /* "Signed in" pill at the header right (light text on dark header) */
     .signed-in-pill {
       display: inline-flex;
       align-items: center;
@@ -1634,7 +1630,6 @@
 
 <body>
 
-  <!-- Top header bar -->
   <header class="app-header">
     <div class="app-header-left">
       <a href="/cmc/" class="back-to-home" id="back-to-home-link" title="Back to CMC Trackers">
@@ -1659,14 +1654,12 @@
     </div>
   </header>
 
-  <!-- Error / warning banner for backend or app-level issues -->
   <div class="app-error-banner" id="app-error-banner">
     <i data-lucide="alert-triangle"></i>
     <span class="app-error-msg" id="app-error-msg"></span>
     <button class="app-error-close" id="app-error-close" title="Dismiss"><i data-lucide="x"></i></button>
   </div>
 
-  <!-- Navigation tabs + pipeline status -->
   <nav class="app-nav">
     <ul class="nav-list">
       <li class="nav-item">
@@ -1701,7 +1694,6 @@
       </li>
     </ul>
 
-    <!-- Batch selector + pipeline status badge + go-to button (right of nav) -->
     <div class="nav-right">
       <div class="batch-bar pipeline-section" id="pipeline-section" style="display:none">
         <select id="pipeline-batch-select" class="pipeline-select"></select>
@@ -1711,7 +1703,6 @@
   </nav>
 
   <main class="main-content">
-    <!-- Toolbar: search + actions + live sync status -->
     <div class="toolbar">
       <div class="toolbar-left">
         <div class="search-container">
@@ -1755,12 +1746,10 @@
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="app-footer">
       <span id="sample-count">Showing 0 of 0 samples</span>
     </div>
 
-    <!-- Email Modal -->
     <div id="email-modal-overlay"
       style="display:none; position:fixed; inset:0; background:rgba(10,61,48,0.55); backdrop-filter:blur(8px); z-index:500; align-items:center; justify-content:center;">
       <div id="email-modal"
@@ -1789,14 +1778,14 @@
             <label
               style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:6px;">To</label>
             <input id="email-to" type="text"
-              value="jeevav936@gmail.com"
+              value="drsriharikrishnaa@andersondiagnostics.in"
               style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); font-family:inherit; font-size:0.8rem; outline:none; color:var(--text-main);">
           </div>
           <div style="margin-bottom:12px;">
             <label
               style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:6px;">CC</label>
             <input id="email-cc" type="text"
-              value="andersonreportautomation@gmail.com"
+              placeholder="Optional"
               style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); font-family:inherit; font-size:0.8rem; outline:none; color:var(--text-main);">
           </div>
           <div style="margin-bottom:16px;">
@@ -1858,22 +1847,18 @@
   </div>
 
   <script>
-    // --- LIVE SHEET CONFIG ---
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwK-Rag7h8F44CgqRBJ197wTv2jmGi8EdJDp8dQ5j-mOvLDhaT8iTDbi6sh-ZLKXBBb/exec';
 
-    // --- DEBUG LOG (console only) ---
     function debugLog(msg, isError) {
       if (isError) console.error(msg); else console.log(msg);
     }
     window.addEventListener('error', e => debugLog('JS error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno, true));
     window.addEventListener('unhandledrejection', e => debugLog('Unhandled promise rejection: ' + (e.reason && e.reason.message ? e.reason.message : e.reason), true));
-    const EMAIL_TO = 'jeevav936@gmail.com';
-    const EMAIL_CC = 'andersonreportautomation@gmail.com';
-    const REFRESH_INTERVAL_MS = 60 * 1000; // 1 minute
-    const FILE_INDEX_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
+    const EMAIL_TO = 'drsriharikrishnaa@andersondiagnostics.in';
+    const REFRESH_INTERVAL_MS = 60 * 1000;
+    const FILE_INDEX_REFRESH_MS = 5 * 60 * 1000;
 
 
-    // --- FILTER CONFIG ---
     const FILTER_CONFIG = [
       { label: "Batch", col: "Batch", type: "dropdown" },
       { label: "Anderson ID", col: "Anderson ID", type: "text" },
@@ -1901,9 +1886,8 @@
       'Data Upload': ["Batch", "Sample Number", "__JOB_ID__", "__IMG_UPLOAD__", "__MAIL_SENT_DU__"]
     };
 
-    // State
     let rawData = [];
-    let headerMap = {}; // normalized -> actual
+    let headerMap = {};
     let currentView = 'Total';
     let activeFilters = {};
     let globalSearchTerm = '';
@@ -1931,7 +1915,6 @@
       return '150px';
     };
 
-    // Elements
     const tableView = document.getElementById('table-view');
     const filterDrawer = document.getElementById('filter-drawer');
     const filterInputs = document.getElementById('filter-inputs');
@@ -1961,7 +1944,6 @@
 
     lucide.createIcons();
 
-    // --- LIVE SHEET FETCH ---
 
     function processSheetRows(rows) {
       rawData = rows.map(row => {
@@ -2008,11 +1990,6 @@
         });
       }
 
-      // Normalize batch identity — source data has inconsistent trailing
-      // whitespace (e.g. "Batch 20 " vs "Batch 20"), which otherwise splits a
-      // single batch into two identities and writes per-batch meta keys
-      // (mailSent*, jobId, dirInput, …) under mismatched names. That made
-      // finished batches read as unfinished and unfinished ones read as done.
       const batchActual = headerMap[normalize('Batch')];
       if (batchActual) {
         rawData.forEach(row => { row[batchActual] = String(row[batchActual] || '').trim(); });
@@ -2028,7 +2005,6 @@
     }
 
     async function loadLiveSheet(showLoader = true, includeFiles = true) {
-      // Render immediately from cache so the UI appears before the network responds.
       if (showLoader) {
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
@@ -2037,7 +2013,7 @@
             processSheetRows(c.rows || []);
             applyRemoteMeta(c.meta || {});
             if (includeFiles) applyFileIndex(c.files || {});
-            unseedOldBatches(); // sets remoteMeta['mailResetAt'] synchronously before renderApp
+            unseedOldBatches();
             renderApp();
             syncTime.textContent = 'Refreshing…';
           } catch (e) { localStorage.removeItem(CACHE_KEY); loader.style.display = 'flex'; }
@@ -2051,11 +2027,6 @@
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const all = await resp.json();
         if (all.error) throw new Error(all.error);
-        // Defense in depth: even if the backend didn't flag an error, refuse to
-        // render data that doesn't look like the tracker sheet (e.g. the hidden
-        // _meta key/value sheet got served instead of the real data). Normalize
-        // keys the same tolerant way the rest of the app matches headers, since
-        // a real header can have stray casing/whitespace.
         if (all.rows && all.rows.length > 0 && !Object.keys(all.rows[0]).some(k => normalize(k) === normalize('Batch'))) {
           throw new Error('Backend returned unexpected data (missing "Batch" column) — check that the "Sheet1" tab is the correct data sheet.');
         }
@@ -2091,20 +2062,13 @@
       }
     }
 
-    // Auto-refresh every 1 minute; file index refresh every 5 minutes.
     loadLiveSheet();
     setInterval(() => loadLiveSheet(false, false), REFRESH_INTERVAL_MS);
     setInterval(() => loadLiveSheet(false, true), FILE_INDEX_REFRESH_MS);
 
     document.getElementById('btn-sync').addEventListener('click', () => loadLiveSheet(true, true));
 
-    async function seedMailSentForOldBatches() {
-      // Seeding disabled — mail triggers are now active for all batches.
-    }
-
     async function unseedOldBatches() {
-      // One-time: record a reset timestamp so metaGet ignores all old 'Mail sent'
-      // strings that predate it. Runs once — after that mailResetAt is in the backend.
       if (remoteMeta['mailResetAt'] || localStorage.getItem('mailResetAt')) return;
       try {
         await metaSet('mailResetAt', String(Date.now()));
@@ -2119,10 +2083,7 @@
       populateDownloadDropdown();
       updateEmailButton(currentView);
       updatePipelinePanel();
-      // Data-transfer emails check on every sync (lightweight — no file download needed)
       checkAndSendDataTransferEmails();
-      // PPT emails are NOT checked here — they run once after the full backend fetch
-      // (see loadLiveSheet) so we don't attempt Drive downloads on every 60s refresh.
     }
 
     function getFilteredData() {
@@ -2138,16 +2099,14 @@
       return data;
     }
 
-    // Reorder columns so "Sample Number" is first (or after S.No if present)
     function ensureSampleNumberFirst(colList) {
       const sampleNumNorm = normalize('Sample Number');
       const snoNorm = normalize('S.No');
 
       const sampleIdx = colList.findIndex(c => normalize(c) === sampleNumNorm);
-      if (sampleIdx <= 0) return colList; // already first or not present
+      if (sampleIdx <= 0) return colList;
 
       const reordered = colList.filter((_, i) => i !== sampleIdx);
-      // Check if S.No (or similar) is the first column
       const hasSno = reordered.length > 0 &&
         (normalize(reordered[0]) === snoNorm ||
           normalize(reordered[0]).startsWith('sno') ||
@@ -2210,7 +2169,6 @@
 
     function renderTable() {
       const data = getFilteredData();
-      // Footer sample count (display only)
       const _sc = document.getElementById('sample-count');
       if (_sc) _sc.textContent = `Showing ${data.length} of ${rawData.length} samples`;
       if (rawData.length === 0) return;
@@ -2238,13 +2196,11 @@
         if (req === '__IMG_UPLOAD__') { actualCols.push('__IMG_UPLOAD__'); displayNames.push('Image'); return; }
         if (req === '__MAIL_SENT_DU__') { actualCols.push('__MAIL_SENT_DU__'); displayNames.push('Mail Sent'); return; }
         if (req === '__STATUS__') { actualCols.push('__STATUS__'); displayNames.push('Pipeline Status'); return; }
-        // "DNA & RNA QC Status" is the display alias for the sheet's "QC Status" column
         const actual = headerMap[normalize(req)] || (normalize(req) === normalize('DNA & RNA QC Status') ? headerMap[normalize('QC Status')] : null);
         if (actual) {
           actualCols.push(actual);
           displayNames.push(req);
         } else if (currentView === 'Total' || normalize(req) === 'directory') {
-          // Show Directory column even if not yet in sheet (shows empty until added)
           actualCols.push(req);
           displayNames.push(req);
         }
@@ -2256,7 +2212,6 @@
         return;
       }
 
-      // Build column widths for sticky freeze offset calculation
       currentColWidthPx = displayNames.map(col => {
         if (col === 'Job ID' || col === 'Image' || col === 'Mail Sent' || col === 'PPT Upload') return 200;
         if (col === 'Directory') return 220;
@@ -2290,7 +2245,6 @@
 
       const hasVirtualCols = hasFileCol || hasPPTCol || hasStatusCol || currentView === 'Data Upload';
       if (hasVirtualCols) {
-        // Group consecutive rows by batch for rowspan merging
         const batchActual = headerMap[normalize('Batch')] || '';
         const groups = [];
         data.forEach(row => {
@@ -2356,11 +2310,9 @@
             <textarea class="dir-input" data-batch="${batch}" placeholder="Enter folder path…">${dirSavedValue}</textarea>
           </td>`;
 
-          // Data Upload virtual cells
           const duImgFiles = batchFileMap['du_' + batch] || [];
           const mailSentDU = metaGet('mailSentDU_' + batch) || '';
 
-          // Build pre-filled Job ID template — always use format if not already set
           let jobIdSaved = metaGet('jobId_' + batch) || '';
           const hasFormat = jobIdSaved.toLowerCase().includes('variantplex') || jobIdSaved.toLowerCase().includes('fusionplex');
           if (!hasFormat) {
@@ -2452,8 +2404,6 @@
       tableView.innerHTML = html;
       applyFreezeStyles();
 
-      // Event handlers for dynamic table controls are attached once globally via
-      // attachTableEventHandlers() outside renderTable().
     }
 
     function attachTableEventHandlers() {
@@ -2633,7 +2583,7 @@
       let html = '';
       FILTER_CONFIG.forEach(({ label, col, type }) => {
         const actualCol = headerMap[normalize(col)];
-        if (!actualCol) return; // column not present in this Excel, skip
+        if (!actualCol) return;
 
         if (type === 'dropdown') {
           const unique = [...new Set(rawData.map(r => String(r[actualCol] || '')).filter(v => v))].sort((a, b) => {
@@ -2667,7 +2617,6 @@
       filterInputs.innerHTML = html || '<p style="color:var(--text-muted)">No filter columns found in this file.</p>';
     }
 
-    // --- EVENTS ---
     document.querySelectorAll('.nav-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -2700,7 +2649,6 @@
     const debouncedRenderTable = debounce(() => renderTable(), 200);
     globalSearch.addEventListener('input', (e) => { globalSearchTerm = e.target.value; debouncedRenderTable(); });
 
-    // --- EMAIL SYSTEM ---
     const emailModalOverlay = document.getElementById('email-modal-overlay');
     const emailBatchSelect = document.getElementById('email-batch-select');
     const emailBatchStatus = document.getElementById('email-batch-status');
@@ -2712,7 +2660,7 @@
     const emailSendStatus = document.getElementById('email-send-status');
     const btnSendEmail = document.getElementById('btn-send-email');
 
-    let currentEmailContext = 'dna'; // 'dna' or 'lib'
+    let currentEmailContext = 'dna';
 
     function isBatchCompleteForDNA(batch) {
       const batchCol = headerMap[normalize('Batch')];
@@ -2761,7 +2709,6 @@ All pooled libraries have passed QC criteria and are suitable for downstream seq
     function buildDataUploadEmailPreview(batch) {
       const jobId = (metaGet('jobId_' + batch) || '').trim();
       const subject = `${batch} -Data uploaded in cloud based platform`;
-      // Only the main body — Apps Script adds images inline + "Thank you" + signature
       const body =
         `Dear Hematology team,
 Greetings of the day,
@@ -2775,7 +2722,6 @@ ${jobId}`;
       if (metaGet('mailSentDU_' + batch)) return;
       try {
         const { subject, body } = buildDataUploadEmailPreview(batch);
-        // Encode images
         const rec = await getBatchRecord('du_' + batch);
         const files = [];
         if (rec && rec.files.length > 0) {
@@ -2783,7 +2729,7 @@ ${jobId}`;
             files.push({ name: f.name, base64: await bufferToBase64(f.data) });
           }
         }
-        const payload = { action: 'sendDataUploadEmail', batch, customSubject: subject, customBody: body, files, to: EMAIL_TO, cc: EMAIL_CC };
+        const payload = { action: 'sendDataUploadEmail', batch, customSubject: subject, customBody: body, files, to: EMAIL_TO };
         const resp = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow' });
         const json = await resp.json();
         if (json.error) throw new Error(json.error);
@@ -2805,7 +2751,6 @@ ${jobId}`;
     function buildDataTransferEmailPreview(batch) {
       const batchCol = headerMap[normalize('Batch')];
       if (!batchCol) return { subject: '', body: '' };
-      // Use the directory value the technician typed in the table
       const dirValue = (metaGet('dirInput_' + batch) || '').trim();
       const subject = `Regarding ${batch} fastq and QC result files`;
       const body =
@@ -2857,7 +2802,6 @@ Please note that these files will be available for download for 10 days from the
         ? String(r[sampleTypeColKey] || '').toUpperCase().includes('RNA')
         : (sampleNumCol && String(r[sampleNumCol] || '').includes('FG'))).length;
 
-      // Check QC status for failures — non-empty value that doesn't contain 'pass'
       const failedSamples = qcCol
         ? rows.filter(r => {
           const val = String(r[qcCol] || '').trim().toLowerCase();
@@ -2886,7 +2830,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       return { subject, body, rows, submissionDate };
     }
 
-    // --- PPT GENERATION (matches Batch 13 format) ---
     async function generatePPT(batch) {
       const { rows, submissionDate } = buildEmailPreview(batch);
       const sampleCol = headerMap[normalize('Sample Number')];
@@ -2900,12 +2843,10 @@ Library sample order , concentration and pooled library tapestation profiles wil
       const client = clientCol ? (rows[0]?.[clientCol] || '') : '';
 
       const pres = new PptxGenJS();
-      pres.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5 inches
+      pres.layout = 'LAYOUT_WIDE';
 
-      // ── SLIDE 1: Title ────────────────────────────────────────
       const s1 = pres.addSlide();
 
-      // Anderson logo — top right
       const logoUrl = window.location.origin + window.location.pathname.replace(/\/?$/, '/') + 'header_logo.png';
       try { s1.addImage({ path: logoUrl, x: 9.8, y: 0.15, w: 3.3, h: 1.1 }); } catch (e) { }
 
@@ -2925,7 +2866,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
         x: 0.5, y: 4.05, w: 12.3, h: 0.45,
         fontSize: 20, color: '222222', align: 'center'
       });
-      // Doctor names from Client column
       s1.addText(client, {
         x: 0.5, y: 4.5, w: 12.3, h: 0.45,
         fontSize: 20, color: '222222', align: 'center'
@@ -2944,7 +2884,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       });
       s1.addText('1', { x: 12.8, y: 7.1, w: 0.4, h: 0.3, fontSize: 11, color: '555555', align: 'right' });
 
-      // ── SLIDE 2: Sample Concentration ─────────────────────────
       const s2 = pres.addSlide();
 
       s2.addText('SAMPLE CONCENTRATION', {
@@ -2952,7 +2891,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
         fontSize: 20, bold: true, color: '111111', align: 'center', underline: true
       });
 
-      // Build table rows from data
       const hdrOpts = { bold: true, color: '111111', fill: { color: 'FFFFFF' }, border: { pt: 1, color: '000000' } };
       const cellOpts = { color: '111111', fill: { color: 'FFFFFF' }, border: { pt: 1, color: '000000' } };
 
@@ -2988,14 +2926,12 @@ Library sample order , concentration and pooled library tapestation profiles wil
         rowH: 0.32,
       });
 
-      // Reagent info line
       const tableBottom = 0.8 + (rows.length + 1) * 0.32 + 0.15;
       s2.addText(
         'Reagent : Qubit 1X dsDNA HS Assay Kit , Instrument : Qubit 3.0 Fluorometer , Cut off for the assay :   DNA : 25ng/ul , RNA : 25ng/ul',
         { x: 0.3, y: tableBottom, w: 12.7, h: 0.3, fontSize: 9, color: '333333' }
       );
 
-      // DNA photo (left)
       const photoY = tableBottom + 0.35;
       const photoH = 7.5 - photoY - 0.4;
       s2.addText('DNA Variantplex – Sample Order', {
@@ -3009,7 +2945,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
         });
       }
 
-      // RNA photo (right)
       s2.addText('RNA Fusionplex – Sample Order', {
         x: 6.8, y: photoY, w: 6.2, h: 0.3,
         fontSize: 12, bold: true, color: 'd97706'
@@ -3093,7 +3028,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       }
     });
 
-    // Send email via Apps Script (POST with base64 PPT if uploaded)
     emailSendBtn.addEventListener('click', async () => {
       const batch = emailBatchSelect.value;
       if (!batch) return;
@@ -3170,7 +3104,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
     document.getElementById('email-modal-cancel').addEventListener('click', () => { emailModalOverlay.style.display = 'none'; });
     emailModalOverlay.addEventListener('click', e => { if (e.target === emailModalOverlay) emailModalOverlay.style.display = 'none'; });
 
-    // Show/hide Send Email button based on active tab
     function updateEmailButton(view) {
       const show = rawData.length > 0 && (view === 'DNA Status' || view === 'Library Preparation' || view === 'Tertiary Analysis' || view === 'Data Upload');
       btnSendEmail.style.display = show ? 'flex' : 'none';
@@ -3180,14 +3113,12 @@ Library sample order , concentration and pooled library tapestation profiles wil
       else if (view === 'Data Upload') currentEmailContext = 'du';
     }
 
-    // --- FREEZE COLUMNS ---
     function applyFreezeStyles() {
       tableView.querySelectorAll('th.col-frozen,th.col-freeze-edge,td.col-frozen,td.col-freeze-edge').forEach(el => {
         el.classList.remove('col-frozen', 'col-freeze-edge');
         el.style.left = '';
       });
       if (frozenCols === 0) return;
-      // cumulative left offsets
       let cum = 0;
       const lefts = currentColWidthPx.map(w => { const l = cum; cum += w; return l; });
       tableView.querySelectorAll('thead th').forEach((th, i) => {
@@ -3203,7 +3134,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
     }
 
     tableView.addEventListener('click', e => {
-      // Freeze pin toggle
       const pin = e.target.closest('.col-freeze-pin');
       if (pin) {
         e.stopPropagation();
@@ -3219,7 +3149,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       }
     });
 
-    // --- PIPELINE STATUS SIDEBAR PANEL ---
     const pipelineSection = document.getElementById('pipeline-section');
     const pipelineBatchSelect = document.getElementById('pipeline-batch-select');
     const pipelineDisplay = document.getElementById('pipeline-status-display');
@@ -3253,7 +3182,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       lucide.createIcons();
     }
 
-    // Global "Go to tab" handler — covers table column and sidebar panel
     document.addEventListener('click', e => {
       const btn = e.target.closest('.btn-goto-tab, .btn-goto-sidebar');
       if (!btn) return;
@@ -3264,30 +3192,15 @@ Library sample order , concentration and pooled library tapestation profiles wil
       renderApp();
     });
 
-    // --- CLOUD STORAGE LAYER (Google Drive via Apps Script) ---
-    // Replaces the prior browser-local IndexedDB so files and metadata are shared
-    // across all users opening the tracker link.
-    //
-    // pptFileMap[key]    = fileName       — key is '<batch>' or '<batch>::lib'
-    // batchFileMap[key]  = [fileName, …]  — key is 'dna_<batch>', 'lib_<batch>', '<batch>' (DT), or 'du_<batch>'
-    // fileIdMap[key][name] = driveFileId  — used to download/delete a specific file from Drive
     let batchFileMap = {};
     let pptFileMap = {};
     let fileIdMap = {};
-    // Buffer recently-uploaded files for 5 min so Drive's eventual consistency
-    // doesn't wipe them from the local maps before the index catches up.
     const UPLOAD_PENDING_TTL_MS = 5 * 60 * 1000;
-    const pendingUploads = {}; // key → [{fileName, fileId, ts}]
-    const pendingPPT = {}; // pptKey → {fileName, fileId, ts}
-    // Buffer recently-deleted files so Drive's eventual consistency doesn't
-    // re-inject them into the local maps before the delete propagates.
-    const pendingDeletes = {}; // key → [{fileName, ts}]
-    const pendingPPTDeletes = {}; // pptKey → ts
+    const pendingUploads = {};
+    const pendingPPT = {};
+    const pendingDeletes = {};
+    const pendingPPTDeletes = {};
 
-    // Persistent set of deleted Drive fileIds. Unlike the in-memory buffers
-    // above, this survives a browser refresh, so a file the user removed never
-    // reappears — even while Drive's listing is still eventually-consistent or
-    // if the delete is slow. It is pruned once the backend stops reporting the id.
     const DELETED_IDS_KEY = 'deletedFileIds_v1';
     let deletedFileIds = new Set();
     try { deletedFileIds = new Set(JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]')); } catch (e) { }
@@ -3300,7 +3213,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       persistDeletedIds();
     }
 
-    // ArrayBuffer → base64 (kept for the email-send path)
     async function bufferToBase64(buf) {
       const bytes = new Uint8Array(buf);
       const CHUNK = 8192;
@@ -3318,12 +3230,10 @@ Library sample order , concentration and pooled library tapestation profiles wil
       return bytes.buffer;
     }
 
-    // Mirror the backend's sanitizeFolderName so frontend keys match Drive folder names.
     function sanitizeDriveKey(s) {
       return String(s || '').replace(/[\/\\:*?"<>|]/g, '_').trim() || 'unknown';
     }
 
-    // Map a frontend file key to { batch, category } that matches the Drive layout.
     function parseFileKey(key) {
       if (key.startsWith('dna_')) return { batch: key.slice(4), category: 'dna' };
       if (key.startsWith('lib_')) return { batch: key.slice(4), category: 'lib' };
@@ -3386,7 +3296,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       return json;
     }
 
-    // PPT file functions (cloud-backed)
     async function savePPT(key, fileName, data) {
       const { batch, category } = parsePptKey(key);
       const base64 = await bufferToBase64(data);
@@ -3416,11 +3325,9 @@ Library sample order , concentration and pooled library tapestation profiles wil
       pendingPPTDeletes[key] = Date.now();
     }
     async function loadPPTFileMap() {
-      // Refresh from cloud — used after uploads/deletes for a single-source-of-truth view.
       await pullRemoteFileIndex();
     }
 
-    // Per-batch multi-file functions (cloud-backed)
     async function addBatchFile(key, fileName, data) {
       const { batch, category } = parseFileKey(key);
       const base64 = await bufferToBase64(data);
@@ -3430,15 +3337,12 @@ Library sample order , concentration and pooled library tapestation profiles wil
       batchFileMap[key].push(j.fileName);
       if (!fileIdMap[key]) fileIdMap[key] = {};
       fileIdMap[key][j.fileName] = j.fileId;
-      // Record as pending so pullRemoteFileIndex won't drop it before Drive catches up.
       if (!pendingUploads[key]) pendingUploads[key] = [];
       pendingUploads[key] = pendingUploads[key].filter(e => e.fileName !== j.fileName);
       pendingUploads[key].push({ fileName: j.fileName, fileId: j.fileId, ts: Date.now() });
     }
 
     async function getBatchRecord(key) {
-      // Maintains the legacy contract: { batch, files: [{name, data: ArrayBuffer}] }
-      // by fetching every file's bytes from Drive on demand. Used by the email-send path.
       const names = batchFileMap[key] || [];
       if (names.length === 0) return null;
       const idMap = fileIdMap[key] || {};
@@ -3452,8 +3356,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       return { batch: key, files };
     }
 
-    // Fetch a single file's bytes by name — used by per-file download buttons so we
-    // don't pull every file in the batch just to save one.
     async function getSingleBatchFile(key, fileName) {
       const fileId = (fileIdMap[key] || {})[fileName];
       if (!fileId) return null;
@@ -3467,9 +3369,7 @@ Library sample order , concentration and pooled library tapestation profiles wil
       if (fileId) await apiPost({ action: 'deleteFile', fileId });
       if (batchFileMap[key]) batchFileMap[key] = batchFileMap[key].filter(n => n !== fileName);
       if (fileIdMap[key]) delete fileIdMap[key][fileName];
-      // Remove from pending upload buffer so pullRemoteFileIndex won't re-inject the deleted file.
       if (pendingUploads[key]) pendingUploads[key] = pendingUploads[key].filter(e => e.fileName !== fileName);
-      // Record as pending delete so Drive's eventual consistency won't re-surface the file.
       if (!pendingDeletes[key]) pendingDeletes[key] = [];
       pendingDeletes[key] = pendingDeletes[key].filter(e => e.fileName !== fileName);
       pendingDeletes[key].push({ fileName, ts: Date.now() });
@@ -3509,8 +3409,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
         remember('lib_' + batch, cats.lib);
         remember(batch, cats.dt);
         remember('du_' + batch, cats.du);
-        // PPT IDs merged after remember() calls so they don't get overwritten by DT files
-        // sharing the same batch key in nextIds.
         if ((cats.ppt || []).length > 0) {
           const f = cats.ppt[0];
           nextPpt[batch] = f.fileName;
@@ -3528,7 +3426,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
 
       const now = Date.now();
 
-      // Suppress files that were recently deleted — Drive may still list them.
       Object.keys(pendingDeletes).forEach(key => {
         pendingDeletes[key] = pendingDeletes[key].filter(e => now - e.ts < UPLOAD_PENDING_TTL_MS);
         if (pendingDeletes[key].length === 0) { delete pendingDeletes[key]; return; }
@@ -3563,9 +3460,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
         }
       });
 
-      // Persistently drop any file the user removed (keyed by Drive fileId). This
-      // runs last so a deleted file never reappears after a refresh while Drive's
-      // listing is still eventually-consistent or the delete is slow/failed.
       if (deletedFileIds.size > 0) {
         const allRawIds = new Set();
         Object.keys(raw).forEach(db => {
@@ -3588,9 +3482,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
             if (nextIds[key]) delete nextIds[key][name];
           }
         });
-        // Prune ids the backend no longer reports (delete confirmed). Only when
-        // the index actually returned files, so a transient empty response can't
-        // wipe the guard.
         if (allRawIds.size > 0) {
           let pruned = false;
           deletedFileIds.forEach(id => { if (!allRawIds.has(id)) { deletedFileIds.delete(id); pruned = true; } });
@@ -3607,9 +3498,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       applyFileIndex(await apiGet({ action: 'listAllFiles' }));
     }
 
-    // --- SHARED METADATA (Apps Script _meta sheet) ---
-    // Replaces localStorage for any key that must be visible to every user of
-    // the tracker link (mail-sent timestamps, job IDs, directory inputs).
     let remoteMeta = {};
     const SHARED_META_PREFIXES = ['mailSent_', 'mailSentLib_', 'mailSentDU_', 'mailSentDT_', 'jobId_', 'dirInput_', 'mailResetAt'];
     function isSharedMetaKey(k) {
@@ -3620,11 +3508,9 @@ Library sample order , concentration and pooled library tapestation profiles wil
     }
     function metaGet(key) {
       const val = (isSharedMetaKey(key) && key in remoteMeta) ? remoteMeta[key] : localStorage.getItem(key);
-      return val; // any truthy value (old 'Mail sent' string or new timestamp) = already sent
+      return val;
     }
     async function metaSet(key, value) {
-      // Set localStorage synchronously FIRST so applyRemoteMeta sees the new value
-      // even if it runs during the await below (prevents stale overwrite race).
       localStorage.setItem(key, value);
       if (isSharedMetaKey(key)) {
         remoteMeta[key] = value;
@@ -3633,7 +3519,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       }
     }
 
-    // For input typing — coalesces high-frequency writes so we don't POST per keystroke.
     const _metaDebounceTimers = {};
     function metaSetDebounced(key, value, delayMs = 800) {
       if (isSharedMetaKey(key)) remoteMeta[key] = value;
@@ -3650,8 +3535,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       Object.keys(newMeta).forEach(k => {
         if (!isSharedMetaKey(k)) return;
         if (isMailSentKey(k)) {
-          // If localStorage already has any truthy value (sent this session or prev),
-          // keep it — the backend may still carry a stale value due to replication lag.
           if (localStorage.getItem(k)) return;
         }
         localStorage.setItem(k, newMeta[k]);
@@ -3670,23 +3553,17 @@ Library sample order , concentration and pooled library tapestation profiles wil
       ]);
     }
 
-    // --- AUTO SEND EMAIL ON PPT UPLOAD ---
     function getPPTMailSentKey(pptKey) {
       const isLib = pptKey.endsWith('::lib');
       const batch = isLib ? pptKey.replace('::lib', '') : pptKey;
       return isLib ? 'mailSentLib_' + batch : 'mailSent_' + batch;
     }
 
-    // preloadedData / preloadedName: in-memory ArrayBuffer+filename from the upload
-    // handler — skips the Drive round-trip and bypasses the "already sent" gate
-    // (user explicitly uploaded, so always send). Without these args the function
-    // runs in background mode: respects the gate and fetches from Drive.
     async function autoSendEmail(pptKey, preloadedData, preloadedName) {
       const isLib = pptKey.endsWith('::lib');
       const batch = isLib ? pptKey.replace('::lib', '') : pptKey;
       const action = isLib ? 'sendLibraryPrepEmail' : 'sendDNARNAEmail';
       const lsKey = getPPTMailSentKey(pptKey);
-      // Background mode only: skip if already sent. Upload-triggered calls always proceed.
       if (!preloadedData && metaGet(lsKey)) return;
 
       try {
@@ -3704,7 +3581,7 @@ Library sample order , concentration and pooled library tapestation profiles wil
           pptName = pptRec.fileName;
         }
 
-        const payload = { action, batch, to: EMAIL_TO, cc: EMAIL_CC };
+        const payload = { action, batch, to: EMAIL_TO };
         payload.pptBase64 = await bufferToBase64(pptData);
         payload.pptName = pptName;
 
@@ -3722,20 +3599,17 @@ Library sample order , concentration and pooled library tapestation profiles wil
       } catch (err) {
         console.error('autoSendEmail failed for ' + batch + ':', err.message);
         if (preloadedData) {
-          // Called from the upload handler — show the error so the user knows
           alert('Email send failed for ' + batch + ':\n' + err.message);
         }
       }
     }
 
-    // --- AUTO SEND EMAIL ON DATA TRANSFER FILE UPLOAD ---
 
     function isBatchSuppressed(batch) {
       return false;
     }
 
     function isDTReadyToSend(batch) {
-      // Both conditions: Directory input is filled AND files are uploaded
       const dirValue = (metaGet('dirInput_' + batch) || '').trim();
       const hasFiles = (batchFileMap[batch] || []).length > 0;
       return dirValue !== '' && hasFiles;
@@ -3776,8 +3650,7 @@ Library sample order , concentration and pooled library tapestation profiles wil
     }
 
     async function buildDTPayload(batch, customSubject, customBody) {
-      const payload = { action: 'sendDataTransferEmail', batch, customSubject, customBody, to: EMAIL_TO, cc: EMAIL_CC };
-      // Attach uploaded files from Drive (fetched on demand via getBatchRecord)
+      const payload = { action: 'sendDataTransferEmail', batch, customSubject, customBody, to: EMAIL_TO };
       const rec = await getBatchRecord(batch);
       if (rec && rec.files && rec.files.length > 0) {
         payload.files = [];
@@ -3810,7 +3683,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       }
     }
 
-    // --- FILE POPOVER ---
     const filePopover = document.getElementById('file-popover');
     const fpList = document.getElementById('fp-list');
     const fpTitle = document.getElementById('fp-title');
@@ -3830,22 +3702,18 @@ Library sample order , concentration and pooled library tapestation profiles wil
         <button class="fp-btn-del" data-fname="${name}" title="Remove">✕</button>
       </div>`).join('');
 
-      // Position popover anchored to button, clamped within viewport
       filePopover.classList.add('open');
       const rect = anchorBtn.getBoundingClientRect();
       const popW = filePopover.offsetWidth || 260;
       const popH = filePopover.offsetHeight || 300;
       let top = rect.bottom + 6;
       let left = rect.left;
-      // Flip above if not enough space below
       if (top + popH > window.innerHeight - 8) top = rect.top - popH - 6;
-      // Clamp horizontally
       if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
       if (left < 8) left = 8;
       filePopover.style.top = `${Math.max(8, top)}px`;
       filePopover.style.left = `${left}px`;
 
-      // Download individual
       fpList.querySelectorAll('.fp-btn-dl').forEach(btn => {
         btn.addEventListener('click', async e => {
           e.stopPropagation();
@@ -3854,13 +3722,11 @@ Library sample order , concentration and pooled library tapestation profiles wil
         });
       });
 
-      // Remove individual
       fpList.querySelectorAll('.fp-btn-del').forEach(btn => {
         btn.addEventListener('click', async e => {
           e.stopPropagation();
           if (!confirm(`Remove "${btn.dataset.fname}" from ${batch}?`)) return;
           await deleteBatchSingleFile(batch, btn.dataset.fname);
-          // Skip Drive re-fetch — local maps already updated.
           renderTable();
           const remaining = batchFileMap[batch] || [];
           if (remaining.length === 0) filePopover.classList.remove('open');
@@ -3893,7 +3759,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       for (const name of names) {
         await deleteBatchSingleFile(popoverBatch, name);
       }
-      // Skip Drive re-fetch — local maps already updated.
       filePopover.classList.remove('open');
       renderTable();
     });
@@ -3903,7 +3768,6 @@ Library sample order , concentration and pooled library tapestation profiles wil
       if (!filePopover.contains(e.target)) filePopover.classList.remove('open');
     });
 
-    // --- DOWNLOAD BY BATCH ---
     const downloadWrapper = document.getElementById('download-wrapper');
     const downloadDropdown = document.getElementById('download-dropdown');
     const downloadBatchList = document.getElementById('download-batch-list');

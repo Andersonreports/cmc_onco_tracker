@@ -54,14 +54,15 @@
     .hero-band::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: -10px;
       z-index: 0;
       background-image:
-        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+        linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.42)),
         url('/hero-bg.png');
       background-size: cover, cover;
       background-position: center, center;
       background-repeat: no-repeat, no-repeat;
+      filter: blur(1px);
     }
 
     .hero-band .backbar,
@@ -143,24 +144,23 @@
     .back-link {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      font-size: 14px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.92);
+      gap: 9px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--sidebar-bg);
       text-decoration: none;
-      padding: 8px 14px;
+      padding: 11px 20px;
       border-radius: 999px;
       transition: var(--tr);
     }
 
     .back-link:hover {
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
+      background: rgba(15, 37, 66, 0.08);
     }
 
     .back-link [data-lucide] {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
     }
 
     /* === HERO === */
@@ -173,18 +173,37 @@
     .hero h1 {
       font-size: clamp(30px, 5vw, 46px);
       font-weight: 800;
-      letter-spacing: -1px;
-      color: #ffffff;
-      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.45);
+      letter-spacing: -1.2px;
+      color: var(--sidebar-bg);
+    }
+
+    .hero-dot-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 18px 0 20px;
+    }
+
+    .hero-dot-divider .seg {
+      width: 26px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--accent);
+    }
+
+    .hero-dot-divider .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
     }
 
     .hero p {
-      margin-top: 14px;
-      font-size: 16px;
+      font-size: 17px;
       color: var(--text-muted);
-      max-width: 560px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 620px;
+      margin: 0 auto;
     }
 
     /* === GRID === */
@@ -192,87 +211,123 @@
       flex: 1;
       display: grid;
       align-content: start;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
-      justify-content: center;
-      gap: 24px;
-      max-width: 1160px;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 34px;
+      max-width: 1080px;
       width: 100%;
       margin: 0 auto;
-      padding: 40px 32px 72px;
+      padding: 34px 32px 64px;
     }
 
     .card {
+      --card-accent: var(--accent);
+      --card-accent-soft: rgba(13, 148, 136, 0.10);
       position: relative;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 26px;
+      overflow: hidden;
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.4) 100%);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-left: 7px solid var(--card-accent);
+      border-radius: 10px;
+      padding: 30px 32px;
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-      min-height: 210px;
+      align-items: center;
+      gap: 26px;
+      min-height: 190px;
       text-decoration: none;
       color: inherit;
-      box-shadow: var(--shadow);
+      box-shadow:
+        0 18px 40px rgba(15, 37, 66, 0.16),
+        0 1px 0 rgba(255, 255, 255, 0.9) inset;
       transition: var(--tr);
-      overflow: hidden;
     }
 
-    .card.active {
-      cursor: pointer;
+    .card.navy {
+      --card-accent: var(--sidebar-bg);
+      --card-accent-soft: rgba(15, 37, 66, 0.08);
     }
 
-    .card.active:hover {
-      transform: translateY(-6px);
-      border-color: var(--border-strong);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .card.active::before {
+    .card::before {
       content: "";
       position: absolute;
-      inset: 0 0 auto 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      top: -60%;
+      left: -65%;
+      width: 55%;
+      height: 220%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: rotate(25deg);
+      filter: blur(3px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card.active { cursor: pointer; }
+
+    .card.active:hover {
+      transform: translateY(-5px);
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.5) 100%);
+      box-shadow:
+        0 26px 52px rgba(15, 37, 66, 0.22),
+        0 1px 0 rgba(255, 255, 255, 1) inset;
     }
 
     .card .icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
+      flex-shrink: 0;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-      color: #fff;
-      box-shadow: 0 6px 18px var(--accent-glow);
+      background: var(--card-accent-soft);
+      color: var(--card-accent);
     }
 
     .card .icon [data-lucide] {
-      width: 26px;
-      height: 26px;
+      width: 44px;
+      height: 44px;
+      stroke-width: 1.6;
+    }
+
+    .card .body {
+      border-left: 1px solid rgba(15, 37, 66, 0.10);
+      padding-left: 26px;
     }
 
     .card h3 {
-      font-size: 19px;
+      font-size: 23px;
       font-weight: 700;
+      color: var(--sidebar-bg);
+    }
+
+    .card .underline {
+      width: 30px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--card-accent);
+      margin: 10px 0 14px;
     }
 
     .card .desc {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-muted);
-      line-height: 1.5;
-      flex: 1;
+      line-height: 1.65;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      align-self: flex-start;
       font-size: 12px;
       font-weight: 600;
       padding: 5px 12px;
       border-radius: 999px;
+      margin-top: 14px;
     }
 
     .badge [data-lucide] {
@@ -281,36 +336,18 @@
     }
 
     .badge.live {
-      background: rgba(22, 163, 74, 0.12);
+      background: rgba(22, 163, 74, 0.14);
       color: #16a34a;
     }
 
-    .badge.soon {
-      background: rgba(74, 122, 109, 0.12);
-      color: var(--text-muted);
-    }
-
-    /* === PLACEHOLDER CARDS === */
-    .card.placeholder {
-      border-style: dashed;
-      background: rgba(255, 255, 255, 0.55);
-      box-shadow: none;
-    }
-
-    .card.placeholder .icon {
-      background: var(--border);
-      color: var(--text-muted);
-      box-shadow: none;
-    }
-
-    .card.placeholder h3 {
-      color: var(--text-muted);
-    }
 
     @media (max-width: 600px) {
       .app-header { padding: 0 18px; }
       .backbar { padding: 18px 18px 0; }
-      .grid { padding: 28px 18px 56px; }
+      .grid { grid-template-columns: 1fr; padding: 28px 18px 56px; }
+      .card { flex-direction: column; text-align: center; gap: 18px; }
+      .card .body { border-left: none; padding-left: 0; }
+      .card .underline { margin-left: auto; margin-right: auto; }
     }
   </style>
 </head>
@@ -330,23 +367,27 @@
 
     <section class="hero">
       <h1>CMC Trackers</h1>
+      <div class="hero-dot-divider">
+        <span class="seg"></span><span class="dot"></span><span class="seg"></span>
+      </div>
+      <p>Wetlab &amp; report tracking for the CMC oncology workflow and related pipelines.</p>
     </section>
 
     <main class="grid">
-      <!-- CMC ONCO Tracker — LIVE -->
       <a class="card active" href="../cmc-onco/">
         <div class="icon"><i data-lucide="microscope"></i></div>
-        <h3>CMC ONCO Tracker</h3>
-        <span class="badge live"><i data-lucide="circle-dot"></i> Live</span>
+        <div class="body">
+          <h3>CMC ONCO Tracker</h3>
+          <div class="underline"></div>
+          <div class="desc">Samples, runs, QC status, and deliverables for the CMC oncology pipeline — all in one place.</div>
+          <span class="badge live"><i data-lucide="circle-dot"></i> Live</span>
+        </div>
       </a>
-
     </main>
   </div>
 
   <script>
     lucide.createIcons();
-    // Back button: use real browser-back when we arrived from within the app,
-    // otherwise follow the href to the parent page.
     document.getElementById('back-link').addEventListener('click', function (e) {
       const sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
       if (sameOrigin && history.length > 1) {

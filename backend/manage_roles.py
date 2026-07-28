@@ -9,8 +9,14 @@ Usage:
   python manage_roles.py list
   python manage_roles.py set <mobile> <role> [name...]
   python manage_roles.py delete <mobile>
+  python manage_roles.py setpass <mobile> <password>
+  python manage_roles.py clearpass <mobile>
 
 Roles: admin | cmc | anderson
+
+setpass/clearpass control local password sign-in: a user with a local
+password bypasses IT's genetics API entirely and signs in straight against
+this roles table. Use this only for accounts that don't exist in IT's system.
 """
 
 
@@ -46,10 +52,28 @@ def cmd_delete(args):
     print(f"Deleted role mapping for {role_store.normalize_mobile(args[0])}.")
 
 
+def cmd_setpass(args):
+    mobile, password = args[0], args[1]
+    try:
+        role_store.set_password(mobile, password)
+    except ValueError as e:
+        sys.exit(str(e))
+    key = role_store.normalize_mobile(mobile)
+    print(f"Set local password for {key}. They will now sign in without contacting IT's API.")
+
+
+def cmd_clearpass(args):
+    role_store.clear_password(args[0])
+    key = role_store.normalize_mobile(args[0])
+    print(f"Cleared local password for {key}. They will use IT's API again.")
+
+
 COMMANDS = {
     "list": (cmd_list, 0),
     "set": (cmd_set, 2),
     "delete": (cmd_delete, 1),
+    "setpass": (cmd_setpass, 2),
+    "clearpass": (cmd_clearpass, 1),
 }
 
 

@@ -26,11 +26,16 @@ class UserBody(BaseModel):
     role: str
 
 
+class PasswordBody(BaseModel):
+    password: str
+
+
 @router.get("/users")
 def list_users(anderson_session: str | None = Cookie(default=None)):
     _require_admin(anderson_session)
     users = [
-        {"mobile": r.get("mobile", ""), "name": r.get("name") or "", "role": r.get("role", "")}
+        {"mobile": r.get("mobile", ""), "name": r.get("name") or "", "role": r.get("role", ""),
+         "local_password": bool(r.get("password_hash"))}
         for r in role_store.all()
     ]
     return {"users": users, "roles": list(ROLES)}
@@ -57,4 +62,26 @@ def delete_user(mobile: str, anderson_session: str | None = Cookie(default=None)
         raise HTTPException(status_code=400, detail="You can't remove your own access.")
     if not role_store.delete(key):
         raise HTTPException(status_code=404, detail="No such user.")
+    return {"ok": True}
+
+
+@router.post("/users/{mobile}/password")
+def set_user_password(mobile: str, body: PasswordBody, anderson_session: str | None = Cookie(default=None)):
+    _require_admin(anderson_session)
+    key = role_store.normalize_mobile(mobile)
+    if not role_store.get(key):
+        raise HTTPException(status_code=404, detail="No such user.")
+    if len(body.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+    role_store.set_password(key, body.password)
+    return {"ok": True}
+
+
+@router.delete("/users/{mobile}/password")
+def clear_user_password(mobile: str, anderson_session: str | None = Cookie(default=None)):
+    _require_admin(anderson_session)
+    key = role_store.normalize_mobile(mobile)
+    if not role_store.get(key):
+        raise HTTPException(status_code=404, detail="No such user.")
+    role_store.clear_password(key)
     return {"ok": True}

@@ -114,6 +114,7 @@
     .pill-admin { background: #e7f0ff; color: #2563eb; }
     .pill-cmc { background: #e6f7f2; color: var(--accent-hover); }
     .pill-anderson { background: #f3ecff; color: #7c3aed; }
+    .pill-local { background: #fff7ed; color: #c2410c; margin-left: 6px; }
     .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
     .empty-row { text-align: center; padding: 44px 16px; color: var(--text-muted); font-size: 13.5px; }
 
@@ -195,7 +196,6 @@
     </div>
   </div>
 
-  <!-- Add / Edit modal -->
   <div class="modal-overlay" id="userModal">
     <div class="modal-box">
       <h3 id="modalTitle">Add user</h3>
@@ -215,7 +215,16 @@
           <select id="f_role"></select>
           <div class="field-hint">Admin = all suites + this page · CMC = CMC trackers · Anderson = Anderson trackers.</div>
         </div>
+        <div class="field">
+          <label for="f_password">Local password (optional)</label>
+          <input type="password" id="f_password" autocomplete="new-password" placeholder="Leave blank to use IT's login + OTP">
+          <div class="field-hint" id="passwordHint">
+            Only for people who aren't in IT's system. Set this and they sign in with just this
+            password — no OTP, no contacting IT at all.
+          </div>
+        </div>
         <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="clearPassBtn" style="display:none; margin-right:auto;">Clear local password</button>
           <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
           <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
         </div>
@@ -230,7 +239,7 @@
     const $ = (id) => document.getElementById(id);
     const ROLE_LABELS = { admin: 'Admin', cmc: 'CMC', anderson: 'Anderson' };
     let ROLES = ['admin', 'cmc', 'anderson'];
-    let editingMobile = null;   // non-null when editing an existing row
+    let editingMobile = null;
 
     function esc(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g,
@@ -281,7 +290,7 @@
         <tr>
           <td>${u.name ? `<strong>${esc(u.name)}</strong>` : '<span class="muted">—</span>'}</td>
           <td>${esc(u.mobile)}</td>
-          <td>${rolePill(u.role)}</td>
+          <td>${rolePill(u.role)}${u.local_password ? '<span class="pill pill-local">Local login</span>' : ''}</td>
           <td>
             <div class="row-actions">
               <button class="btn btn-outline btn-sm" data-edit="${esc(u.mobile)}" title="Edit"><i data-lucide="pencil"></i></button>
@@ -314,6 +323,9 @@
       $('f_mobile').value = '';
       $('f_mobile').disabled = false;
       $('f_role').innerHTML = roleOptions('cmc');
+      $('f_password').value = '';
+      $('passwordHint').textContent = "Only for people who aren't in IT's system. Set this and they sign in with just this password — no OTP, no contacting IT at all.";
+      $('clearPassBtn').style.display = 'none';
       $('userModal').classList.add('open');
       $('f_mobile').focus();
     }
@@ -325,8 +337,13 @@
       $('modalTitle').textContent = 'Edit user';
       $('f_name').value = u.name || '';
       $('f_mobile').value = u.mobile;
-      $('f_mobile').disabled = true;   // mobile is the key; change = add a new one
+      $('f_mobile').disabled = true;
       $('f_role').innerHTML = roleOptions(u.role);
+      $('f_password').value = '';
+      $('passwordHint').textContent = u.local_password
+        ? 'A local password is already set — this user signs in without IT. Leave blank to keep it, enter a new one to change it.'
+        : "Only for people who aren't in IT's system. Set this and they sign in with just this password — no OTP, no contacting IT at all.";
+      $('clearPassBtn').style.display = u.local_password ? '' : 'none';
       $('userModal').classList.add('open');
       $('f_name').focus();
     }
@@ -354,10 +371,26 @@
       const name = $('f_name').value.trim();
       const mobile = editingMobile || $('f_mobile').value.trim();
       const role = $('f_role').value;
+      const password = $('f_password').value;
       if (!/^[0-9]{10}$/.test(mobile)) { toast('Enter a valid 10-digit mobile number.', 'error'); return; }
+      if (password && password.length < 6) { toast('Local password must be at least 6 characters.', 'error'); return; }
       try {
         await api('POST', '/admin/users', { mobile, name, role });
+        if (password) {
+          await api('POST', '/admin/users/' + encodeURIComponent(mobile) + '/password', { password });
+        }
         toast(editingMobile ? 'User updated.' : 'User added.', 'success');
+        closeModal();
+        load();
+      } catch (err) { toast(err.message, 'error'); }
+    });
+
+    $('clearPassBtn').addEventListener('click', async () => {
+      if (!editingMobile) return;
+      if (!window.confirm('Remove the local password for this user? They will go back to signing in through IT’s API.')) return;
+      try {
+        await api('DELETE', '/admin/users/' + encodeURIComponent(editingMobile) + '/password');
+        toast('Local password cleared.', 'success');
         closeModal();
         load();
       } catch (err) { toast(err.message, 'error'); }

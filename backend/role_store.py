@@ -1,9 +1,12 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 from pathlib import Path
 
 try:
@@ -125,3 +128,65 @@ def delete(mobile: str) -> bool:
         return False
     _file_save(kept)
     return True
+
+
+_PBKDF2_ITERATIONS = 260_000
+
+
+def _hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac(
+        "sha256", password.encode(), salt, _PBKDF2_ITERATIONS)
+    return f"pbkdf2_sha256${_PBKDF2_ITERATIONS}${salt.hex()}${digest.hex()}"
+
+
+def _verify_password_hash(password: str, stored: str) -> bool:
+    try:
+        algo, iterations, salt_hex, digest_hex = stored.split("$")
+        if algo != "pbkdf2_sha256":
+            return False
+        digest = hashlib.pbkdf2_hmac(
+            "sha256", password.encode(), bytes.fromhex(salt_hex), int(iterations))
+        return hmac.compare_digest(digest.hex(), digest_hex)
+    except Exception:
+        return False
+
+
+def has_local_password(mobile: str) -> bool:
+    mapping = get(mobile)
+    return bool(mapping and mapping.get("password_hash"))
+
+
+def verify_local_password(mobile: str, password: str) -> bool:
+    mapping = get(mobile)
+    stored = mapping.get("password_hash") if mapping else None
+    return bool(stored) and _verify_password_hash(password, stored)
+
+
+def set_password(mobile: str, password: str) -> None:
+    key = normalize_mobile(mobile)
+    if not get(key):
+        raise ValueError(f"No role mapping for {key}. Set a role first with 'set'.")
+    password_hash = _hash_password(password)
+    if backend_name() == "mysql":
+        db.set_password_hash(key, password_hash)
+        return
+    rows = _file_load()
+    for r in rows:
+        if normalize_mobile(r["mobile"]) == key:
+            r["password_hash"] = password_hash
+            _file_save(rows)
+            return
+
+
+def clear_password(mobile: str) -> None:
+    key = normalize_mobile(mobile)
+    if backend_name() == "mysql":
+        db.set_password_hash(key, None)
+        return
+    rows = _file_load()
+    for r in rows:
+        if normalize_mobile(r["mobile"]) == key:
+            r.pop("password_hash", None)
+            _file_save(rows)
+            return

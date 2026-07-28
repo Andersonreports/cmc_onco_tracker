@@ -206,7 +206,6 @@
       <div class="name">Anderson <span>Trackings</span></div>
     </div>
 
-    <!-- STEP 1 — credentials -->
     <div class="step active" id="step-credentials">
       <h1>Sign in</h1>
       <p class="subtitle">Enter your credentials to access your tracking suite.</p>
@@ -239,7 +238,6 @@
       </form>
     </div>
 
-    <!-- STEP 2 — OTP -->
     <div class="step" id="step-otp">
       <h1>Verify it's you</h1>
       <p class="subtitle">We sent a 6-digit code to <strong id="otp-target">your registered contact</strong>. Enter it below to continue.</p>
@@ -309,8 +307,6 @@
       expiryTimer = setInterval(tick, 1000);
     }
 
-    // Request (or re-request) an OTP using the credentials still in the form.
-    // Re-calling this is exactly how "resend" works — it triggers a fresh code.
     async function requestOtp() {
       const r = await fetch('/auth/login', {
         method: 'POST',
@@ -328,7 +324,6 @@
       return data;
     }
 
-    // ── Step 1: credentials → request OTP ──
     $('credentials-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       hide($('cred-error'));
@@ -349,7 +344,6 @@
       }
     });
 
-    // ── Step 2: verify OTP ──
     $('otp-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       hide($('otp-error'));
@@ -365,7 +359,6 @@
         if (!r.ok) {
           show($('otp-error'), data.error || 'Verification failed.');
           if (r.status === 400 || r.status === 429) {
-            // challenge gone — send them back to step 1
             setTimeout(() => { goStep('credentials'); $('password').value = ''; }, 1500);
           }
           return;
@@ -378,7 +371,6 @@
       }
     });
 
-    // ── Resend — re-run the login call, which triggers a fresh OTP ──
     $('resend-btn').addEventListener('click', async () => {
       const btn = $('resend-btn');
       btn.disabled = true;
@@ -395,7 +387,6 @@
       }
     });
 
-    // ── Back to credentials ──
     $('back-btn').addEventListener('click', () => {
       clearInterval(expiryTimer);
       challenge = null;
