@@ -112,9 +112,19 @@
       font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
     }
     .pill-admin { background: #e7f0ff; color: #2563eb; }
-    .pill-cmc { background: #e6f7f2; color: var(--accent-hover); }
-    .pill-anderson { background: #f3ecff; color: #7c3aed; }
-    .pill-local { background: #fff7ed; color: #c2410c; margin-left: 6px; }
+    .pill-access { background: #e6f7f2; color: var(--accent-hover); }
+    .pill-local { background: #fff7ed; color: #c2410c; }
+    .pill + .pill { margin-left: 6px; }
+    .access-list { display: flex; flex-direction: column; gap: 8px; }
+    .access-item {
+      display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px;
+      border: 1px solid var(--border); border-radius: 9px; background: #f8fdfb;
+      cursor: pointer; transition: var(--tr);
+    }
+    .access-item:hover { border-color: var(--border-strong); }
+    .access-item input { margin-top: 2px; width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+    .access-item .t { font-size: 13.5px; font-weight: 600; }
+    .access-item .s { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
     .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
     .empty-row { text-align: center; padding: 44px 16px; color: var(--text-muted); font-size: 13.5px; }
 
@@ -185,7 +195,7 @@
           <tr>
             <th>Name</th>
             <th>Mobile number</th>
-            <th>Role</th>
+            <th>Access</th>
             <th style="text-align:right;">Actions</th>
           </tr>
         </thead>
@@ -211,9 +221,9 @@
           <div class="field-hint">Must match the mobile number IT has for this person — that's what verifies their identity at login.</div>
         </div>
         <div class="field">
-          <label for="f_role">Role</label>
-          <select id="f_role"></select>
-          <div class="field-hint">Admin = all suites + this page · CMC = CMC trackers · Anderson = Anderson trackers.</div>
+          <label>Access</label>
+          <div class="access-list" id="f_access"></div>
+          <div class="field-hint">Tick every tracker this person may open. Admin grants all trackers plus this page.</div>
         </div>
         <div class="field">
           <label for="f_password">Local password (optional)</label>
@@ -237,8 +247,8 @@
   <script>
     lucide.createIcons();
     const $ = (id) => document.getElementById(id);
-    const ROLE_LABELS = { admin: 'Admin', cmc: 'CMC', anderson: 'Anderson' };
-    let ROLES = ['admin', 'cmc', 'anderson'];
+    let GRANTABLE = ['admin'];
+    let LABELS = { admin: 'Admin' };
     let editingMobile = null;
 
     function esc(s) {
@@ -269,13 +279,25 @@
       return d;
     }
 
-    function roleOptions(selected) {
-      return ROLES.map(r => `<option value="${r}" ${r === selected ? 'selected' : ''}>${ROLE_LABELS[r] || r}</option>`).join('');
+    function accessCheckboxes(selected) {
+      const sel = new Set(selected || []);
+      return GRANTABLE.map(k => `
+        <label class="access-item">
+          <input type="checkbox" value="${esc(k)}" ${sel.has(k) ? 'checked' : ''}>
+          <span>
+            <span class="t">${esc(LABELS[k] || k)}</span>
+            <span class="s">${k === 'admin' ? 'All trackers + user management' : 'Access to this tracker only'}</span>
+          </span>
+        </label>`).join('');
     }
 
-    function rolePill(role) {
-      const cls = role === 'admin' ? 'pill-admin' : role === 'cmc' ? 'pill-cmc' : 'pill-anderson';
-      return `<span class="pill ${cls}">${esc(ROLE_LABELS[role] || role)}</span>`;
+    function selectedAccess() {
+      return [...document.querySelectorAll('#f_access input:checked')].map(i => i.value);
+    }
+
+    function accessPills(list) {
+      if (!list || !list.length) return '<span class="muted">none</span>';
+      return list.map(k => `<span class="pill ${k === 'admin' ? 'pill-admin' : 'pill-access'}">${esc(LABELS[k] || k)}</span>`).join('');
     }
 
     let USERS = [];
@@ -290,7 +312,7 @@
         <tr>
           <td>${u.name ? `<strong>${esc(u.name)}</strong>` : '<span class="muted">—</span>'}</td>
           <td>${esc(u.mobile)}</td>
-          <td>${rolePill(u.role)}${u.local_password ? '<span class="pill pill-local">Local login</span>' : ''}</td>
+          <td>${accessPills(u.accesses)}${u.local_password ? '<span class="pill pill-local">Local login</span>' : ''}</td>
           <td>
             <div class="row-actions">
               <button class="btn btn-outline btn-sm" data-edit="${esc(u.mobile)}" title="Edit"><i data-lucide="pencil"></i></button>
@@ -306,7 +328,8 @@
     async function load() {
       try {
         const d = await api('GET', '/admin/users');
-        ROLES = d.roles && d.roles.length ? d.roles : ROLES;
+        GRANTABLE = d.grantable && d.grantable.length ? d.grantable : GRANTABLE;
+        LABELS = d.labels || LABELS;
         USERS = d.users || [];
         $('errorBanner').classList.remove('show');
         render();
@@ -322,7 +345,7 @@
       $('f_name').value = '';
       $('f_mobile').value = '';
       $('f_mobile').disabled = false;
-      $('f_role').innerHTML = roleOptions('cmc');
+      $('f_access').innerHTML = accessCheckboxes([]);
       $('f_password').value = '';
       $('passwordHint').textContent = "Only for people who aren't in IT's system. Set this and they sign in with just this password — no OTP, no contacting IT at all.";
       $('clearPassBtn').style.display = 'none';
@@ -338,7 +361,7 @@
       $('f_name').value = u.name || '';
       $('f_mobile').value = u.mobile;
       $('f_mobile').disabled = true;
-      $('f_role').innerHTML = roleOptions(u.role);
+      $('f_access').innerHTML = accessCheckboxes(u.accesses);
       $('f_password').value = '';
       $('passwordHint').textContent = u.local_password
         ? 'A local password is already set — this user signs in without IT. Leave blank to keep it, enter a new one to change it.'
@@ -370,7 +393,7 @@
       e.preventDefault();
       const name = $('f_name').value.trim();
       const mobile = editingMobile || $('f_mobile').value.trim();
-      const role = $('f_role').value;
+      const role = selectedAccess();
       const password = $('f_password').value;
       if (!/^[0-9]{10}$/.test(mobile)) { toast('Enter a valid 10-digit mobile number.', 'error'); return; }
       if (password && password.length < 6) { toast('Local password must be at least 6 characters.', 'error'); return; }

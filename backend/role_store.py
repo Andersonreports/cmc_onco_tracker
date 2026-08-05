@@ -4,7 +4,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-import os
 import re
 import secrets
 from pathlib import Path
@@ -15,6 +14,7 @@ try:
 except Exception:
     pass
 
+import access
 import db
 
 ROLES_FILE = Path(__file__).parent / "roles.json"
@@ -99,6 +99,11 @@ def get(mobile: str) -> dict | None:
         if normalize_mobile(r["mobile"]) == key:
             return r
     return None
+
+
+def accesses(mobile: str) -> list[str]:
+    mapping = get(mobile)
+    return access.normalize((mapping or {}).get("role"))
 
 
 def set_role(mobile: str, role: str, name: str | None = None) -> None:

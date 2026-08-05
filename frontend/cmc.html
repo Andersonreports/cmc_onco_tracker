@@ -362,7 +362,7 @@
 
   <div class="hero-band">
     <nav class="backbar">
-      <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
+      <a class="back-link" href="/"><i data-lucide="arrow-left"></i> Back</a>
     </nav>
 
     <section class="hero">
@@ -388,13 +388,6 @@
 
   <script>
     lucide.createIcons();
-    document.getElementById('back-link').addEventListener('click', function (e) {
-      const sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
-      if (sameOrigin && history.length > 1) {
-        e.preventDefault();
-        history.back();
-      }
-    });
   </script>
 </body>
 

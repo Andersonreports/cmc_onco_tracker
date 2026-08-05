@@ -294,6 +294,13 @@
       stroke-width: 1.6;
     }
 
+    .card .icon img {
+      width: 66px;
+      height: 66px;
+      object-fit: contain;
+      display: block;
+    }
+
     .card .body {
       border-left: 1px solid rgba(15, 37, 66, 0.10);
       padding-left: 26px;
@@ -340,6 +347,11 @@
       color: var(--text-muted);
     }
 
+    .badge.count {
+      background: rgba(13, 148, 136, 0.14);
+      color: var(--accent-hover);
+    }
+
 
     /* === PLACEHOLDER CARDS === */
     .card.placeholder {
@@ -371,7 +383,7 @@
 
   <div class="hero-band">
     <nav class="backbar">
-      <a class="back-link" href="/" id="back-link"><i data-lucide="arrow-left"></i> Back</a>
+      <a class="back-link" href="/"><i data-lucide="arrow-left"></i> Back</a>
     </nav>
 
     <section class="hero">
@@ -383,15 +395,15 @@
     </section>
 
     <main class="grid">
-      <div class="card placeholder">
-        <div class="icon"><i data-lucide="plus"></i></div>
+      <a class="card active" href="../bioinfo/">
+        <div class="icon"><img src="/germline-logo.png" alt="Bioinfo"></div>
         <div class="body">
-          <h3>Anderson Tracker 1</h3>
+          <h3>Bioinfo Trackers</h3>
           <div class="underline"></div>
-          <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
-          <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
+          <div class="desc">Bioinformatics pipeline tracking — analysis runs, QC metrics, and downstream data processing.</div>
+          <span class="badge count"><i data-lucide="layers"></i> 3 trackers</span>
         </div>
-      </div>
+      </a>
 
       <div class="card placeholder navy">
         <div class="icon"><i data-lucide="plus"></i></div>
@@ -417,13 +429,6 @@
 
   <script>
     lucide.createIcons();
-    document.getElementById('back-link').addEventListener('click', function (e) {
-      const sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
-      if (sameOrigin && history.length > 1) {
-        e.preventDefault();
-        history.back();
-      }
-    });
   </script>
 </body>
 

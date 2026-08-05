@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bioinfo Trackers · Anderson Trackings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --header-bg: #2f3b4d;
+      --header-btn-bg: rgba(255, 255, 255, 0.09);
+      --header-btn-bg-hover: rgba(255, 255, 255, 0.16);
+      --teal: #2dd4bf;
+      --teal-deep: #134e4a;
+      --navy-text: #1e293b;
+      --muted-text: #475569;
+      --muted-text-soft: #64748b;
+      --card-bg: rgba(255, 255, 255, 0.55);
+      --card-bg-hover: rgba(255, 255, 255, 0.72);
+      --card-border: rgba(255, 255, 255, 0.75);
+      --live-bg: #d1fae5;
+      --live-text: #166534;
+      --soon-bg: #e2e8f0;
+      --soon-text: #334155;
+      --tr: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--navy-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-band {
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #eef4f7;
+    }
+
+    .hero-band::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(160deg, rgba(236, 244, 248, 0.35) 0%, rgba(222, 235, 241, 0.45) 55%, rgba(214, 230, 238, 0.4) 100%),
+        url('/hero-bg.png');
+      background-size: cover, cover;
+      background-position: center, center 35%;
+      background-repeat: no-repeat, no-repeat;
+    }
+
+    .hero-band .backbar,
+    .hero-band .hero,
+    .hero-band .grid {
+      position: relative;
+      z-index: 2;
+    }
+
+    .app-header {
+      position: relative;
+      z-index: 2;
+      height: 84px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 40px;
+      background: var(--header-bg);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .app-logo {
+      display: grid;
+      place-items: center;
+      color: var(--teal);
+    }
+
+    .app-logo [data-lucide] {
+      width: 30px;
+      height: 30px;
+      stroke-width: 2;
+    }
+
+    .app-header .brand {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: #fff;
+    }
+
+    .app-header .brand span {
+      font-weight: 400;
+      color: var(--teal);
+    }
+
+    .app-header .spacer { flex: 1; }
+
+    .logout-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      background: var(--header-btn-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: var(--tr);
+    }
+
+    .logout-btn:hover { background: var(--header-btn-bg-hover); }
+    .logout-btn [data-lucide] { width: 16px; height: 16px; }
+
+    .backbar {
+      flex-shrink: 0;
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 40px 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--navy-text);
+      text-decoration: none;
+      padding: 11px 22px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+      box-shadow: 0 1px 3px rgba(30, 41, 59, 0.08);
+      transition: var(--tr);
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .back-link [data-lucide] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .hero {
+      flex-shrink: 0;
+      text-align: center;
+      padding: 56px 24px 8px;
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.4px;
+      color: var(--navy-text);
+    }
+
+    .hero-dot-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 26px 0 24px;
+    }
+
+    .hero-dot-divider .seg {
+      width: 40px;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, rgba(45, 212, 191, 0.35), rgba(45, 212, 191, 0.85));
+    }
+
+    .hero-dot-divider .seg:last-child {
+      background: linear-gradient(90deg, rgba(45, 212, 191, 0.85), rgba(45, 212, 191, 0.35));
+    }
+
+    .hero-dot-divider .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal-deep);
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--muted-text);
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .grid {
+      flex: 1;
+      display: grid;
+      align-content: start;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 56px 40px 72px;
+    }
+
+    .card {
+      --card-accent: var(--teal-deep);
+      --card-icon-bg: rgba(19, 78, 74, 0.10);
+      --card-underline: var(--teal);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px) saturate(160%);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 40px 32px 34px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 10px 34px rgba(30, 41, 59, 0.10);
+      transition: var(--tr);
+    }
+
+    .card.placeholder {
+      --card-accent: #64748b;
+      --card-icon-bg: rgba(100, 116, 139, 0.10);
+      --card-underline: rgba(100, 116, 139, 0.35);
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .card.active:hover {
+      transform: translateY(-5px);
+      background: var(--card-bg-hover);
+      box-shadow: 0 20px 46px rgba(30, 41, 59, 0.16);
+    }
+
+    .card .icon {
+      width: 92px;
+      height: 92px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      background: var(--card-icon-bg);
+      color: var(--card-accent);
+      margin-bottom: 26px;
+    }
+
+    .card .icon [data-lucide] {
+      width: 36px;
+      height: 36px;
+      stroke-width: 1.8;
+    }
+
+    .card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy-text);
+    }
+
+    .card.placeholder h3 {
+      color: var(--navy-text);
+      opacity: 0.85;
+    }
+
+    .card .underline {
+      width: 34px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--card-underline);
+      margin: 14px 0 18px;
+    }
+
+    .card .desc {
+      font-size: 15px;
+      color: var(--muted-text);
+      line-height: 1.65;
+      max-width: 320px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 16px;
+      border-radius: 999px;
+      margin-top: 24px;
+    }
+
+    .badge [data-lucide] {
+      width: 15px;
+      height: 15px;
+    }
+
+    .badge.soon {
+      background: var(--soon-bg);
+      color: var(--soon-text);
+    }
+
+    .badge.live {
+      background: var(--live-bg);
+      color: var(--live-text);
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .app-header { padding: 0 20px; height: 72px; }
+      .app-logo [data-lucide] { width: 26px; height: 26px; }
+      .app-header .brand { font-size: 18px; }
+      .backbar { padding: 22px 18px 0; }
+      .hero { padding: 40px 18px 8px; }
+      .grid { padding: 40px 18px 56px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="app-logo"><i data-lucide="cpu"></i></div>
+    <div class="brand">Anderson <span>Trackings</span></div>
+    <div class="spacer"></div>
+    <a class="logout-btn" href="/auth/logout"><i data-lucide="log-out"></i> Sign out</a>
+  </header>
+
+  <div class="hero-band">
+    <nav class="backbar">
+      <a class="back-link" href="/anderson/"><i data-lucide="arrow-left"></i> Back</a>
+    </nav>
+
+    <section class="hero">
+      <h1>Bioinfo Trackers</h1>
+      <div class="hero-dot-divider">
+        <span class="seg"></span><span class="dot"></span><span class="seg"></span>
+      </div>
+      <p>Bioinformatics pipeline tracking — analysis runs, QC metrics, and downstream data processing.</p>
+    </section>
+
+    <main class="grid">
+      <a class="card active" href="/exome-tracker/">
+        <div class="icon"><i data-lucide="link-2"></i></div>
+        <h3>Exome Sample Tracker</h3>
+        <div class="underline"></div>
+        <div class="desc">Genetics exome sample and report tracking — analyst assignment, TAT, review stages, and release status.</div>
+        <span class="badge live"><i data-lucide="check-circle"></i> Live</span>
+      </a>
+
+      <div class="card placeholder">
+        <div class="icon"><i data-lucide="plus"></i></div>
+        <h3>Bioinfo Tracker 2</h3>
+        <div class="underline"></div>
+        <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
+        <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
+      </div>
+
+      <div class="card placeholder">
+        <div class="icon"><i data-lucide="plus"></i></div>
+        <h3>Bioinfo Tracker 3</h3>
+        <div class="underline"></div>
+        <div class="desc">This tracker slot is reserved. It will be configured and connected soon.</div>
+        <span class="badge soon"><i data-lucide="clock"></i> Coming soon</span>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>

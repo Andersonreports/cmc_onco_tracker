@@ -69,6 +69,7 @@ def init_schema() -> None:
             cur.execute(_SCHEMA)
             _ensure_column(cur, "name", "name VARCHAR(191) AFTER mobile")
             _ensure_column(cur, "password_hash", "password_hash VARCHAR(255)")
+            cur.execute("ALTER TABLE user_roles MODIFY role VARCHAR(255) NOT NULL")
 
 
 def count_roles() -> int:

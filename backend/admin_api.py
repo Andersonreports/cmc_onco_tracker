@@ -4,18 +4,17 @@ from fastapi import APIRouter, Cookie, HTTPException
 from pydantic import BaseModel
 
 from auth import read_session
+import access
 import role_store
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-
-ROLES = ("admin", "cmc", "anderson")
 
 
 def _require_admin(session_cookie: str | None):
     sess = read_session(session_cookie)
     if not sess:
         raise HTTPException(status_code=401, detail="Please sign in.")
-    if sess.get("role") != "admin":
+    if not access.is_admin(sess.get("acc")):
         raise HTTPException(status_code=403, detail="This area is for admins only.")
     return sess
 
@@ -23,7 +22,7 @@ def _require_admin(session_cookie: str | None):
 class UserBody(BaseModel):
     mobile: str
     name: str | None = None
-    role: str
+    role: str | list[str]
 
 
 class PasswordBody(BaseModel):
@@ -34,11 +33,12 @@ class PasswordBody(BaseModel):
 def list_users(anderson_session: str | None = Cookie(default=None)):
     _require_admin(anderson_session)
     users = [
-        {"mobile": r.get("mobile", ""), "name": r.get("name") or "", "role": r.get("role", ""),
+        {"mobile": r.get("mobile", ""), "name": r.get("name") or "",
+         "accesses": access.normalize(r.get("role")),
          "local_password": bool(r.get("password_hash"))}
         for r in role_store.all()
     ]
-    return {"users": users, "roles": list(ROLES)}
+    return {"users": users, "grantable": list(access.GRANTABLE), "labels": access.LABELS}
 
 
 @router.post("/users")
@@ -47,11 +47,14 @@ def upsert_user(body: UserBody, anderson_session: str | None = Cookie(default=No
     mobile = role_store.normalize_mobile(body.mobile)
     if len(mobile) < 10:
         raise HTTPException(status_code=400, detail="Enter a valid mobile number.")
-    if body.role not in ROLES:
-        raise HTTPException(status_code=400, detail=f"Role must be one of: {', '.join(ROLES)}.")
+    accesses = access.normalize(body.role)
+    if not accesses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Select at least one access. Valid: {', '.join(access.GRANTABLE)}.")
     name = (body.name or "").strip()
-    role_store.set_role(mobile, body.role, name)
-    return {"ok": True, "mobile": mobile, "name": name, "role": body.role}
+    role_store.set_role(mobile, access.to_stored(accesses), name)
+    return {"ok": True, "mobile": mobile, "name": name, "accesses": accesses}
 
 
 @router.delete("/users/{mobile}")

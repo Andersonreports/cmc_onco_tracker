@@ -1,12 +1,17 @@
 
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, Cookie, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from auth import router as auth_router, read_session, renew_session_cookie, COOKIE_NAME, ROLE_HOME
+from auth import router as auth_router, read_session, renew_session_cookie, COOKIE_NAME
 from admin_api import router as admin_router
+from exome_api import router as exome_tracker_router
+import access
+import exome_roles
+import reports_client
 import role_store
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
@@ -14,6 +19,16 @@ FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 app = FastAPI(title="Anderson Trackings")
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(exome_tracker_router)
+
+
+@app.exception_handler(reports_client.ReportsAPIError)
+async def reports_api_unavailable(request: Request, exc: reports_client.ReportsAPIError):
+    return JSONResponse(
+        {"error": "The Exome Tracker reports service is unreachable. It is hosted by IT — "
+                  "check that it is running and connected, then retry."},
+        status_code=503,
+    )
 
 
 @app.middleware("http")
@@ -33,6 +48,7 @@ def health(check: str | None = None):
         "status": "Anderson Trackings running",
         "role_backend": role_store.backend_name(),
         "role_count": len(role_store.all()),
+        "reports_api": reports_client.status(),
     }
     if check:
         mobile = role_store.normalize_mobile(check)
@@ -54,15 +70,21 @@ def _to_login() -> RedirectResponse:
     return RedirectResponse("/login")
 
 
-def _home_for(role: str) -> RedirectResponse:
-    return RedirectResponse(ROLE_HOME.get(role, "/login"))
+def _home_for(sess: dict) -> RedirectResponse:
+    return RedirectResponse(access.home_for(sess.get("acc")))
+
+
+def _gate(sess, allowed: bool, page: str):
+    if not allowed:
+        return _home_for(sess)
+    return _serve(page)
 
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if sess:
-        return _home_for(sess["role"])
+        return _home_for(sess)
     return _serve("login.html")
 
 
@@ -71,9 +93,9 @@ def landing(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if not sess:
         return _to_login()
-    if sess["role"] == "admin":
-        return _serve("landing.html")
-    return _home_for(sess["role"])
+    if not sess["acc"]:
+        return _to_login()
+    return _serve("landing.html")
 
 
 @app.get("/admin", include_in_schema=False)
@@ -86,9 +108,7 @@ def admin_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if not sess:
         return _to_login()
-    if sess["role"] == "admin":
-        return _serve("admin.html")
-    return _home_for(sess["role"])
+    return _gate(sess, access.is_admin(sess["acc"]), "admin.html")
 
 
 @app.get("/cmc", include_in_schema=False)
@@ -101,9 +121,7 @@ def cmc_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if not sess:
         return _to_login()
-    if sess["role"] in ("admin", "cmc"):
-        return _serve("cmc.html")
-    return _home_for(sess["role"])
+    return _gate(sess, access.can_open_section(sess["acc"], "cmc"), "cmc.html")
 
 
 @app.get("/cmc-onco", include_in_schema=False)
@@ -116,9 +134,7 @@ def cmc_onco_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if not sess:
         return _to_login()
-    if sess["role"] in ("admin", "cmc"):
-        return _serve("cmc-onco.html")
-    return _home_for(sess["role"])
+    return _gate(sess, access.can_open_tracker(sess["acc"], "cmc-onco"), "cmc-onco.html")
 
 
 @app.get("/anderson", include_in_schema=False)
@@ -131,9 +147,51 @@ def anderson_page(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if not sess:
         return _to_login()
-    if sess["role"] in ("admin", "anderson"):
-        return _serve("anderson.html")
-    return _home_for(sess["role"])
+    return _gate(sess, access.can_open_section(sess["acc"], "anderson"), "anderson.html")
+
+
+@app.get("/bioinfo", include_in_schema=False)
+def bioinfo_slash():
+    return RedirectResponse("/bioinfo/")
+
+
+@app.get("/bioinfo/", response_class=HTMLResponse)
+def bioinfo_page(anderson_session: str | None = Cookie(default=None)):
+    sess = read_session(anderson_session)
+    if not sess:
+        return _to_login()
+    return _gate(sess, access.can_open_section(sess["acc"], "bioinfo"), "bioinfo.html")
+
+
+@app.get("/exome-tracker", include_in_schema=False)
+def exome_tracker_slash():
+    return RedirectResponse("/exome-tracker/")
+
+
+@app.get("/exome-tracker/", response_class=HTMLResponse)
+def exome_tracker_page(anderson_session: str | None = Cookie(default=None)):
+    sess = read_session(anderson_session)
+    if not sess:
+        return _to_login()
+    if not access.can_open_tracker(sess["acc"], "exome"):
+        return _home_for(sess)
+
+    mobile = sess.get("sub", "")
+    mapping = role_store.get(mobile) or {}
+    user = {
+        "username": (mapping.get("name") or "").strip() or mobile,
+        "role": exome_roles.role_for_accesses(sess["acc"]),
+    }
+    payload = json.dumps(user).replace("</", "<\\/")
+
+    html = (FRONTEND_DIR / "exome-tracker" / "index.html").read_text(encoding="utf-8")
+    html = html.replace(
+        "</head>", f"<script>window.TRACKER_USER = {payload};</script>\n</head>", 1)
+    return HTMLResponse(
+        html,
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate",
+                 "Pragma": "no-cache"},
+    )
 
 
 class AssetFiles(StaticFiles):

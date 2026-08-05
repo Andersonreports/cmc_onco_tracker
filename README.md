@@ -11,9 +11,8 @@ by a small FastAPI backend instead of GitHub Pages. No login — open access.
   separately, inside the Google Sheet — see `apps_script/DEPLOY.md`). That
   Apps Script deployment is the application's data backend; nothing here
   duplicates it.
-- **`backend/`** — a minimal FastAPI app (`backend.py`) that serves
-  `frontend/` as a static site (`index.html` at `/`, plus `xlsx.full.min.js`
-  and `header_logo.png`).
+- **`backend/`** — a FastAPI app (`backend.py`) that handles login/roles and
+  serves the tracker pages plus their static assets from `frontend/`.
 
 ## Run locally
 

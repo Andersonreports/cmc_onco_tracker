@@ -15,8 +15,8 @@ Usage:
 Roles: admin | cmc | anderson
 
 setpass/clearpass control local password sign-in: a user with a local
-password bypasses IT's genetics API entirely and signs in straight against
-this roles table. Use this only for accounts that don't exist in IT's system.
+password bypasses genetics API entirely and signs in straight against
+this roles table.
 """
 
 

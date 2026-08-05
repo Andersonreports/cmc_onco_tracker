@@ -277,6 +277,13 @@
       stroke-width: 1.6;
     }
 
+    .card .icon img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      display: block;
+    }
+
     .card .body {
       border-left: 1px solid rgba(15, 37, 66, 0.10);
       padding-left: 26px;
@@ -317,7 +324,7 @@
     <div class="app-logo"><i data-lucide="activity-square"></i></div>
     <div class="brand">Anderson <span>Trackings</span></div>
     <div class="spacer"></div>
-    <a class="logout-btn" href="/admin/"><i data-lucide="users"></i> User Management</a>
+    <a class="logout-btn" href="/admin/" id="admin-link" hidden><i data-lucide="users"></i> User Management</a>
     <a class="logout-btn" href="/auth/logout"><i data-lucide="log-out"></i> Sign out</a>
   </header>
 
@@ -332,7 +339,7 @@
     </section>
 
     <main class="grid">
-      <a class="card" href="cmc/">
+      <a class="card" href="cmc/" data-section="cmc" hidden>
         <div class="icon"><i data-lucide="microscope"></i></div>
         <div class="body">
           <h3>CMC Trackers</h3>
@@ -341,8 +348,8 @@
         </div>
       </a>
 
-      <a class="card navy" href="anderson/">
-        <div class="icon"><i data-lucide="layout-grid"></i></div>
+      <a class="card navy" href="anderson/" data-section="anderson" hidden>
+        <div class="icon"><img src="/and-logo.png" alt="Anderson"></div>
         <div class="body">
           <h3>Anderson Trackers</h3>
           <div class="underline"></div>
@@ -353,6 +360,19 @@
   </div>
 
   <script>
+    fetch('/auth/me', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(me => {
+        if (me.is_admin) document.getElementById('admin-link').hidden = false;
+        const allowed = new Set(me.sections || []);
+        document.querySelectorAll('.card[data-section]').forEach(c => {
+          c.hidden = !allowed.has(c.dataset.section);
+        });
+      })
+      .catch(() => {
+        document.querySelectorAll('.card[data-section]').forEach(c => { c.hidden = false; });
+      });
+
     lucide.createIcons();
   </script>
 </body>

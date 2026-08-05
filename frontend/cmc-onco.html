@@ -207,7 +207,6 @@
       box-shadow: 0 0 7px rgba(74, 222, 128, 0.8);
     }
 
-    /* === MERGED NAV + TOOLS ROW === */
     .app-nav {
       flex-shrink: 0;
       background: linear-gradient(120deg, #0c4537 0%, #0e4f40 60%, #135e4c 100%);
@@ -233,7 +232,6 @@
       flex-shrink: 0;
     }
 
-    /* Batch selector + status badge + go-to, grouped at the right of the nav row */
     .app-nav .nav-right {
       margin-left: auto;
       display: flex;
@@ -242,7 +240,6 @@
       flex-shrink: 0;
     }
 
-    /* Live sync status cluster, in the header row (dark) */
     .sync-cluster {
       display: flex;
       align-items: center;
@@ -279,7 +276,6 @@
       color: rgba(230, 255, 250, 0.7);
     }
 
-    /* Batch selector (inline in the nav row) */
     .batch-bar {
       flex-shrink: 0;
       display: flex;
@@ -339,7 +335,6 @@
       flex-shrink: 0;
     }
 
-    /* === MAIN CONTENT === */
     .main-content {
       flex: 1;
       display: flex;
@@ -348,7 +343,6 @@
       position: relative;
     }
 
-    /* === SUB-HEADER (batch selector + pipeline status) === */
     .sub-header {
       flex-shrink: 0;
       background: #fff;
@@ -363,7 +357,6 @@
       flex-wrap: wrap;
     }
 
-    /* === TOOLBAR === */
     .toolbar {
       min-height: 64px;
       background: var(--card-bg);
@@ -1632,7 +1625,7 @@
 
   <header class="app-header">
     <div class="app-header-left">
-      <a href="/cmc/" class="back-to-home" id="back-to-home-link" title="Back to CMC Trackers">
+      <a href="/cmc/" class="back-to-home" title="Back to CMC Trackers">
         <i data-lucide="arrow-left"></i>
       </a>
       <div class="app-logo"><i data-lucide="microscope"></i></div>
@@ -1933,14 +1926,6 @@
       errorBanner.classList.remove('visible');
     }
     document.getElementById('app-error-close').addEventListener('click', hideAppError);
-
-    document.getElementById('back-to-home-link').addEventListener('click', function (e) {
-      const sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
-      if (sameOrigin && history.length > 1) {
-        e.preventDefault();
-        history.back();
-      }
-    });
 
     lucide.createIcons();
 

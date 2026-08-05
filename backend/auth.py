@@ -1,4 +1,5 @@
 from __future__ import annotations
+import access
 import role_store
 import genetics_auth_client as genetics_auth
 
@@ -30,13 +31,6 @@ COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE",
 
 OTP_TTL_SECS = int(os.getenv("OTP_TTL_SECONDS", "300"))
 
-ROLE_HOME = {
-    "admin":    "/",
-    "cmc":      "/cmc/",
-    "anderson": "/anderson/",
-}
-
-
 def _load_secret() -> str:
     env_secret = os.getenv("AUTH_SECRET", "").strip()
     if env_secret:
@@ -66,6 +60,7 @@ def _prune_pending() -> None:
 
 def _sign_session(username: str, role: str) -> str:
     payload = {"sub": username, "role": role,
+               "acc": access.normalize(role),
                "exp": int(time.time()) + IDLE_SECS}
     body = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=")
     sig = hmac.new(SECRET.encode(), body, hashlib.sha256).digest()
@@ -87,6 +82,7 @@ def read_session(token: str | None) -> dict | None:
             body + "=" * (-len(body) % 4)))
         if payload.get("exp", 0) < int(time.time()):
             return None
+        payload["acc"] = access.normalize(payload.get("acc") or payload.get("role"))
         return payload
     except Exception:
         return None
@@ -174,7 +170,7 @@ def login(body: LoginBody, request: Request):
                 {"error": "Invalid mobile number or password."}, status_code=401)
         _fail_counts[ip] = 0
         token = _sign_session(mapping["mobile"], mapping["role"])
-        redirect = ROLE_HOME.get(mapping["role"], "/")
+        redirect = access.home_for(mapping["role"])
         resp = JSONResponse(
             {"ok": True, "skip_otp": True, "redirect": redirect, "role": mapping["role"]})
         _set_session_cookie(resp, token)
@@ -195,7 +191,7 @@ def login(body: LoginBody, request: Request):
 
     if result.get("skip_otp"):
         token = _sign_session(mapping["mobile"], mapping["role"])
-        redirect = ROLE_HOME.get(mapping["role"], "/")
+        redirect = access.home_for(mapping["role"])
         resp = JSONResponse(
             {"ok": True, "skip_otp": True, "redirect": redirect, "role": mapping["role"]})
         _set_session_cookie(resp, token)
@@ -248,7 +244,7 @@ def verify(body: VerifyBody):
 
     _pending.pop(body.challenge, None)
     token = _sign_session(pending["mobile"], pending["role"])
-    redirect = ROLE_HOME.get(pending["role"], "/")
+    redirect = access.home_for(pending["role"])
     resp = JSONResponse(
         {"ok": True, "redirect": redirect, "role": pending["role"]})
     _set_session_cookie(resp, token)
@@ -279,7 +275,12 @@ def me(anderson_session: str | None = Cookie(default=None)):
     sess = read_session(anderson_session)
     if not sess:
         return JSONResponse({"authenticated": False})
-    return JSONResponse({"authenticated": True, "role": sess["role"], "mobile": sess["sub"]})
+    return JSONResponse({"authenticated": True, "role": sess["role"],
+                         "accesses": sess["acc"],
+                         "is_admin": access.is_admin(sess["acc"]),
+                         "sections": access.visible_sections(sess["acc"], parent=None),
+                         "trackers": access.tracker_keys(sess["acc"]),
+                         "mobile": sess["sub"]})
 
 
 def _clear_and_redirect():
