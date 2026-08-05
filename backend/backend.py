@@ -21,17 +21,18 @@ REPO_ROOT = Path(__file__).parent.parent
 
 
 def _find_coverage_dir() -> Path:
-    """Locate the anderson-coverage repo (it is a separate repo, not vendored
-    here). COVERAGE_APP_DIR wins; otherwise look beside this repo, then inside.
+    """Locate the Coverage Checker app. It normally lives in this repo under
+    anderson-coverage/; COVERAGE_APP_DIR overrides, and a sibling checkout is
+    still accepted so an older side-by-side layout keeps working.
     """
     env = os.getenv("COVERAGE_APP_DIR", "").strip()
     if env:
         return Path(env).expanduser()
-    for candidate in (REPO_ROOT.parent / "anderson-coverage",
-                      REPO_ROOT / "anderson-coverage"):
+    for candidate in (REPO_ROOT / "anderson-coverage",
+                      REPO_ROOT.parent / "anderson-coverage"):
         if (candidate / "app.py").is_file():
             return candidate
-    return REPO_ROOT.parent / "anderson-coverage"
+    return REPO_ROOT / "anderson-coverage"
 
 
 COVERAGE_DIR = _find_coverage_dir()

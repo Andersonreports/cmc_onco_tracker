@@ -13,4 +13,18 @@ backend/.auth_secret
 backend/roles.json
 backend/users.json
 backend/db_setup.sql
-anderson-coverage/
+
+# Coverage Checker runtime / build artifacts. The built coverage.db and
+# coverage_cnv.db ARE committed — they are what let the tool run without BAMs.
+anderson-coverage/server.log
+anderson-coverage/server.pid
+anderson-coverage/build/mosdepth/
+anderson-coverage/build/mosdepth_cnv/
+anderson-coverage/build/*.log
+
+# Reference data never belongs in git (it lives on the server)
+*.bam
+*.bai
+*.bed
+*.vcf
+*.vcf.gz

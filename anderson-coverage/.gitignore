@@ -1,0 +1,25 @@
+# Runtime / generated
+server.log
+server.pid
+uploads/
+__pycache__/
+*.pyc
+
+# Coverage-DB build artifacts (large; regenerate via build/). The built
+# coverage.db / coverage_cnv.db IS committed (it is what makes the tool work
+# without BAMs).
+build/mosdepth/
+build/mosdepth_cnv/
+build/*.log
+
+# Data files should never be committed (they live on the server, not in git)
+*.bam
+*.bai
+*.bed
+*.vcf
+*.vcf.gz
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
