@@ -256,18 +256,25 @@
     .card .icon {
       width: 92px;
       height: 92px;
-      border-radius: 22px;
+      border-radius: 50%;
       display: grid;
       place-items: center;
       background: var(--card-icon-bg);
       color: var(--card-accent);
       margin-bottom: 26px;
+      overflow: hidden;
     }
 
     .card .icon [data-lucide] {
       width: 36px;
       height: 36px;
       stroke-width: 1.8;
+    }
+
+    .card .icon img {
+      width: 68%;
+      height: 68%;
+      object-fit: contain;
     }
 
     .card h3 {
@@ -360,7 +367,7 @@
 
     <main class="grid">
       <a class="card active" href="/exome-tracker/">
-        <div class="icon"><i data-lucide="link-2"></i></div>
+        <div class="icon"><img src="/exome-logo.png" alt="Exome Sample Tracker" /></div>
         <h3>Exome Sample Tracker</h3>
         <div class="underline"></div>
         <div class="desc">Genetics exome sample and report tracking — analyst assignment, TAT, review stages, and release status.</div>

@@ -36,6 +36,12 @@ TRACKERS = {
         "page": "exome-tracker/index.html",
         "section": "bioinfo",
     },
+    "coverage": {
+        "label": "Coverage Checker",
+        "path": "/anderson-coverage/",
+        "page": None,
+        "section": "anderson",
+    },
 }
 
 GRANTABLE = (ADMIN,) + tuple(TRACKERS)

@@ -1,5 +1,7 @@
 
 import json
+import os
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI, Cookie, Request
@@ -15,6 +17,24 @@ import reports_client
 import role_store
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+REPO_ROOT = Path(__file__).parent.parent
+
+
+def _find_coverage_dir() -> Path:
+    """Locate the anderson-coverage repo (it is a separate repo, not vendored
+    here). COVERAGE_APP_DIR wins; otherwise look beside this repo, then inside.
+    """
+    env = os.getenv("COVERAGE_APP_DIR", "").strip()
+    if env:
+        return Path(env).expanduser()
+    for candidate in (REPO_ROOT.parent / "anderson-coverage",
+                      REPO_ROOT / "anderson-coverage"):
+        if (candidate / "app.py").is_file():
+            return candidate
+    return REPO_ROOT.parent / "anderson-coverage"
+
+
+COVERAGE_DIR = _find_coverage_dir()
 
 app = FastAPI(title="Anderson Trackings")
 app.include_router(auth_router)
@@ -192,6 +212,48 @@ def exome_tracker_page(anderson_session: str | None = Cookie(default=None)):
         headers={"Cache-Control": "no-store, no-cache, must-revalidate",
                  "Pragma": "no-cache"},
     )
+
+
+@app.get("/anderson-coverage", include_in_schema=False)
+def coverage_slash():
+    return RedirectResponse("/anderson-coverage/")
+
+
+def _mount_coverage_checker() -> None:
+    """Mount the standalone Coverage Checker (a Flask/WSGI app that lives in its
+    own repo under anderson-coverage/) behind this app's session gate.
+
+    Imported in-process rather than reverse-proxied so it needs no second
+    server. Its own code is untouched: it still runs standalone via its
+    start.sh on port 8100.
+    """
+    if str(COVERAGE_DIR) not in sys.path:
+        sys.path.insert(0, str(COVERAGE_DIR))
+    try:
+        from a2wsgi import WSGIMiddleware
+        import app as coverage_app
+    except Exception as e:
+        print(f"[coverage] not mounted ({type(e).__name__}: {e}). "
+              f"Install anderson-coverage/requirements.txt to enable it.")
+        return
+
+    wsgi = WSGIMiddleware(coverage_app.app)
+
+    async def gated_coverage(scope, receive, send):
+        sess = read_session(Request(scope).cookies.get(COOKIE_NAME))
+        if not sess:
+            await RedirectResponse("/login")(scope, receive, send)
+            return
+        if not access.can_open_tracker(sess.get("acc"), "coverage"):
+            await RedirectResponse(access.home_for(sess.get("acc")))(scope, receive, send)
+            return
+        await wsgi(scope, receive, send)
+
+    app.mount("/anderson-coverage", gated_coverage, name="coverage")
+    print("[coverage] mounted at /anderson-coverage")
+
+
+_mount_coverage_checker()
 
 
 class AssetFiles(StaticFiles):

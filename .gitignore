@@ -13,3 +13,4 @@ backend/.auth_secret
 backend/roles.json
 backend/users.json
 backend/db_setup.sql
+anderson-coverage/
