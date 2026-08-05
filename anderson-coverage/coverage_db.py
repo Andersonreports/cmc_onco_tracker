@@ -1,17 +1,17 @@
 """
 coverage_db.py — read precomputed sample coverage from the SQLite DB.
 
-When build/coverage.db (default ./coverage.db) exists, the app uses this instead
-of the BAM files: the reference panel intervals and per-type coverage all come
-from the DB, so the tool is fully self-contained (works straight from the repo,
-no BAMs required).
+This is the only source of sample coverage: the reference panel intervals and
+per-type coverage all come from the DB (default ./coverage.db), so the tool is
+fully self-contained and never reads BAM files. The DBs are built offline by
+build/build_db.py.
 
 Per query we aggregate, for a set of interval ids, each sample type's:
   mean depth  = sum_depth / (Σ bp × n_replicates)              (exact)
   % ≥ t       = 100 × bases≥t / (Σ bp × n_replicates)          (exact)
   min (tier)  = highest threshold fully covered across all bases (approx)
 Median and per-replicate SD are not stored (per-base histograms would bloat the
-DB); median is reported as None and SD as 0 in DB mode.
+DB); median is reported as None and SD as 0.
 """
 
 import os

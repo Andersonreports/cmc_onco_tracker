@@ -13,14 +13,10 @@ try:
 except Exception:
     pass
 
-# Exome Sample Tracker report storage now lives in IT's database; IT pushes
-# data there on their own CRON schedule and exposes it to us over this REST
-# API rather than us connecting to their database directly.
-#
-# TODO: the paths, auth header, and payload shape below are placeholders
-# using plain REST conventions (GET/POST/PUT/DELETE /reports, "id" field on
-# each record). Update REPORTS_API_BASE / REPORTS_API_KEY and the paths
-# below once IT shares the actual contract.
+# Exome Sample Tracker reports live in IT's database and reach us over this
+# REST API. The paths, bearer auth and payload shape below assume plain REST
+# conventions (GET/POST/PUT/PATCH/DELETE /reports, "id" on each record) and
+# must be reconciled with IT's actual contract.
 REPORTS_API_BASE = os.getenv("REPORTS_API_BASE", "").strip().rstrip("/")
 REPORTS_API_KEY = os.getenv("REPORTS_API_KEY", "").strip()
 REPORTS_API_TIMEOUT = int(os.getenv("REPORTS_API_TIMEOUT", "15"))

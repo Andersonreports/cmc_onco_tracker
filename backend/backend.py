@@ -221,12 +221,9 @@ def coverage_slash():
 
 
 def _mount_coverage_checker() -> None:
-    """Mount the standalone Coverage Checker (a Flask/WSGI app that lives in its
-    own repo under anderson-coverage/) behind this app's session gate.
-
-    Imported in-process rather than reverse-proxied so it needs no second
-    server. Its own code is untouched: it still runs standalone via its
-    start.sh on port 8100.
+    """Mount the Coverage Checker (anderson-coverage/, a Flask/WSGI app) behind
+    this app's session gate. Imported in-process, so it needs no second server;
+    it also still runs standalone via its own start.sh.
     """
     if str(COVERAGE_DIR) not in sys.path:
         sys.path.insert(0, str(COVERAGE_DIR))
