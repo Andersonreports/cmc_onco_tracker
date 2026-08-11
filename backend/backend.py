@@ -43,8 +43,14 @@ app.include_router(admin_router)
 app.include_router(exome_tracker_router)
 
 
+@app.exception_handler(reports_client.ReportsAPIUnsupported)
+async def reports_api_unsupported(request: Request, exc: reports_client.ReportsAPIUnsupported):
+    return JSONResponse({"error": str(exc)}, status_code=501)
+
+
 @app.exception_handler(reports_client.ReportsAPIError)
 async def reports_api_unavailable(request: Request, exc: reports_client.ReportsAPIError):
+    print(f"[reports] {request.url.path}: {exc}")
     return JSONResponse(
         {"error": "The Exome Tracker reports service is unreachable. It is hosted by IT — "
                   "check that it is running and connected, then retry."},

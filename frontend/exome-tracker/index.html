@@ -139,6 +139,24 @@
       background:var(--ib);color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;transition:var(--tr);
     }
     .sel:focus{outline:none;border-color:var(--pri)}
+    input.sel{cursor:text}
+
+    /* The picker spans the field so the browser can keep the calendar on screen. */
+    .date-field{position:relative;display:inline-flex;align-items:center;width:100%}
+    .date-field .date-txt{width:100%;padding-right:36px}
+    .date-field .date-pick{
+      position:absolute;left:0;right:0;top:0;bottom:0;width:auto;min-width:0;
+      opacity:0;padding:0;border:0;margin:0;pointer-events:none;
+    }
+    .date-field .date-btn{
+      position:absolute;right:5px;display:flex;align-items:center;justify-content:center;
+      width:26px;height:26px;padding:0;border:0;border-radius:6px;
+      background:none;color:var(--muted);cursor:pointer;transition:var(--tr);
+    }
+    .date-field .date-btn:hover{background:rgba(79,70,229,.10);color:var(--pri)}
+    .tat-release-row .date-field{flex:1;min-width:0}
+    .rf-item .date-field{max-width:220px}
+    #bulk-release-panel .date-field{max-width:200px}
 
     .rel-bar{display:flex;align-items:center;gap:10px;padding-top:20px;margin-bottom:14px}
     .rel-search-wrap{
@@ -184,7 +202,7 @@
     .rel-panel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
     .rel-panel-item label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:5px}
     .rel-panel-item .sel{width:100%;font-size:12px;height:36px}
-    .rel-panel-item input[type="date"]{width:100%;font-size:12px;height:36px}
+    .rel-panel-item input{width:100%;font-size:12px;height:36px}
     .rel-panel-actions{display:flex;justify-content:flex-end;margin-top:12px;gap:8px}
     .rel-clear-btn{
       padding:6px 14px;border-radius:var(--rs);border:1px solid var(--bdr);
@@ -198,10 +216,11 @@
     thead th, tbody td{padding:10px 14px;vertical-align:middle;text-align:left;white-space:nowrap}
     thead th:last-child, tbody td:last-child{width:auto}
     .col-tight{width:1px;white-space:nowrap}
+    /* Sticky headers: solid backgrounds only, or rows scroll through them. */
     thead th{
       padding:10px 14px;text-align:left;font-size:10px;font-weight:700;
       text-transform:uppercase;letter-spacing:.7px;color:var(--muted);
-      background:rgba(79,70,229,.04);border-bottom:1.5px solid var(--bdr);
+      background:#f5f5fc;border-bottom:1.5px solid var(--bdr);
       position:sticky;top:0;z-index:10;white-space:nowrap;
     }
     tbody tr{transition:var(--tr);border-bottom:1px solid var(--bdr)}
@@ -215,8 +234,8 @@
     .col-mono{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.3px;color:var(--pri)}
     .col-date{color:var(--muted);font-size:12px;white-space:nowrap}
     .col-name{font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    th.col-w-name, td.col-w-name{min-width:200px;flex:2;overflow:hidden;text-overflow:ellipsis}
-    th.col-w-client, td.col-w-client{min-width:200px;flex:2;overflow:hidden;text-overflow:ellipsis}
+    th.col-w-name, td.col-w-name{min-width:210px;width:210px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th.col-w-client, td.col-w-client{min-width:240px;width:240px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     th.col-w-test, td.col-w-test{min-width:120px;width:120px}
     th.col-w-id, td.col-w-id{min-width:180px;width:180px}
     th.col-w-run, td.col-w-run{min-width:160px;width:160px}
@@ -224,6 +243,9 @@
     th.col-w-date, td.col-w-date{min-width:130px;width:130px}
     th.col-w-status, td.col-w-status{min-width:110px;width:110px}
     th.col-w-analyst, td.col-w-analyst{min-width:120px;width:120px}
+    th.col-w-text, td.col-w-text{min-width:220px;width:220px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th.col-w-stamp, td.col-w-stamp{min-width:150px;width:150px}
+    th.col-w-flag, td.col-w-flag{min-width:96px;width:96px}
     .analyst-pill{
       display:inline-flex;align-items:center;gap:5px;
       padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;
@@ -279,6 +301,37 @@
     }
     .tat-soon .ti-days{background:rgba(245,158,11,.15);color:#92400e}
     .tat-over .ti-days{background:rgba(239,68,68,.15);color:#b91c1c}
+    .ba-table{width:100%;border-collapse:collapse;font-size:12px}
+    .ba-table thead th{
+      position:sticky;top:0;z-index:2;text-align:left;
+      padding:8px 10px;font-size:10.5px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.4px;border-bottom:1px solid var(--line);
+      white-space:nowrap;
+      background:#f0f0fb !important;
+      color:#3730a3 !important;
+    }
+    .ba-table tbody td{
+      padding:8px 10px;border-bottom:1px solid #f1f2f4;vertical-align:middle;
+      max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .ba-table tbody tr:hover{background:#fafbfc}
+    .ba-table .ba-check{width:30px;padding-right:0}
+    .ba-table .ba-check input{width:16px;height:16px;cursor:pointer;margin:0;display:block}
+    .ba-table .ba-name{font-weight:700;max-width:230px}
+    .ba-table .ba-test{color:var(--ink-2);max-width:150px}
+    .ba-table .ba-client{color:var(--ink-2);max-width:200px}
+    .ba-table .ba-run{font-weight:600;color:var(--muted);max-width:140px}
+    .ba-table .ba-tat{font-weight:600;white-space:nowrap}
+    .ba-table .ba-mono{
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+      color:var(--ink-2);max-width:170px;
+    }
+    .ti-owner{
+      display:inline-block;max-width:120px;text-align:center;font-size:10.5px;font-weight:700;
+      padding:2px 8px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      background:rgba(16,185,129,.14);color:#047857;
+    }
+    .ti-owner.ti-unassigned{background:rgba(239,68,68,.13);color:#b91c1c}
     .tat-item{cursor:pointer;transition:var(--tr)}
     .tat-item:hover{background:rgba(0,0,0,.06)}
     .tat-detail{
@@ -298,11 +351,11 @@
       flex-basis:100%;display:flex;align-items:center;gap:8px;
       margin-top:6px;padding-top:10px;border-top:1px solid var(--bdr);
     }
-    .tat-release-row input{
+    .tat-release-row input,.tat-release-row select{
       flex:1;min-width:0;height:32px;padding:0 10px;font-size:12px;
       border:1.5px solid var(--bdr);border-radius:var(--rs);background:var(--panel);color:var(--text);
     }
-    .tat-release-row input:focus{outline:none;border-color:var(--pri)}
+    .tat-release-row input:focus,.tat-release-row select:focus{outline:none;border-color:var(--pri)}
 
     .emp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
     .emp-card{
@@ -360,10 +413,10 @@
       max-width:100vw;max-height:100vh;width:100vw;height:100vh;
       margin:0;border-radius:0;
     }
-    #qmodal-body{display:flex;flex-direction:column;overflow:hidden;flex:1;padding:0}
+    #qmodal-body{display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;padding:0}
     .modal-filters-wrap{flex-shrink:0;padding-bottom:12px;border-bottom:1px solid var(--pb);background:var(--panel);position:sticky;top:0;z-index:20}
-    .modal-table-wrap{overflow:auto;flex:1;width:max-content;max-width:100%}
-    #qmodal-body table{border-collapse:collapse;font-size:12.5px;width:max-content}
+    .modal-table-wrap{overflow:auto;flex:1;min-height:0;width:max-content;max-width:100%}
+    #qmodal-body table{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-content}
     #qmodal-body th{
       position:sticky;top:0;background:var(--panel);z-index:10;
       padding:10px 14px;font-size:10.5px;font-weight:700;letter-spacing:.06em;
@@ -409,7 +462,7 @@
       border:1px solid rgba(16,185,129,.14) !important;
     }
     #page-released .tbl-wrap thead th{
-      background:linear-gradient(135deg,rgba(16,185,129,.11) 0%,rgba(52,211,153,.06) 100%) !important;
+      background:#e7f6f0 !important;
       color:#065f46 !important;border-bottom:2px solid rgba(16,185,129,.18) !important;
     }
     #page-released .tbl-wrap tbody tr:hover{background:linear-gradient(90deg,rgba(16,185,129,.07) 0%,rgba(52,211,153,.02) 70%,transparent 100%) !important}
@@ -432,7 +485,7 @@
       border:1px solid rgba(239,68,68,.14) !important;
     }
     #page-overdue .tbl-wrap thead th{
-      background:linear-gradient(135deg,rgba(239,68,68,.10) 0%,rgba(248,113,113,.05) 100%) !important;
+      background:#fdecec !important;
       color:#b91c1c !important;border-bottom:2px solid rgba(239,68,68,.16) !important;
     }
     #page-overdue .tbl-wrap tbody tr:hover{background:linear-gradient(90deg,rgba(239,68,68,.06) 0%,rgba(248,113,113,.02) 70%,transparent 100%) !important}
@@ -766,7 +819,7 @@
       border-top: 3px solid #6366f1 !important;
     }
     thead th {
-      background: linear-gradient(135deg, rgba(79,70,229,.11) 0%, rgba(139,92,246,.06) 100%) !important;
+      background: #eeecfb !important;
       color: #3730a3 !important;
       font-size: 10.5px !important;
       letter-spacing: 1.1px !important;
@@ -1108,7 +1161,7 @@
     .tat-detail-inner{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
     .tat-chip{background:var(--surface);border:1px solid var(--line);border-radius:7px}
     .tat-release-row{border-top-color:var(--line)}
-    .tat-release-row input{border:1px solid var(--line);background:var(--surface)}
+    .tat-release-row input,.tat-release-row select{border:1px solid var(--line);background:var(--surface)}
 
     .prail{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
     .prail-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
@@ -1206,12 +1259,38 @@
       .stats{grid-template-columns:1fr}
     }
 
-    /* Freeze columns */
+    .tbl-wrap,.modal-table-wrap{
+      --fz-bg:#ffffff; --fz-bg-alt:#fbfbfe; --fz-bg-hover:#f4f4fd; --fz-head-bg:#f0f0fb;
+    }
+    #page-released .tbl-wrap{--fz-bg-alt:#fbfefd; --fz-bg-hover:#f0fbf7; --fz-head-bg:#eefaf5}
+    #page-overdue  .tbl-wrap{--fz-bg-alt:#fefbfb; --fz-bg-hover:#fdf2f2; --fz-head-bg:#fdf0f0}
+
     .freeze-armed thead th.fz-pinnable{cursor:pointer}
     .freeze-armed thead th.fz-pinnable:hover{outline:2px dashed var(--pri);outline-offset:-2px}
-    .col-frozen-edge{box-shadow:4px 0 8px -4px rgba(0,0,0,.28)}
 
-    /* Sort-order / freeze toggle buttons reuse .rel-filter-toggle styling; keep icons aligned */
+    td.col-frozen{
+      position:sticky;z-index:5;background-color:var(--fz-bg,#fff) !important;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    tbody tr:nth-child(even) td.col-frozen{background-color:var(--fz-bg-alt,#fbfbfe) !important}
+    tbody tr:hover td.col-frozen{background-color:var(--fz-bg-hover,#f4f4fd) !important}
+    thead th.col-frozen{
+      position:sticky;z-index:30;background-color:var(--fz-head-bg,#f0f0fb) !important;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .col-frozen-edge{
+      box-shadow:4px 0 8px -4px rgba(0,0,0,.28);
+      border-right:1px solid var(--line);
+    }
+    .fz-clip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+    .tbl-wrap{overflow:auto;max-height:calc(100vh - 250px)}
+    .tbl-wrap table{border-collapse:separate;border-spacing:0}
+    .tbl-wrap tbody td{border-bottom:1px solid var(--bdr)}
+    .tbl-wrap tbody tr:last-child td{border-bottom:none}
+
+    #qmodal-body th{background:var(--fz-head-bg,#f0f0fb) !important;background-image:none !important}
+
     #sort-btn-allSamples svg, [id^="sort-btn-"] svg, [id^="freeze-btn-"] svg{flex-shrink:0}
 
   </style>
@@ -1263,7 +1342,6 @@
     </div>
     <div id="report-modal-body">
       <input type="hidden" id="rf-id" />
-      <input type="hidden" id="rf-is_hidden" />
       <div id="rf-upload-section" style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--pb)">
         <input type="file" id="rf-excel-file" accept=".xlsx,.xls" style="display:none" onchange="handleReportExcelUpload(event)" />
         <button class="btn btn-out btn-sm" onclick="document.getElementById('rf-excel-file').click()">
@@ -1277,24 +1355,24 @@
         <div class="rf-item"><label>Gen ID</label><input type="text" id="rf-gen_id" /></div>
         <div class="rf-item"><label>Anderson ID</label><input type="text" id="rf-and_id" /></div>
         <div class="rf-item"><label>Client</label><input type="text" id="rf-client" /></div>
-        <div class="rf-item"><label>TAT Date (DD-MM-YYYY)</label><input type="text" id="rf-tat" placeholder="e.g. 30-06-2026" /></div>
+        <div class="rf-item"><label>TAT Date</label><input type="text" class="date-txt" id="rf-tat" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
         <div class="rf-item"><label>Repeat Expansion</label><input type="text" id="rf-rep_exp" /></div>
         <div class="rf-item">
           <label>CNV Status</label>
-          <select class="sel" id="rf-cnv_status" style="height:38px;width:100%">
-            <option value="">—</option>
-            <option value="No CNV">No CNV</option>
-            <option value="CNV - Suspected">CNV - Suspected</option>
-            <option value="CNV - Reported">CNV - Reported</option>
-          </select>
+          <select class="sel" id="rf-cnv_status" style="height:38px;width:100%"></select>
         </div>
         <div class="rf-item"><label>Analyst</label><input type="text" id="rf-analyst_raw" /></div>
-        <div class="rf-item"><label>Analysis Date</label><input type="text" id="rf-ana_date" placeholder="e.g. 12-06-2026" /></div>
-        <div class="rf-item"><label>Primary Reviewer</label><input type="text" id="rf-pri_rev" /></div>
-        <div class="rf-item"><label>Final Review</label><input type="text" id="rf-final" /></div>
-        <div class="rf-item"><label>Release Date</label><input type="text" id="rf-rel_date" placeholder="e.g. 18-06-2026" /></div>
-        <div class="rf-item"><label>Run Number</label><input type="number" id="rf-run_number" /></div>
-        <div class="rf-item"><label>Run Text</label><input type="text" id="rf-run_text" /></div>
+        <div class="rf-item"><label>Analysis Date</label><input type="text" class="date-txt" id="rf-ana_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
+        <div class="rf-item">
+          <label>Reviewer</label>
+          <select class="sel" id="rf-pri_rev" style="height:38px;width:100%"></select>
+        </div>
+        <div class="rf-item">
+          <label>Clinical Reviewer</label>
+          <select class="sel" id="rf-final" style="height:38px;width:100%"></select>
+        </div>
+        <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-rel_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
+        <div class="rf-item"><label>Run Number</label><input type="text" id="rf-run_text" placeholder="e.g. SURFseq- Run-102" /></div>
         <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remark"></textarea></div>
         <div class="rf-item rf-wide"><label>History</label><textarea id="rf-history"></textarea></div>
         <div class="rf-item rf-wide">
@@ -1363,6 +1441,9 @@
         <button class="btn btn-out btn-sm" id="bulk-release-toggle-btn" onclick="toggleBulkReleasePanel()" style="display:none;gap:6px;height:38px;padding:0 14px;font-weight:600;flex-shrink:0;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/></svg> Release Date
         </button>
+        <button class="btn btn-out btn-sm" id="bulk-assign-toggle-btn" onclick="toggleBulkAssignPanel()" style="display:none;gap:6px;height:38px;padding:0 14px;font-weight:600;flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Allocate Samples
+        </button>
       </div>
       <div id="global-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:8px;background:white;border:1px solid var(--pb);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden" onclick="event.stopPropagation()">
         <div style="max-height:500px;overflow-y:auto" id="global-search-table-wrap"></div>
@@ -1370,7 +1451,7 @@
 
       <div id="bulk-release-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px;max-width:760px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <input type="text" id="bulk-release-date" class="sel" placeholder="Release Date — e.g. 23-06-2026" style="max-width:200px" />
+          <input type="text" class="date-txt sel" id="bulk-release-date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" />
           <button class="btn btn-pri btn-sm" onclick="submitBulkRelease()">Mark Selected as Released</button>
           <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600">0 selected</span>
         </div>
@@ -1382,7 +1463,37 @@
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           <input type="text" id="bulk-release-search" placeholder="Search samples..." oninput="renderBulkReleaseList()" style="font-size:13px" />
         </div>
+        <div id="bulk-release-caption" style="font-size:11px;color:var(--muted);margin:-6px 0 10px"></div>
         <div id="bulk-release-list" style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+
+      <div id="bulk-assign-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <select id="bulk-assign-reviewer" class="sel" style="height:38px;max-width:260px;flex:1;min-width:200px" title="Reviewer these samples go to"></select>
+          <button class="btn btn-pri btn-sm" onclick="submitBulkAssign()">Assign Selected</button>
+          <span id="bulk-assign-selected-count" style="font-size:12px;color:var(--muted);font-weight:600">0 selected</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <div class="rel-search-wrap" style="max-width:340px;flex:1;min-width:200px" onclick="this.querySelector('input').focus()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="bulk-assign-search" placeholder="Search samples..." oninput="renderBulkAssignList()" style="font-size:13px" />
+          </div>
+          <select class="sel" id="bulk-assign-run" onchange="renderBulkAssignList()" style="height:38px;max-width:200px" title="Allocate one run at a time">
+            <option value="">All Runs</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="bulk-assign-select-all" onchange="toggleBulkAssignSelectAll(this)" style="width:15px;height:15px;cursor:pointer" />
+            Select all shown
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="bulk-assign-include-assigned" onchange="renderBulkAssignList()" style="width:15px;height:15px;cursor:pointer" />
+            Include samples that already have a reviewer
+          </label>
+        </div>
+        <div id="bulk-assign-caption" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
+        <div id="bulk-assign-list" style="max-height:440px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
       </div>
     </div>
 
@@ -1542,7 +1653,7 @@
         </div>
         <div class="rel-panel-item">
           <label>Release Date</label>
-          <input type="date" class="sel" id="f-rel-date" onchange="render('released')" />
+          <input type="text" class="date-txt sel" id="f-rel-date" placeholder="DD-MM-YYYY" inputmode="numeric" oninput="render('released')" title="Filter by release date (DD-MM-YYYY)" />
         </div>
       </div>
       <div class="rel-panel-actions">
@@ -1839,7 +1950,6 @@
 <script>
 let rows   = [];
 
-// ---- Sort-order toggle (newest/oldest first), persisted per table view while open ----
 const _sortDir = { allSamples:'desc', assigned:'desc', released:'desc', overdue:'asc' };
 const SORT_LABELS = {
   allSamples: { desc:'Newest first', asc:'Oldest first' },
@@ -1873,7 +1983,6 @@ function toggleSortDir(key) {
   else render(key);
 }
 
-// ---- Freeze columns: click a header (while armed) to pin it in place during horizontal scroll ----
 const _freezeState = {};
 function _fzState(wrapId) {
   if (!_freezeState[wrapId]) _freezeState[wrapId] = { active:false, cols:new Set() };
@@ -1912,7 +2021,10 @@ function applyFreeze(wrapId) {
 
   table?.querySelectorAll('[data-col]').forEach(cell => {
     cell.classList.remove('col-frozen','col-frozen-edge');
-    cell.style.position = ''; cell.style.left = ''; cell.style.zIndex = ''; cell.style.background = '';
+    cell.style.position = ''; cell.style.left = ''; cell.style.zIndex = '';
+    cell.style.background = '';
+    cell.style.width = ''; cell.style.minWidth = ''; cell.style.maxWidth = '';
+    unclipCell(cell);
   });
   if (!table) return;
 
@@ -1921,29 +2033,48 @@ function applyFreeze(wrapId) {
   if (!st.cols.size) return;
 
   const order = headCells.map(th => th.dataset.col).filter(c => st.cols.has(c));
+  const widths = order.map(col => {
+    const th = headCells.find(t => t.dataset.col === col);
+    return th ? Math.round(th.getBoundingClientRect().width) : 0;
+  });
+
   let cum = 0;
   order.forEach((col, i) => {
-    const cells = table.querySelectorAll(`[data-col="${CSS.escape(col)}"]`);
-    const th = headCells.find(t => t.dataset.col === col);
-    if (!th) return;
-    const w = th.getBoundingClientRect().width;
+    const w = widths[i];
+    if (!w) return;
     const isEdge = i === order.length - 1;
-    cells.forEach(cell => {
+    table.querySelectorAll(`[data-col="${CSS.escape(col)}"]`).forEach(cell => {
       cell.classList.add('col-frozen');
       if (isEdge) cell.classList.add('col-frozen-edge');
-      cell.style.position = 'sticky';
       cell.style.left = cum + 'px';
-      if (cell.tagName === 'TH') {
-        cell.style.zIndex = 21;
-      } else {
-        cell.style.zIndex = 6;
-        const tr = cell.parentElement;
-        const rowIndex = [...tr.parentElement.children].indexOf(tr);
-        cell.style.background = rowIndex % 2 === 1 ? 'rgba(100,116,139,.05)' : '#fff';
-      }
+      cell.style.width = w + 'px';
+      cell.style.minWidth = w + 'px';
+      cell.style.maxWidth = w + 'px';
+      clipCell(cell, w);
     });
     cum += w;
   });
+}
+
+function clipCell(cell, w) {
+  let inner = cell.firstElementChild;
+  if (!inner || !inner.classList.contains('fz-clip')) {
+    inner = document.createElement('div');
+    inner.className = 'fz-clip';
+    while (cell.firstChild) inner.appendChild(cell.firstChild);
+    cell.appendChild(inner);
+  }
+  const cs = getComputedStyle(cell);
+  const padX = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+  inner.style.width = Math.max(0, w - padX) + 'px';
+  if (!cell.title) cell.title = inner.textContent.trim();
+}
+
+function unclipCell(cell) {
+  const inner = cell.firstElementChild;
+  if (!inner || !inner.classList.contains('fz-clip')) return;
+  while (inner.firstChild) cell.insertBefore(inner.firstChild, inner);
+  inner.remove();
 }
 
 const IC = {
@@ -1977,10 +2108,15 @@ const COL_MAP = {
   tat:       ['tat(30 days)','tat','turnaround'],
   rep_exp:   ['repeat expansion','repeat'],
   cnv_status:['cnv status','cnv'],
+  mito_status:['mito status','mito'],
   analyst:   ['analyze by','analysed by','analyzed by','analyst','analyze_by'],
   ana_date:  ['analyze date','analysis date','analyzed date','date of analysis','analyze_date'],
-  pri_rev:   ['primary reviwer (diwakar/naveen)','primary reviewer','primary review','primary_reviewer'],
-  final:     ['final review','final_review','final'],
+  pri_rev:   ['reviewer','primary reviwer (diwakar/naveen)','primary reviewer','primary review','primary_reviewer'],
+  final:     ['clinical reviewer','clinical_reviewer','final review','final_review','final'],
+  bioinfo_time: ['bioinfo analysis time','bioinfo analysis','bioinfo'],
+  reanalysis:['re-analysis','re analysis','reanalysis'],
+  priority:  ['priority','is priority','urgent'],
+  run:       ['run_no','run no','run number','run'],
   remark:    ['remark','remarks','note','notes'],
   rel_date:  ['report release date','release date','released on','report_release_date'],
   history:   ['history writeup','history','writeup'],
@@ -1992,27 +2128,60 @@ function extractRunNumber(text) {
   return m ? parseInt(m[1], 10) : null;
 }
 
-function formatRunLabel(text) {
-  if (!text || text === '—') return text || '—';
-  const n = extractRunNumber(text);
-  return n ? `SURFseq- Run-${n}` : text;
+function deriveMitoStatus(testRaw, mitoRaw) {
+  const explicit = String(mitoRaw || '').trim();
+  if (explicit) return explicit;
+  const test = String(testRaw || '').toLowerCase();
+  if (!test) return '';
+  if (test.includes('mito')) {
+    if (test.includes('wes') || test.includes('exome')) return 'WES + Mito';
+    if (test.includes('ces')) return 'CES + Mito';
+    return 'Mito';
+  }
+  return '';
+}
+
+// Categories that jump the queue, checked as each run is imported.
+const PRIORITY_RULES = [
+  { label: 'Fast track',          fields: ['remark'],       re: /fast\s*-?\s*track/i },
+  { label: 'Expedited TAT',       fields: ['remark'],       re: /\b(?:dr\.?\s*)?(raman|sachin|anand|siva)\b/i },
+  { label: 'Single gene',         fields: ['test'],         re: /single\s*gene/i },
+  { label: 'Female infertility',  fields: ['test'],         re: /female\s*infertility/i },
+  // "female infertility" contains "male infertility" — the boundary stops a double match.
+  { label: 'Male infertility',    fields: ['test'],         re: /(?:^|[^a-z])male\s*infertility/i },
+  { label: 'Prenatal (Manipal)',  fields: ['client'],       re: /manipal/i },
+  { label: 'Prenatal (AF/CVS)',   fields: ['name','test'],  re: /\b(af|cvs)\b/i },
+  { label: 'Donor',               fields: ['name','test'],  re: /\bdonors?\b/i },
+];
+
+function priorityReason(row) {
+  for (const rule of PRIORITY_RULES) {
+    if (rule.fields.some(f => rule.re.test(String(row[f] || '')))) return rule.label;
+  }
+  return '';
 }
 
 function mapRow(raw) {
   const keys = Object.keys(raw).map(k => k.toLowerCase().trim());
   function get(aliases) {
     for (const a of aliases) {
-      const i = keys.findIndex(k => k === a || k.includes(a));
+      const i = keys.indexOf(a);
+      if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
+    }
+    for (const a of aliases) {
+      const i = keys.findIndex(k => k.includes(a));
       if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
     }
     return '';
   }
+  const yes = v => /^(y|yes|true|1)$/i.test(String(v || '').trim());
   const analystRaw = get(COL_MAP.analyst);
   const assignDateMatch = analystRaw.match(/\(([^)]+)\)/);
   const assignDate = assignDateMatch ? assignDateMatch[1].trim() : '';
   const analystClean = normalizeAnalystName(analystRaw);
+  const runTxt = get(COL_MAP.run) || raw._run_txt || '—';
 
-  return {
+  const row = {
     sno:          get(COL_MAP.sno),
     name:         get(COL_MAP.name),
     test:         normalizeTestName(get(COL_MAP.test)),
@@ -2022,38 +2191,36 @@ function mapRow(raw) {
     tat:          fmtDate(get(COL_MAP.tat)),
     rep_exp:      get(COL_MAP.rep_exp),
     cnv_status:   get(COL_MAP.cnv_status),
+    mito_status:  deriveMitoStatus(get(COL_MAP.test), get(COL_MAP.mito_status)),
     analyst:      analystClean,
     analyst_raw:  analystRaw,
     assign_date:  assignDate,
-    ana_date:     get(COL_MAP.ana_date),
+    ana_date:     fmtDate(get(COL_MAP.ana_date)),
     pri_rev:      get(COL_MAP.pri_rev),
     final:        get(COL_MAP.final),
     remark:       get(COL_MAP.remark),
-    rel_date:     get(COL_MAP.rel_date),
+    rel_date:     fmtDate(get(COL_MAP.rel_date)),
     history:      get(COL_MAP.history),
-    run_number:   raw._run_num || 0,
-    run_text:     raw._run_txt || '—',
-    is_hidden:    !!raw._hidden,
+    bioinfo_time: get(COL_MAP.bioinfo_time),
+    is_reanalysis: yes(get(COL_MAP.reanalysis)),
+    run_number:   extractRunNumber(runTxt) || raw._run_num || DEFAULT_RUN_NUMBER,
+    run_text:     runTxt,
   };
+
+  row.priority_reason = priorityReason(row);
+  row.is_priority = yes(get(COL_MAP.priority)) || !!row.priority_reason;
+  return row;
 }
+
+// Runs before 54 predate release-date capture, so they count as released.
+const FIRST_RUN_WITH_RELEASE_DATES = 54;
 
 function getStatus(r) {
   const run = parseInt(r.run_number || 0, 10);
-  const isHidden = !!r.is_hidden;
-  const hasRelDate = r.rel_date && r.rel_date !== '—' && r.rel_date !== '-' && String(r.rel_date).trim() !== '';
+  const hasRelDate = r.rel_date && r.rel_date !== '—' && r.rel_date !== '-' &&
+                     String(r.rel_date).trim() !== '';
 
-  let isReleased = false;
-  if (run < 54) {
-    isReleased = true;
-  } 
-  else if (run === 54) {
-    isReleased = isHidden || hasRelDate;
-  }
-  else {
-    isReleased = hasRelDate;
-  }
-
-  if (isReleased) return 'Released';
+  if (run < FIRST_RUN_WITH_RELEASE_DATES || hasRelDate) return 'Released';
   if (r.pri_rev) return 'Ongoing';
   return 'Yet to Start';
 }
@@ -2096,6 +2263,79 @@ function parseDate(v) {
   if (!isNaN(d.getTime())) return d;
   
   return null;
+}
+
+// DD-MM-YYYY everywhere: what is shown, typed and stored are the same string.
+const DATE_FMT = 'DD-MM-YYYY';
+
+function ddmmyyyy(d) {
+  return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+}
+
+function toApiDate(value) {
+  if (!value) return '';
+  const d = parseDate(String(value).trim());
+  return d ? ddmmyyyy(d) : '';
+}
+
+function formatInputDate(value) {
+  if (!value) return '';
+  const d = parseDate(value);
+  return d ? ddmmyyyy(d) : '';
+}
+
+const CAL_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+
+function upgradeDateFields(root) {
+  (root || document).querySelectorAll('input.date-txt').forEach(txt => {
+    if (txt.parentElement && txt.parentElement.classList.contains('date-field')) return;
+    const wrap = document.createElement('span');
+    wrap.className = 'date-field';
+    txt.parentNode.insertBefore(wrap, txt);
+    wrap.appendChild(txt);
+    wrap.insertAdjacentHTML('beforeend',
+      `<input type="date" class="date-pick" tabindex="-1" aria-hidden="true" onchange="onDatePicked(this)" />` +
+      `<button type="button" class="date-btn" title="Pick a date" onclick="openDatePicker(this)">${CAL_ICON}</button>`);
+  });
+}
+
+function openDatePicker(btn) {
+  const wrap = btn.closest('.date-field');
+  const txt  = wrap.querySelector('.date-txt');
+  const pick = wrap.querySelector('.date-pick');
+  const d = parseDate(txt.value);
+  pick.value = d
+    ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    : '';
+  if (typeof pick.showPicker === 'function') {
+    try { pick.showPicker(); return; } catch (e) { /* fall through */ }
+  }
+  pick.focus();
+  pick.click();
+}
+
+function onDatePicked(pick) {
+  const wrap = pick.closest('.date-field');
+  const txt  = wrap.querySelector('.date-txt');
+  const d = pick.value ? parseDate(pick.value) : null;
+  txt.value = d ? ddmmyyyy(d) : '';
+  txt.setCustomValidity('');
+  txt.dispatchEvent(new Event('input',  { bubbles: true }));
+  txt.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function normalizeDateInput(el) {
+  if (!el) return;
+  const raw = el.value.trim();
+  if (!raw) return;
+  const d = parseDate(raw);
+  if (d) {
+    el.value = ddmmyyyy(d);
+    el.setCustomValidity('');
+  } else {
+    el.setCustomValidity(`Enter the date as ${DATE_FMT}`);
+    el.reportValidity();
+  }
 }
 
 const TAT_WARN_DAYS = 7;
@@ -2223,11 +2463,13 @@ function tatDetailBlock(id, r, cols = 4) {
     ['TAT', fmtDate(r.tat)],
     ['Analyst', r.analyst],
     ['Reviewer', r.pri_rev],
+    ['Clinical Reviewer', r.final],
+    ['CNV', r.cnv_status],
     ['Remark', r.remark],
   ];
   const releaseRow = canEditReports() ? `
     <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" id="qrd-${id}" placeholder="Release Date — e.g. ${todayDDMMYYYY()}" value="${esc(r.rel_date||'')}" />
+      <input type="text" class="date-txt" id="qrd-${id}" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" value="${esc(formatInputDate(r.rel_date)||'')}" />
       <button class="btn btn-pri btn-sm" onclick="quickSetReleaseDate('${id}','${r.id}')">Mark Released</button>
     </div>` : '';
   const remarkRow = canEditReports() ? `
@@ -2235,10 +2477,26 @@ function tatDetailBlock(id, r, cols = 4) {
       <input type="text" id="qrm-${id}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
       <button class="btn btn-out btn-sm" onclick="quickSetRemark('${r.id}','qrm-${id}')">Save Remark</button>
     </div>` : '';
+  const clinRow = canEditReports() ? `
+    <div class="tat-release-row" onclick="event.stopPropagation()">
+      <select class="sel" id="qcr-${id}" title="Clinical Reviewer" style="height:32px;flex:1">
+        ${clinicalReviewerOptions(r.final||'')}
+      </select>
+      <button class="btn btn-out btn-sm" onclick="quickSetClinicalReviewer('${r.id}','qcr-${id}')">Save Clinical Reviewer</button>
+    </div>` : '';
+  const cnvRow = canEditReports() ? `
+    <div class="tat-release-row" onclick="event.stopPropagation()">
+      <select class="sel" id="qcnv-${id}" title="CNV Status" style="height:32px;flex:1">
+        ${cnvStatusOptions(r.cnv_status||'')}
+      </select>
+      <button class="btn btn-out btn-sm" onclick="quickSetCnvStatus('${r.id}','qcnv-${id}')">Save CNV Status</button>
+    </div>` : '';
   return `<tr class="tat-detail" id="tat-d-${id}"><td colspan="${cols}"><div class="tat-detail-inner">
     ${chips.map(([l,v]) => `<span class="tat-chip"><span class="tc-label">${l}</span><span class="tc-val">${esc(v||'—')}</span></span>`).join('')}
     ${releaseRow}
     ${remarkRow}
+    ${clinRow}
+    ${cnvRow}
   </div></td></tr>`;
 }
 
@@ -2247,15 +2505,11 @@ function todayDDMMYYYY() {
   return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
 }
 
-async function quickSetReleaseDate(localId, reportId) {
-  const input = document.getElementById('qrd-' + localId);
-  const dateVal = input.value.trim();
-  if (!dateVal) { toast('Enter a release date', 'warn'); return; }
-
+async function quickPatchReport(reportId, patch, okMsg, errLabel) {
   const row = rows.find(r => r.id === reportId);
   if (!row) { toast('Could not find that report — try refreshing', 'err'); return; }
 
-  const { id, ...payload } = { ...row, rel_date: dateVal };
+  const { id, ...payload } = { ...row, ...patch };
 
   try {
     const resp = await fetch(`api/reports/${reportId}`, {
@@ -2264,38 +2518,42 @@ async function quickSetReleaseDate(localId, reportId) {
       credentials: 'same-origin',
       body: JSON.stringify(payload),
     });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) throw await apiError(resp);
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
-    toast('Release date saved — moved to Released');
+    toast(okMsg);
   } catch (e) {
-    toast('Failed to save release date: ' + e.message, 'err');
+    toast(`Failed to save ${errLabel}: ` + e.message, 'err');
   }
 }
 
+async function quickSetReleaseDate(localId, reportId) {
+  const dateVal = (document.getElementById('qrd-' + localId)?.value || '').trim();
+  if (!dateVal) { toast('Enter a release date', 'warn'); return; }
+  await quickPatchReport(reportId, { rel_date: toApiDate(dateVal) },
+    'Release date saved — moved to Released', 'release date');
+}
+
 async function quickSetRemark(reportId, inputId) {
-  const input = document.getElementById(inputId);
-  const remarkVal = input.value.trim();
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  await quickPatchReport(reportId, { remark: el.value.trim() }, 'Remark saved', 'remark');
+}
 
-  const row = rows.find(r => r.id === reportId);
-  if (!row) { toast('Could not find that report — try refreshing', 'err'); return; }
+async function quickSetClinicalReviewer(reportId, selectId) {
+  const el = document.getElementById(selectId);
+  if (!el) return;
+  await quickPatchReport(reportId, { final: el.value },
+    el.value ? `Clinical reviewer set to ${el.value}` : 'Clinical reviewer cleared',
+    'clinical reviewer');
+}
 
-  const { id, ...payload } = { ...row, remark: remarkVal };
-
-  try {
-    const resp = await fetch(`api/reports/${reportId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    toast('Remark saved');
-  } catch (e) {
-    toast('Failed to save remark: ' + e.message, 'err');
-  }
+async function quickSetCnvStatus(reportId, selectId) {
+  const el = document.getElementById(selectId);
+  if (!el) return;
+  await quickPatchReport(reportId, { cnv_status: el.value },
+    el.value ? `CNV status set to ${el.value}` : 'CNV status cleared',
+    'CNV status');
 }
 
 function toggleTatDetail(id) {
@@ -2352,9 +2610,20 @@ function filterTatSoon() {
 
 let _bulkReleaseSelected = new Set();
 
+const BULK_RELEASE_DUE_DAYS = 10;
+
 function getBulkReleaseCandidates() {
-  const { dueSoon, dueToday, overdue } = getTatAlerts();
-  return [...dueToday, ...dueSoon, ...overdue];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const out = [];
+  applySelfFilter(rows).filter(r => getStatus(r) !== 'Released').forEach(r => {
+    const td = parseTatDate(r);
+    if (!td) return;
+    td.setHours(0,0,0,0);
+    const diff = Math.round((td - today) / 86400000);
+    if (diff <= BULK_RELEASE_DUE_DAYS) out.push({ ...r, tatDate: td, diff });
+  });
+  out.sort((a, b) => a.diff - b.diff);   // longest overdue first — filled in first
+  return out;
 }
 
 function toggleBulkReleasePanel() {
@@ -2362,6 +2631,7 @@ function toggleBulkReleasePanel() {
   const opening = panel.style.display === 'none';
   panel.style.display = opening ? 'block' : 'none';
   if (opening) {
+    document.getElementById('bulk-assign-panel').style.display = 'none';   // one panel at a time
     _bulkReleaseSelected = new Set();
     document.getElementById('bulk-release-date').value = '';
     document.getElementById('bulk-remark-text').value = '';
@@ -2372,7 +2642,8 @@ function toggleBulkReleasePanel() {
 
 function renderBulkReleaseList() {
   const q = (document.getElementById('bulk-release-search')?.value || '').toLowerCase().trim();
-  let data = getBulkReleaseCandidates();
+  const all = getBulkReleaseCandidates();
+  let data = all;
   if (q) data = data.filter(r =>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
@@ -2396,13 +2667,36 @@ function renderBulkReleaseList() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         </button>
       </div>
-      <div class="tat-release-row" id="bulk-remark-${esc(r.id)}" style="display:none">
-        <input type="text" id="bulk-remark-input-${esc(r.id)}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
-        <button class="btn btn-pri btn-sm" onclick="quickSetRemark('${r.id}','bulk-remark-input-${r.id}')">Save Remark</button>
+      <div id="bulk-remark-${esc(r.id)}" style="display:none">
+        <div class="tat-release-row">
+          <input type="text" id="bulk-remark-input-${esc(r.id)}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
+          <button class="btn btn-pri btn-sm" onclick="quickSetRemark('${r.id}','bulk-remark-input-${r.id}')">Save Remark</button>
+        </div>
+        <div class="tat-release-row">
+          <select class="sel" id="bulk-clin-input-${esc(r.id)}" title="Clinical Reviewer" style="height:32px;flex:1">
+            ${clinicalReviewerOptions(r.final||'')}
+          </select>
+          <button class="btn btn-out btn-sm" onclick="quickSetClinicalReviewer('${r.id}','bulk-clin-input-${r.id}')">Save Clinical Reviewer</button>
+        </div>
+        <div class="tat-release-row">
+          <select class="sel" id="bulk-cnv-input-${esc(r.id)}" title="CNV Status" style="height:32px;flex:1">
+            ${cnvStatusOptions(r.cnv_status||'')}
+          </select>
+          <button class="btn btn-out btn-sm" onclick="quickSetCnvStatus('${r.id}','bulk-cnv-input-${r.id}')">Save CNV Status</button>
+        </div>
       </div>
     </div>`;
   }).join('') : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
 
+  const caption = document.getElementById('bulk-release-caption');
+  if (caption) {
+    const overdue = all.filter(r => r.diff < 0).length;
+    caption.textContent = q
+      ? `${data.length} of ${all.length} awaiting a release date match this search`
+      : `${all.length} awaiting a release date — ${overdue} overdue, the rest due within ${BULK_RELEASE_DUE_DAYS} days`;
+  }
+
+  upgradeDateFields();
   updateBulkReleaseCount();
 }
 
@@ -2416,7 +2710,7 @@ function onBulkReleaseCheck(checkbox) {
 function toggleBulkRemarkRow(id) {
   const el = document.getElementById('bulk-remark-' + id);
   if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function updateBulkReleaseCount() {
@@ -2434,7 +2728,7 @@ async function submitBulkRelease() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkReleaseSelected], rel_date: dateVal }),
+      body: JSON.stringify({ ids: [..._bulkReleaseSelected], rel_date: toApiDate(dateVal) }),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
@@ -2475,6 +2769,165 @@ async function submitBulkRemark() {
   }
 }
 
+let _bulkAssignSelected = new Set();
+
+function getBulkAssignCandidates() {
+  const includeAssigned = !!document.getElementById('bulk-assign-include-assigned')?.checked;
+  const run = document.getElementById('bulk-assign-run')?.value || '';
+  return applySelfFilter(rows)
+    .filter(r => getStatus(r) !== 'Released')
+    .filter(r => includeAssigned || !normalizeAnalystName(r.pri_rev))
+    .filter(r => !run || r.run_text === run)
+    .sort((a, b) => {
+      const da = parseTatDate(a), db = parseTatDate(b);
+      if (da && db) return da - db;
+      return da ? -1 : (db ? 1 : String(a.name||'').localeCompare(String(b.name||'')));
+    });
+}
+
+function populateBulkAssignReviewers() {
+  const who = document.getElementById('bulk-assign-reviewer');
+  if (who) {
+    const keep = who.value;
+    who.innerHTML = `<option value="">Reviewer name</option>` +
+      REVIEWERS.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    who.value = keep;
+  }
+
+  const sel = document.getElementById('bulk-assign-run');
+  if (sel) {
+    const keep = sel.value;
+    const unreleased = applySelfFilter(rows).filter(r => getStatus(r) !== 'Released');
+    const runs = [...new Set(unreleased.map(r => r.run_text).filter(Boolean))]
+      .sort((a, b) => (extractRunNumber(b) || 0) - (extractRunNumber(a) || 0));
+    sel.innerHTML = '<option value="">All Runs</option>' +
+      runs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+    sel.value = keep;
+  }
+}
+
+function toggleBulkAssignPanel() {
+  const panel = document.getElementById('bulk-assign-panel');
+  const opening = panel.style.display === 'none';
+  panel.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    document.getElementById('bulk-release-panel').style.display = 'none';   // one panel at a time
+    _bulkAssignSelected = new Set();
+    document.getElementById('bulk-assign-reviewer').value = '';
+    document.getElementById('bulk-assign-search').value = '';
+    document.getElementById('bulk-assign-run').value = '';
+    document.getElementById('bulk-assign-select-all').checked = false;
+    document.getElementById('bulk-assign-include-assigned').checked = false;
+    populateBulkAssignReviewers();
+    renderBulkAssignList();
+  }
+}
+
+function renderBulkAssignList() {
+  const q = (document.getElementById('bulk-assign-search')?.value || '').toLowerCase().trim();
+  const all = getBulkAssignCandidates();
+  const data = !q ? all : all.filter(r =>
+    (r.name||'').toLowerCase().includes(q) ||
+    (r.test||'').toLowerCase().includes(q) ||
+    (r.gen_id||'').toLowerCase().includes(q) ||
+    (r.and_id||'').toLowerCase().includes(q) ||
+    (r.client||'').toLowerCase().includes(q) ||
+    (r.run_text||'').toLowerCase().includes(q)
+  );
+
+  const el = document.getElementById('bulk-assign-list');
+  el.innerHTML = data.length ? `<table class="ba-table">
+    <thead><tr>
+      <th class="ba-check"></th>
+      <th>Sample Name</th><th>Test</th><th>Gen. ID</th><th>And. ID</th>
+      <th>Client</th><th>Run</th><th>TAT</th><th>Reviewer</th>
+    </tr></thead>
+    <tbody>${data.map(r => {
+      const reviewer = normalizeAnalystName(r.pri_rev);
+      const checked = _bulkAssignSelected.has(r.id) ? 'checked' : '';
+      const cell = (v, cls) => `<td class="${cls || ''}" title="${esc(v || '')}">${v ? esc(v) : '—'}</td>`;
+      return `<tr>
+        <td class="ba-check"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
+        ${cell(r.name, 'ba-name')}
+        ${cell(r.test, 'ba-test')}
+        <td class="ba-mono" title="${esc(r.gen_id || '')}">${r.gen_id ? esc(r.gen_id) : '—'}</td>
+        <td class="ba-mono" title="${esc(r.and_id || '')}">${r.and_id ? esc(r.and_id) : '—'}</td>
+        ${cell(r.client, 'ba-client')}
+        ${cell(r.run_text, 'ba-run')}
+        <td class="ba-tat">${fmtDate(r.tat)}</td>
+        <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`
+    : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
+
+  const caption = document.getElementById('bulk-assign-caption');
+  if (caption) {
+    const unassigned = all.filter(r => !normalizeAnalystName(r.pri_rev)).length;
+    caption.textContent = q
+      ? `${data.length} of ${all.length} shown match this search`
+      : `${all.length} unreleased sample${all.length === 1 ? '' : 's'} — ${unassigned} with no reviewer yet`;
+  }
+  syncBulkAssignSelectAll(data);
+  updateBulkAssignCount();
+}
+
+function onBulkAssignCheck(checkbox) {
+  const id = checkbox.dataset.id;
+  if (checkbox.checked) _bulkAssignSelected.add(id);
+  else _bulkAssignSelected.delete(id);
+  syncBulkAssignSelectAll();
+  updateBulkAssignCount();
+}
+
+function toggleBulkAssignSelectAll(box) {
+  const shown = [...document.querySelectorAll('#bulk-assign-list input[type="checkbox"]')];
+  shown.forEach(cb => {
+    cb.checked = box.checked;
+    if (box.checked) _bulkAssignSelected.add(cb.dataset.id);
+    else _bulkAssignSelected.delete(cb.dataset.id);
+  });
+  updateBulkAssignCount();
+}
+
+function syncBulkAssignSelectAll() {
+  const box = document.getElementById('bulk-assign-select-all');
+  if (!box) return;
+  const shown = [...document.querySelectorAll('#bulk-assign-list input[type="checkbox"]')];
+  box.checked = shown.length > 0 && shown.every(cb => cb.checked);
+}
+
+function updateBulkAssignCount() {
+  const label = document.getElementById('bulk-assign-selected-count');
+  if (label) label.textContent = `${_bulkAssignSelected.size} selected`;
+}
+
+async function submitBulkAssign() {
+  const reviewer = document.getElementById('bulk-assign-reviewer').value.trim();
+  if (!reviewer) { toast('Enter the reviewer these samples go to', 'warn'); return; }
+  if (_bulkAssignSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
+
+  try {
+    const resp = await fetch('api/reports/bulk-reviewer', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ ids: [..._bulkAssignSelected], pri_rev: reviewer }),
+    });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
+
+    _bulkAssignSelected = new Set();
+    document.getElementById('bulk-assign-select-all').checked = false;
+    await fetchReports(true);
+    refreshAllSamplesModalIfOpen();
+    populateBulkAssignReviewers();
+    renderBulkAssignList();
+    toast(`${result.count} sample${result.count !== 1 ? 's' : ''} assigned to ${reviewer}`);
+  } catch (e) {
+    toast('Failed to assign samples: ' + e.message, 'err');
+  }
+}
+
 function badgeHtml(status) {
   const cls = {
     'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel'
@@ -2483,8 +2936,22 @@ function badgeHtml(status) {
   return `<span class="badge ${cls}">${icon} ${esc(status)}</span>`;
 }
 
-function parseBinary(binary) {
-  const wb = XLSX.read(binary, { type:'binary' });
+const HEADER_KEYS = new Set(Object.values(COL_MAP).flat().map(h => h.replace(/[\s._]/g, '')));
+
+function headerKey(text) {
+  return String(text == null ? '' : text).trim().toLowerCase().replace(/[\s._]/g, '');
+}
+
+// Sheets write "absent" as a dash, so those cells count as empty.
+const BLANK_MARK = /^(?:[-‐-―−.\s]+|na|n\/a|nil|none|null)$/i;
+
+function isBlankMark(v) {
+  const s = String(v == null ? '' : v).trim();
+  return !s || BLANK_MARK.test(s);
+}
+
+function parseBinary(data) {
+  const wb = XLSX.read(data, { type:'array' });
 
   const targetName = wb.SheetNames.find(n => n.toLowerCase().replace(/\s+/g,'') === 'sheet1');
   const sheetName = targetName || wb.SheetNames[2] || wb.SheetNames[0];
@@ -2498,7 +2965,6 @@ function parseBinary(binary) {
   const grid = [];
   for (let R = range.s.r; R <= range.e.r; R++) {
     const row = [];
-    const isHidden = !!(ws['!rows'] && ws['!rows'][R] && ws['!rows'][R].hidden);
     for (let C = range.s.c; C <= range.e.c; C++) {
       const cell = ws[XLSX.utils.encode_cell({r: R, c: C})];
       if (!cell) { row.push(''); continue; }
@@ -2511,7 +2977,7 @@ function parseBinary(binary) {
       }
       row.push(String(val).trim());
     }
-    grid.push({ _cells: row, _hidden: isHidden });
+    grid.push({ _cells: row });
   }
 
   function cellVal(v) {
@@ -2519,9 +2985,12 @@ function parseBinary(binary) {
     return String(v).trim();
   }
 
+  // A row is the header when several of its cells are column names we know.
   function isHeaderRow(row) {
     const first = cellVal(row.find(c => cellVal(c) !== '') || '').toLowerCase().replace(/[\s.]/g,'');
-    return ['sno','s.no','srno','slno','no','#','serial'].includes(first);
+    if (['sno','s.no','srno','slno','no','#','serial'].includes(first)) return true;
+    const known = row.map(headerKey).filter(c => c && HEADER_KEYS.has(c));
+    return new Set(known).size >= 3;
   }
 
   const allRows = [];
@@ -2555,7 +3024,6 @@ function parseBinary(binary) {
     headers.forEach((h, i) => { obj[h] = cellVal(row[i] ?? ''); });
     obj._run_txt = currentRunTxt;
     obj._run_num = currentRunNum;
-    obj._hidden = rowObj._hidden;
 
     if (Object.values(obj).every(v => v === '' || v === currentRunTxt || v === currentRunNum)) continue;
 
@@ -2565,14 +3033,31 @@ function parseBinary(binary) {
   return allRows.map(mapRow).filter(r => r.name || r.gen_id || r.and_id || r.client || r.test);
 }
 
+async function apiError(resp) {
+  try {
+    const body = await resp.json();
+    const msg = body && (body.error || body.detail);
+    if (msg) return new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+  } catch (e) { /* non-JSON body */ }
+  return new Error(`HTTP ${resp.status}`);
+}
+
 let sheetTimer = null;
 const SYNC_INTERVAL = 30000;
+
+// Collapses the spellings of one reviewer ("Dr.Sudha"/"Dr. Sudha") onto one name.
+function canonicalReviewers(list) {
+  return list.map(r => {
+    const canon = normalizeAnalystName(r.pri_rev);
+    return canon && canon !== r.pri_rev ? { ...r, pri_rev: canon } : r;
+  });
+}
 
 async function fetchReports(silent) {
   try {
     const resp = await fetch('api/reports', { credentials: 'same-origin' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    rows = await resp.json();
+    if (!resp.ok) throw await apiError(resp);
+    rows = canonicalReviewers(await resp.json());
     saveToStorage(rows);
     refreshAll();
     if (!silent) toast(`Synced — ${rows.length} rows from database`);
@@ -2589,7 +3074,7 @@ function startAutoSync() {
 let raTeamFilter = null;
 let raSearch     = '';
 
-const REANALYSIS_COLS = ['name','test','gen_id','and_id','run_text','client','tat','ana_date','pri_rev','remark'];
+const REANALYSIS_COLS = ['name','test','gen_id','and_id','run_text','client','tat','mito_status','ana_date','pri_rev','remark'];
 
 function getReanalysisRows() {
   return applySelfFilter(rows).filter(r => r.is_reanalysis);
@@ -2735,8 +3220,10 @@ function applyRolePermissions() {
 
   const addBtn = document.getElementById('add-report-btn');
   const bulkReleaseBtn = document.getElementById('bulk-release-toggle-btn');
+  const bulkAssignBtn = document.getElementById('bulk-assign-toggle-btn');
   if (addBtn) addBtn.style.display = canEdit ? '' : 'none';
   if (bulkReleaseBtn) bulkReleaseBtn.style.display = canEdit ? '' : 'none';
+  if (bulkAssignBtn) bulkAssignBtn.style.display = canEdit ? '' : 'none';
 
   const label = document.getElementById('user-pill-label');
   if (label && currentUser) label.textContent = `${currentUser.username} · ${currentUser.role}`;
@@ -2744,14 +3231,27 @@ function applyRolePermissions() {
 
 const REPORT_FORM_FIELDS = [
   'name','test','gen_id','and_id','client','tat','rep_exp','cnv_status','analyst_raw',
-  'ana_date','pri_rev','final','rel_date','run_number','run_text','remark','history',
+  'ana_date','pri_rev','final','rel_date','run_text','remark','history',
 ];
+// run_number is parsed from the run label for sorting; a run with no number sorts last.
 const DEFAULT_RUN_NUMBER = 9999;
+const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil'];
+const CLINICAL_REVIEWERS = ['Dr.Sarath', 'Dr.Robert'];
+const CNV_STATUSES = ['No CNV', 'CNV - Suspected', 'CNV - Reported'];
+
+// Keeps an off-list value selectable so opening a legacy row never wipes it.
+function selectOptions(choices, current) {
+  const vals = !current || choices.includes(current) ? choices : [...choices, current];
+  return `<option value="">—</option>` +
+    vals.map(v => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(v)}</option>`).join('');
+}
+function reviewerOptions(current)         { return selectOptions(REVIEWERS, current); }
+function clinicalReviewerOptions(current) { return selectOptions(CLINICAL_REVIEWERS, current); }
+function cnvStatusOptions(current)        { return selectOptions(CNV_STATUSES, current); }
 
 function openReportModal(row) {
   document.getElementById('report-modal-title').textContent = row ? 'Edit Report' : 'Add Report';
   document.getElementById('rf-id').value = row?.id || '';
-  document.getElementById('rf-is_hidden').value = row ? String(!!row.is_hidden) : 'false';
   document.getElementById('rf-is_priority').checked = !!row?.is_priority;
 
   document.getElementById('rf-is_reanalysis').checked = !!row?.is_reanalysis;
@@ -2761,9 +3261,19 @@ function openReportModal(row) {
   REPORT_FORM_FIELDS.forEach(f => {
     const el = document.getElementById('rf-' + f);
     if (!el) return;
-    if (f === 'run_number') el.value = row ? (row.run_number ?? '') : DEFAULT_RUN_NUMBER;
-    else el.value = row ? (row[f] || '') : (f === 'run_text' ? '—' : '');
+    if (f === 'pri_rev') {
+      el.innerHTML = reviewerOptions(row?.pri_rev || '');
+    } else if (f === 'final') {
+      el.innerHTML = clinicalReviewerOptions(row?.final || '');
+    } else if (f === 'cnv_status') {
+      el.innerHTML = cnvStatusOptions(row?.cnv_status || '');
+    } else if (f === 'tat' || f === 'ana_date' || f === 'rel_date') {
+      el.value = row ? formatInputDate(row[f] || '') : '';
+    } else {
+      el.value = row ? (row[f] || '') : '';
+    }
   });
+  upgradeDateFields(document.getElementById('report-modal-backdrop'));
   document.getElementById('report-modal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2777,7 +3287,6 @@ function closeReportModal(e) {
 async function submitReportForm() {
   const id = document.getElementById('rf-id').value;
   const payload = {
-    is_hidden:   document.getElementById('rf-is_hidden').value === 'true',
     is_priority:   document.getElementById('rf-is_priority').checked,
 
     is_reanalysis: document.getElementById('rf-is_reanalysis').checked,
@@ -2785,13 +3294,16 @@ async function submitReportForm() {
   REPORT_FORM_FIELDS.forEach(f => {
     const el = document.getElementById('rf-' + f);
     if (!el) return;
-    payload[f] = f === 'run_number' ? (parseInt(el.value, 10) || 0) : el.value.trim();
+    payload[f] = el.value.trim();
   });
   if (!payload.name && !payload.gen_id && !payload.and_id) {
     toast('Enter at least a sample name or ID', 'warn');
     return;
   }
 
+  payload.tat = toApiDate(payload.tat);
+  payload.ana_date = toApiDate(payload.ana_date);
+  payload.rel_date = toApiDate(payload.rel_date);
   payload.test = normalizeTestName(payload.test);
   const assignDateMatch = payload.analyst_raw.match(/\(([^)]+)\)/);
   payload.assign_date = assignDateMatch ? assignDateMatch[1].trim() : '';
@@ -2811,7 +3323,7 @@ async function submitReportForm() {
             'The list has been refreshed — please reopen it and try again.', 'err');
       return;
     }
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) throw await apiError(resp);
     closeReportModal(null);
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
@@ -2825,15 +3337,7 @@ async function handleReportExcelUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
   try {
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-
-    const parsedRows = parseBinary(binary).map(r => ({
-      ...r,
-      run_number: r.run_number || DEFAULT_RUN_NUMBER,
-    }));
+    const parsedRows = parseBinary(new Uint8Array(await file.arrayBuffer()));
     if (!parsedRows.length) {
       toast('No samples found in that file', 'warn');
       return;
@@ -2851,7 +3355,12 @@ async function handleReportExcelUpload(event) {
     closeReportModal(null);
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
-    toast(`Added ${result.count} report${result.count !== 1 ? 's' : ''} from Excel`);
+
+    const blank = parsedRows.filter(r => isBlankMark(r.tat)).length;
+    const flagged = parsedRows.filter(r => r.priority_reason).length;
+    const note = (flagged ? ` · ${flagged} marked priority` : '') +
+                 (blank ? ` · ${blank} without a TAT date in the sheet` : '');
+    toast(`Added ${result.count} report${result.count !== 1 ? 's' : ''} from Excel${note}`);
   } catch (e) {
     toast('Failed to import Excel: ' + e.message, 'err');
   } finally {
@@ -2863,7 +3372,7 @@ async function deleteReport(id) {
   if (!confirm('Delete this report? This cannot be undone.')) return;
   try {
     const resp = await fetch(`api/reports/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) throw await apiError(resp);
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
     toast('Report deleted');
@@ -2878,7 +3387,7 @@ async function deleteReportFromModal() {
   if (!confirm('Delete this report? This cannot be undone.')) return;
   try {
     const resp = await fetch(`api/reports/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) throw await apiError(resp);
     closeReportModal(null);
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
@@ -2919,6 +3428,7 @@ function switchTab(id, btn) {
   else if (id==='analytics') { anInitFilters(); anWaitAndDraw(); }
   else if (id==='reanalysis') renderReanalysis();
   else if (id!=='dashboard') render(id);
+  sizeTableWraps();
 }
 
 function getRowYear(r) {
@@ -2987,6 +3497,12 @@ function refreshAll() {
   if (document.querySelector('.page.active')?.id === 'page-reanalysis') renderReanalysis();
   buildRecentReleasesPanel('rrp-rail-list');
   if (document.getElementById('bulk-release-panel')?.style.display === 'block') renderBulkReleaseList();
+  if (document.getElementById('bulk-assign-panel')?.style.display === 'block') {
+    populateBulkAssignReviewers();
+    renderBulkAssignList();
+  }
+
+  upgradeDateFields();
 
   const active = document.querySelector('.page.active');
   if (active && active.id==='page-overdue') {
@@ -2995,7 +3511,22 @@ function refreshAll() {
     const key = Object.keys(PAGE_MAP).find(k=>PAGE_MAP[k]===active.id);
     if (key) render(key);
   }
+  sizeTableWraps();
 }
+
+const TBL_BOTTOM_GUTTER = 16;
+const TBL_MIN_HEIGHT = 280;
+
+function sizeTableWraps() {
+  document.querySelectorAll('.tbl-wrap').forEach(wrap => {
+    if (!wrap.offsetParent) return;          // belongs to a page that is not showing
+    const top = wrap.getBoundingClientRect().top + window.scrollY;
+    const avail = window.innerHeight - top - TBL_BOTTOM_GUTTER;
+    wrap.style.maxHeight = avail >= TBL_MIN_HEIGHT ? `${avail}px` : '';
+  });
+}
+
+window.addEventListener('resize', sizeTableWraps);
 
 function runOptions(data) {
   const seen = new Map();
@@ -3016,7 +3547,7 @@ function populateRunFilter(selectId, data) {
   const cur = sel.value;
   const vals = runOptions(data);
   sel.innerHTML = '<option value="">All Runs</option>';
-  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=formatRunLabel(v); sel.appendChild(o); });
+  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
   if (vals.includes(cur)) sel.value=cur;
 }
 
@@ -3282,7 +3813,7 @@ function openTeamWorkloadModal() {
 }
 
 const MODAL_COLS = {
-  assigned: ['name','test','gen_id','and_id','run_text','client','tat','rep_exp','cnv_status','ana_date'],
+  assigned: ['name','test','gen_id','and_id','run_text','client','tat','mito_status','rep_exp','cnv_status','ana_date'],
 };
 
 function getColClass(c) {
@@ -3291,9 +3822,21 @@ function getColClass(c) {
     'gen_id':'col-w-id','and_id':'col-w-id','run_text':'col-w-run',
     'tat':'col-w-tat','rel_date':'col-w-date','ana_date':'col-w-date','assign_date':'col-w-date',
     '_status':'col-w-status','_rel':'col-w-date',
-    'analyst':'col-w-analyst','analyst_txt':'col-w-analyst','pri_rev':'col-w-analyst'
+    'analyst':'col-w-analyst','analyst_txt':'col-w-analyst','pri_rev':'col-w-analyst',
+    'analyst_raw':'col-w-analyst','final':'col-w-analyst','last_updated_by':'col-w-analyst',
+    'remark':'col-w-text','history':'col-w-text','last_updated_at':'col-w-stamp',
+    'bioinfo_time':'col-w-flag','is_priority':'col-w-flag','is_reanalysis':'col-w-flag',
   };
   return classMap[c]||'';
+}
+
+function fmtStamp(v) {
+  const s = String(v || '').trim();
+  if (!s) return '<span class="muted-val">—</span>';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return esc(s);
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 function buildModalTable(data, cols, applyStatusColors = false) {
@@ -3311,7 +3854,7 @@ function buildModalTable(data, cols, applyStatusColors = false) {
     return `<tr class="${rowClass}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(formatRunLabel(v)):'—'}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(v):'—'}</td>`;
     if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
@@ -3321,12 +3864,23 @@ function buildModalTable(data, cols, applyStatusColors = false) {
     if (c==='tat') return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
     if (c==='_rel') { const st=getStatus(r); return `<td class="${cls} col-date" data-col="${c}">${st==='Released'?fmtRelDate(r.rel_date,r):'<span class="muted-val">—</span>'}</td>`; }
+    if (c==='is_priority'||c==='is_reanalysis') {
+      const on = !!r[c];
+      const tag = c==='is_priority' ? 'PRIORITY' : 'RE-AN';
+      return `<td class="${cls}" data-col="${c}">${on?`<span class="ra-tag">${tag}</span>`:'<span class="muted-val">—</span>'}</td>`;
+    }
+    if (c==='last_updated_at') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${fmtStamp(v)}</td>`;
     return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}</td>`;
     }).join('')}</tr>`; }).join('');
   return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
 }
 
-const ALL_COLS = ['name','test','gen_id','and_id','run_text', 'client','tat','rep_exp','cnv_status','_status','_rel'];
+const ALL_COLS = [
+  'name','test','gen_id','and_id','client','run_text','tat','bioinfo_time',
+  'rep_exp','cnv_status','mito_status','analyst_raw','ana_date','pri_rev','final',
+  '_status','remark','rel_date','history','is_priority','is_reanalysis',
+  'last_updated_by','last_updated_at',
+];
 let _allModalData = [];
 let _allModalFiltered = [];
 
@@ -3337,7 +3891,6 @@ function openAllSamplesModal(defaultStatus) {
 
   const tests = [...new Set(_allModalData.map(r=>r.test).filter(Boolean))].sort();
   const statuses = ['Yet to Start','Ongoing','Released'];
-  const analysts = [...new Set(_allModalData.flatMap(r=>extractAnalysts(r.analyst_raw)).filter(Boolean))].sort();
   const clients = [...new Set(_allModalData.map(r=>r.client).filter(Boolean))].sort();
   const runs = [...new Set(_allModalData.map(r=>r.run_text).filter(Boolean))].sort();
   const cnvStatuses = [...new Set(_allModalData.map(r=>r.cnv_status).filter(Boolean))].sort();
@@ -3369,13 +3922,17 @@ function openAllSamplesModal(defaultStatus) {
     <div class="rel-panel" id="all-filter-panel" style="margin:8px 22px 0;padding:10px 14px">
       <div class="rel-panel-grid">
         <div class="rel-panel-item"><label>Test</label><select class="sel" id="all-f-test" onchange="filterAllSamples()">${'<option value="">All Tests</option>'+tests.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select></div>
-        <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(formatRunLabel(r))}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Status</label><select class="sel" id="all-f-status" onchange="filterAllSamples()">${'<option value="">All Statuses</option>'+statuses.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
-        <div class="rel-panel-item"><label>Analyst</label><select class="sel" id="all-f-analyst" onchange="filterAllSamples()">${'<option value="">All Analysts</option>'+analysts.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Client</label><select class="sel" id="all-f-client" onchange="filterAllSamples()">${'<option value="">All Clients</option>'+clients.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>CNV Status</label><select class="sel" id="all-f-cnv" onchange="filterAllSamples()">${'<option value="">All CNV Statuses</option>'+cnvStatuses.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>TAT Month</label><select class="sel" id="all-f-month" onchange="filterAllSamples()">${'<option value="">All Months</option>'+tatMonths.map(m=>`<option value="${m}">${MONTHS[m-1]}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>TAT Year</label><select class="sel" id="all-f-year" onchange="filterAllSamples()">${'<option value="">All Years</option>'+tatYears.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Re-analysis</label><select class="sel" id="all-f-reanalysis" onchange="filterAllSamples()">
+          <option value="">All Samples</option>
+          <option value="yes">Re-analysis only</option>
+          <option value="no">Exclude re-analysis</option>
+        </select></div>
       </div>
       <div class="rel-panel-actions"><button class="rel-clear-btn" onclick="clearAllSamplesFilters()">Clear All</button></div>
     </div>`;
@@ -3400,17 +3957,17 @@ function filterAllSamples() {
   const test    = document.getElementById('all-f-test')?.value||'';
   const run     = document.getElementById('all-f-run')?.value||'';
   const status  = document.getElementById('all-f-status')?.value||'';
-  const analyst = document.getElementById('all-f-analyst')?.value||'';
   const clientF = document.getElementById('all-f-client')?.value||'';
   const cnv     = document.getElementById('all-f-cnv')?.value||'';
   const month   = document.getElementById('all-f-month')?.value||'';
   const year    = document.getElementById('all-f-year')?.value||'';
+  const reanaly = document.getElementById('all-f-reanalysis')?.value||'';
 
   let data = _allModalData;
+  if (reanaly) data = data.filter(r => !!r.is_reanalysis === (reanaly === 'yes'));
   if (test)    data = data.filter(r=>r.test===test);
   if (run)     data = data.filter(r=>r.run_text===run);
   if (status)  data = data.filter(r=>getStatus(r)===status);
-  if (analyst) data = data.filter(r=>extractAnalysts(r.analyst_raw).includes(analyst));
   if (clientF) data = data.filter(r=>r.client===clientF);
   if (cnv)     data = data.filter(r=>r.cnv_status===cnv);
   if (month)   data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getMonth()+1)===month; });
@@ -3436,7 +3993,6 @@ function downloadAllSamplesExcel() {
       document.getElementById('all-f-test')?.value,
       document.getElementById('all-f-run')?.value,
       document.getElementById('all-f-status')?.value,
-      document.getElementById('all-f-analyst')?.value,
       document.getElementById('all-f-client')?.value,
       document.getElementById('all-f-cnv')?.value,
       monthLabel(document.getElementById('all-f-month')?.value),
@@ -3450,7 +4006,7 @@ function downloadAllSamplesExcel() {
 }
 
 function clearAllSamplesFilters() {
-  ['all-f-test','all-f-run','all-f-status','all-f-analyst','all-f-client','all-f-cnv','all-f-month','all-f-year'].forEach(id => {
+  ['all-f-test','all-f-run','all-f-status','all-f-client','all-f-cnv','all-f-month','all-f-year','all-f-reanalysis'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   const q = document.getElementById('all-q'); if (q) q.value = '';
@@ -3492,7 +4048,7 @@ function performGlobalSearch() {
       const cls = getColClass(c);
       if (c==='name') return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
       if (c==='test'||c==='client') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
-      if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(formatRunLabel(v)):'—'}</td>`;
+      if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(v):'—'}</td>`;
       if (c==='gen_id'||c==='and_id') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
       if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)">${badgeHtml(st)}</td>`; }
       if (c==='rel_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
@@ -3573,18 +4129,20 @@ function renderQuickCards(containerId, data, status) {
 const TABLE_CFG = {
   assigned:  { status:'Ongoing',      q:'q-asgn', test:'f-asgn-test', run:'f-asgn-run', reviewer:'f-asgn-employee', tat:'f-asgn-tat', relMonth:null,          relYear:null,
                cnv:'f-asgn-cnv',
-               cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','rep_exp','cnv_status','ana_date','remark'] },
+               cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','mito_status','rep_exp','cnv_status','ana_date','remark'] },
   released:  { status:'Released',     q:'q-rel',  test:'f-rel-test',  run:'f-rel-run',  analyst:'f-rel-analyst', team:'f-rel-team', client:'f-rel-client', tat:null,
                relMonth:'f-rel-month', relYear:'f-rel-year', relDate:'f-rel-date', clientNorm:true, selfFilter:true,
                cnv:'f-rel-cnv',
-               cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','rep_exp','cnv_status','rel_date','remark'] },
+               cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','mito_status','rep_exp','cnv_status','rel_date','remark'] },
 };
 
 const COL_LABELS = {
   name:'Sample Name', test:'Test', gen_id:'Gen. ID', and_id:'And. ID', run_text: 'Run',
-  client:'Client', tat:'TAT', rep_exp:'Repeat Exp', cnv_status:'CNV Status',
-  analyst:'Assigned To', analyst_raw:'Assigned To', analyst_txt:'Analyst', assign_date:'Assigned Date', ana_date:'Analyze Date', pri_rev:'Primary Reviewer',
-  final:'Final Review', remark:'Remark', rel_date:'Release Date', history:'History',
+  client:'Client', tat:'TAT', rep_exp:'Repeat Exp', cnv_status:'CNV Status', mito_status:'MITO Status',
+  analyst:'Assigned To', analyst_raw:'Analyze By', analyst_txt:'Analyst', assign_date:'Assigned Date', ana_date:'Analyze Date', pri_rev:'Reviewer',
+  final:'Clinical Reviewer', remark:'Remark', rel_date:'Release Date', history:'History',
+  bioinfo_time:'Bioinfo Time', is_priority:'Priority', is_reanalysis:'Re-analysis',
+  last_updated_by:'Updated By', last_updated_at:'Updated At',
   _status:'Status', _rel:'Release Date', _overdue_days:'Days Overdue',
 };
 
@@ -3620,10 +4178,10 @@ function getFilteredTableData(key) {
   if (cnv)      data = data.filter(r=>r.cnv_status===cnv);
   if (relMonth) data = data.filter(r=>{ const d=parseDate(r.rel_date); return d&&String(d.getMonth()+1)===relMonth; });
   if (relYear)  data = data.filter(r=>{ const d=parseDate(r.rel_date); return d&&String(d.getFullYear())===relYear; });
-  if (relDate)  data = data.filter(r=>{ const d=parseDate(r.rel_date); if(!d) return false; const pick=new Date(relDate+'T00:00:00'); return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
+  if (relDate)  data = data.filter(r=>{ const d=parseDate(r.rel_date); const pick=parseDate(relDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
   if (tatMonth) data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getMonth()+1)===tatMonth; });
   if (tatYear)  data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getFullYear())===tatYear; });
-  if (tatDate)  data = data.filter(r=>{ const d=parseDate(r.tat); if(!d) return false; const pick=new Date(tatDate+'T00:00:00'); return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
+  if (tatDate)  data = data.filter(r=>{ const d=parseDate(r.tat); const pick=parseDate(tatDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
   if (q)        data = data.filter(r=>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
@@ -3661,7 +4219,7 @@ function renderTable(key) {
   const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunLabel(v)):'—'}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
     if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
@@ -3670,7 +4228,7 @@ function renderTable(key) {
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
     if (c==='rel_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
     if (c==='ana_date') return `<td class="${cls} col-date" data-col="${c}">${fmtDate(v)}</td>`;
-    if (c==='pri_rev'||c==='final') return `<td class="${cls}" data-col="${c}">${v?`<span class="badge b-cmp">${IC.check} ${fmtDate(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
+    if (c==='pri_rev'||c==='final') return `<td class="${cls}" data-col="${c}">${v?`<span class="badge b-cmp">${IC.check} ${esc(fmtDate(v))}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='tat') return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}</td>`;
   }).join('')}</tr>`).join('');
@@ -3690,6 +4248,7 @@ const REL_FILTER_IDS = ['f-rel-team','f-rel-analyst','f-rel-test','f-rel-run','f
 function toggleRelFilters() {
   document.getElementById('rel-panel').classList.toggle('open');
   document.getElementById('rel-filter-btn').classList.toggle('active');
+  sizeTableWraps();          // the panel pushes the table down or lets it grow back
 }
 
 function clearRelFilters() {
@@ -3796,7 +4355,7 @@ function renderOverdue() {
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
     if (c==='_overdue_days') return `<td class="${cls}" data-col="${c}"><span style="background:rgba(239,68,68,.15);color:#b91c1c;padding:2px 8px;border-radius:6px;font-weight:600;font-size:12px">${r._overdue_days}d</span></td>`;
     if (c==='pri_rev') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunLabel(v)):'—'}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
     return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}</td>`;
   }).join('')}</tr>`).join('');
 
@@ -3810,6 +4369,7 @@ function toggleOverdueFilters() {
   const btn = document.getElementById('overdue-filter-btn');
   panel.classList.toggle('open');
   btn.classList.toggle('active');
+  sizeTableWraps();
 }
 
 function clearOverdueFilters() {
@@ -3826,9 +4386,16 @@ function cellExportValue(r, c) {
   if (c === '_rel') return getStatus(r) === 'Released' ? (fmtRelDate(r.rel_date, r) === '—' ? '' : fmtRelDate(r.rel_date, r)) : '';
   if (c === 'rel_date') { const s = fmtRelDate(r.rel_date, r); return s === '—' ? '' : s; }
   if (c === 'tat' || c === 'ana_date' || c === 'assign_date') { const s = fmtDate(r[c]); return s === '—' ? '' : s; }
-  if (c === 'run_text') return formatRunLabel(r.run_text);
+  if (c === 'run_text') return r.run_text || '';
   if (c === '_overdue_days') return r._overdue_days != null ? r._overdue_days : '';
   if (c === 'analyst_txt') return r.analyst || '';
+  if (c === 'is_priority' || c === 'is_reanalysis') return r[c] ? 'Yes' : '';
+  if (c === 'last_updated_at') {
+    const d = new Date(String(r[c] || ''));
+    if (!String(r[c] || '').trim() || isNaN(d.getTime())) return String(r[c] || '');
+    const p = n => String(n).padStart(2, '0');
+    return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
   return r[c] || '';
 }
 
@@ -3940,9 +4507,7 @@ function buildRecentReleasesPanel(targetId = 'rrp-rail-list') {
 
   list.innerHTML = top7.map((r, i) => {
     const relD  = _relOrTat(r);
-    const dateStr = relD
-      ? relD.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
-      : '—';
+    const dateStr = relD ? ddmmyyyy(relD) : '—';
     const reviewer = r.pri_rev || r.analyst || '—';
     return `<div class="rrp-item">
       <div class="rrp-num">${i + 1}</div>
@@ -3963,10 +4528,13 @@ function buildRecentReleasesPanel(targetId = 'rrp-rail-list') {
 function fmtDate(v) {
   if (!v) return '—';
   const s = String(v).trim();
-  if (s === '-' || s === '—') return '—';
+  if (isBlankMark(s)) return '—';
 
   const parts = s.split(/[\-\/\.]/);
   if (parts.length >= 3) {
+    if (parts[0].length === 4) {           // ISO 2026-08-07 -> 07-08-2026
+      return `${parts[2].substring(0,2).padStart(2,'0')}-${parts[1].padStart(2,'0')}-${parts[0]}`;
+    }
     const d = parts[0].padStart(2, '0');
     const m = parts[1].padStart(2, '0');
     let y = parts[2].substring(0, 4);
@@ -4045,7 +4613,7 @@ function loadFromStorage() {
 }
 
 let _priorityRows = [];
-const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','pri_rev'];
+const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','mito_status','pri_rev'];
 
 function openPriorityModal() {
   _priorityRows = getPriorityRows();
@@ -4115,7 +4683,6 @@ function normalizeTest(name) {
   const personPrefixes = ['mr.', 'mrs.', 'ms.', 'master.', 'miss.', 'baby.'];
   if (personPrefixes.some(p => lower.startsWith(p))) return null;
 
-  
   if (lower.includes('mito')) {
     if (lower.includes('wes') || lower.includes('exome')) return "WES + Mito";
     return n; 
@@ -4462,7 +5029,7 @@ function anDrawChart0() {
   if (legendEl) legendEl.innerHTML = '';
 }
 
-const REVIEWER_RELEASED_COLS = ['name','test','gen_id','and_id','run_text','client','tat','rep_exp','cnv_status','rel_date','analyst','remark'];
+const REVIEWER_RELEASED_COLS = ['name','test','gen_id','and_id','run_text','client','tat','mito_status','rep_exp','cnv_status','rel_date','analyst','remark'];
 
 function reviewerReleasedSamples(key) {
   const year  = document.getElementById('an-f0-year').value;
@@ -4548,7 +5115,7 @@ function downloadReviewerSamples(key) {
     excelData.push(['']);
     excelData.push(['Summary']);
     excelData.push(['Total Samples Released', reviewerSamples.length]);
-    excelData.push(['Export Date', new Date().toLocaleDateString('en-IN')]);
+    excelData.push(['Export Date', ddmmyyyy(new Date())]);
 
     const ws = XLSX.utils.aoa_to_sheet(excelData);
     ws['!cols'] = REVIEWER_RELEASED_COLS.map((c,i) => {
@@ -4767,10 +5334,11 @@ function anExportPNG() {
 
   const saved = loadFromStorage();
   if (saved && saved.length) {
-    rows = saved;
+    rows = canonicalReviewers(saved);   // cache may predate the canonical names
     refreshAll();
   }
 
+  upgradeDateFields();
   await fetchReports(false);
 
   startAutoSync();

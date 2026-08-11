@@ -12,6 +12,8 @@ backend/.env
 backend/.auth_secret
 backend/roles.json
 backend/users.json
+# Tracker fields IT's schema has no column for (see reports_client._LOCAL_FIELDS)
+backend/tracker_local_fields.json
 backend/db_setup.sql
 
 # Coverage Checker runtime / build artifacts. The built coverage.db and
@@ -21,6 +23,12 @@ anderson-coverage/server.pid
 anderson-coverage/build/mosdepth/
 anderson-coverage/build/mosdepth_cnv/
 anderson-coverage/build/*.log
+
+# Sample sheets carry patient names — this repo is public
+*.xlsx
+*.xls
+*.csv
+.~lock.*#
 
 # Reference data never belongs in git (it lives on the server)
 *.bam

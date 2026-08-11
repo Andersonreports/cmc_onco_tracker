@@ -115,6 +115,15 @@ def _service_token(force: bool = False) -> str | None:
     return _svc_token
 
 
+def service_token(force: bool = False) -> str | None:
+    """Cached service bearer token, shared with reports_client.
+
+    IT issues short-lived tokens (~15 min), so callers should not hold on to
+    the return value; ask again per request and let the cache do its job.
+    """
+    return _service_token(force=force)
+
+
 def login(mobile: str, password: str) -> dict:
     if not is_configured():
         return dict(_NOT_CONFIGURED)

@@ -32,6 +32,17 @@ def can_edit(request: Request) -> bool:
     return role_for(request) in ("admin", "lead")
 
 
+def username_for(request: Request) -> str:
+    """Display name for the signed-in user, stamped onto records as last_updated_by."""
+    sess = _parent_session(request) or {}
+    mobile = sess.get("sub", "")
+    try:
+        import role_store
+        return ((role_store.get(mobile) or {}).get("name") or "").strip() or mobile
+    except Exception:
+        return mobile
+
+
 def forbidden(detail: str = "Your role cannot modify reports"):
     return JSONResponse({"error": detail}, status_code=403)
 
