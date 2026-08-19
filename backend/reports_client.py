@@ -167,6 +167,8 @@ BOOL_MAP = {
 }
 
 _LOCAL_FIELDS = ("final",)
+_ATTRIBUTION_FIELDS = ("last_updated_by", "last_updated_at")
+_OVERLAY_FIELDS = _LOCAL_FIELDS + _ATTRIBUTION_FIELDS
 
 _ISO_DATE = re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})")
 
@@ -248,6 +250,9 @@ def _to_app(rec: dict) -> dict:
     local = _overlay_get(row["id"])
     for f in _LOCAL_FIELDS:
         row[f] = local.get(f, "")
+    for f in _ATTRIBUTION_FIELDS:
+        if local.get(f):
+            row[f] = local[f]
     return row
 
 
@@ -316,10 +321,10 @@ def _overlay_get(key: str) -> dict:
 
 
 def _overlay_set(key: str, row: dict) -> None:
-    """Persist the app-only fields for one record, dropping empty entries."""
+    """Persist the overlay fields for one record, dropping empty entries."""
     if not key:
         return
-    entry = {f: str(row.get(f) or "").strip() for f in _LOCAL_FIELDS}
+    entry = {f: str(row.get(f) or "").strip() for f in _OVERLAY_FIELDS}
     with _overlay_lock:
         data = _overlay_all()
         if any(entry.values()):
@@ -362,8 +367,10 @@ def get_report(report_id_: str) -> dict | None:
 
 
 def create_report(payload: dict) -> dict:
-    resp = _post(PATH_INSERT, {"sample_data": _to_it(payload)})
+    rec = _to_it(payload)
+    resp = _post(PATH_INSERT, {"sample_data": rec})
     row = dict(payload)
+    row["last_updated_at"] = rec["last_updated_at"]
     gen_id = str(payload.get("gen_id") or "").strip()
     row["id"] = ""
     if gen_id:
@@ -371,7 +378,7 @@ def create_report(payload: dict) -> dict:
                    if str(r.get("gen_id") or "").strip() == gen_id]
         if matches:
             row["id"] = report_id(max(matches, key=lambda r: int(str(r.get("id") or 0))))
-    _overlay_set(row["id"], payload)
+    _overlay_set(row["id"], row)
     row["_response"] = resp if isinstance(resp, dict) else {}
     return row
 
@@ -392,9 +399,10 @@ def update_report(report_id_: str, payload: dict) -> dict | None:
                     payload[f] = current.get(f, "")
 
     rec = _to_it(payload, record_id=report_id_)
-    if not rec.get("id"):        
+    if not rec.get("id"):
         return None
     _post(PATH_UPDATE, {"sample_data": rec})
+    payload["last_updated_at"] = rec["last_updated_at"]
     _overlay_set(report_id_, payload)
     row = dict(payload)
     row["id"] = report_id_
@@ -404,10 +412,13 @@ def update_report(report_id_: str, payload: dict) -> dict | None:
 def bulk_add(reports: list[dict]) -> int:
     if not reports:
         return 0
-    _post(PATH_BULK, {"sample_data": [_to_it(r) for r in reports]})
+    recs = [_to_it(r) for r in reports]
+    _post(PATH_BULK, {"sample_data": recs})
 
+    for r, rec in zip(reports, recs):
+        r["last_updated_at"] = rec["last_updated_at"]
     pending = {str(r.get("gen_id") or "").strip(): r for r in reports
-               if any(str(r.get(f) or "").strip() for f in _LOCAL_FIELDS)}
+               if any(str(r.get(f) or "").strip() for f in _OVERLAY_FIELDS)}
     if pending:
         try:
             for rec in _records(_post(PATH_LIST, {"sample_data": {}})):
@@ -442,13 +453,13 @@ def _patch_many(id: list[str], changes: dict) -> int:
     return count
 
 
-def bulk_release(id: list[str], report_release_date: str) -> int:
-    return _patch_many(id, {"report_release_date": report_release_date})
+def bulk_release(id: list[str], report_release_date: str, who: str) -> int:
+    return _patch_many(id, {"report_release_date": report_release_date, "last_updated_by": who})
 
 
-def bulk_remarks(id: list[str], remarks: str) -> int:
-    return _patch_many(id, {"remarks": remarks})
+def bulk_remarks(id: list[str], remarks: str, who: str) -> int:
+    return _patch_many(id, {"remarks": remarks, "last_updated_by": who})
 
 
-def bulk_reviewer(id: list[str], pri_rev: str) -> int:
-    return _patch_many(id, {"pri_rev": pri_rev})
+def bulk_reviewer(id: list[str], pri_rev: str, who: str) -> int:
+    return _patch_many(id, {"pri_rev": pri_rev, "last_updated_by": who})

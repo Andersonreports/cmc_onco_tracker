@@ -79,7 +79,7 @@ def bulk_release(payload: BulkReleaseIn, request: Request):
     if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_release(payload.id, report_release_date)
+    count = reports_client.bulk_release(payload.id, report_release_date, username_for(request))
     return {"ok": True, "count": count}
 
 
@@ -93,7 +93,7 @@ def bulk_remarks(payload: BulkRemarkIn, request: Request):
     if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_remarks(payload.id, remarks)
+    count = reports_client.bulk_remarks(payload.id, remarks, username_for(request))
     return {"ok": True, "count": count}
 
 
@@ -112,7 +112,7 @@ def bulk_reviewer(payload: BulkReviewerIn, request: Request):
     if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_reviewer(payload.id, reviewer)
+    count = reports_client.bulk_reviewer(payload.id, reviewer, username_for(request))
     return {"ok": True, "count": count}
 
 

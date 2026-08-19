@@ -233,8 +233,8 @@
     .long-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .col-mono{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.3px;color:var(--pri)}
     .col-date{color:var(--muted);font-size:12px;white-space:nowrap}
-    .col-name{font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    th.col-w-name, td.col-w-name{min-width:210px;width:210px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .col-name{font-weight:600;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th.col-w-name, td.col-w-name{min-width:260px;width:260px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     th.col-w-client, td.col-w-client{min-width:240px;width:240px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     th.col-w-test, td.col-w-test{min-width:120px;width:120px}
     th.col-w-id, td.col-w-id{min-width:180px;width:180px}
@@ -2260,6 +2260,7 @@ function getStatus(r) {
                      String(r.report_release_date).trim() !== '';
 
   if (isCancelled(r)) return 'Cancelled';
+  if (r.is_reanalysis) return 'Re-analysis';
   if (run < FIRST_RUN_WITH_RELEASE_DATES || hasRelDate) return 'Released';
   if (isRepeatSample(r)) return 'Repeat Sample';
   if (isSentToSiva(r)) return 'On Hold';
@@ -2268,11 +2269,12 @@ function getStatus(r) {
 }
 
 // Work still owed: everything a reviewer, a TAT alert or an allocation cares
-// about. Cancelled, on-hold and repeat-sample rows are owed nothing, so they
-// sit outside it.
+// about. Cancelled, on-hold, repeat-sample and re-analysis rows are owed
+// nothing here — re-analysis has no TAT/release date of its own and lives on
+// its own tab — so they sit outside it.
 function isPending(r) {
   const st = getStatus(r);
-  return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Repeat Sample';
+  return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Repeat Sample' && st !== 'Re-analysis';
 }
 
 function parseDate(v) {
@@ -2559,7 +2561,7 @@ async function quickPatchReport(reportId, patch, okMsg, errLabel) {
   const row = rows.find(r => r.id === reportId);
   if (!row) { toast('Could not find that report — try refreshing', 'err'); return; }
 
-  const { id, ...payload } = { ...row, ...patch };
+  const { id, last_updated_by, last_updated_at, ...payload } = { ...row, ...patch };
 
   try {
     const resp = await fetch(`api/reports/${reportId}`, {
@@ -3248,7 +3250,7 @@ let currentUser = null;
 const ROLE_CAPS = {
   admin:   ['upload', 'edit'],
   lead:    ['edit'],
-  primary: ['upload'],
+  primary: ['upload', 'edit'],
   member:  [],
   viewer:  [],
 };
@@ -3573,14 +3575,14 @@ function refreshAll() {
 }
 
 const TBL_BOTTOM_GUTTER = 16;
-const TBL_MIN_HEIGHT = 280;
+const TBL_MIN_HEIGHT = 160;
 
 function sizeTableWraps() {
   document.querySelectorAll('.tbl-wrap').forEach(wrap => {
     if (!wrap.offsetParent) return;          // belongs to a page that is not showing
     const top = wrap.getBoundingClientRect().top + window.scrollY;
     const avail = window.innerHeight - top - TBL_BOTTOM_GUTTER;
-    wrap.style.maxHeight = avail >= TBL_MIN_HEIGHT ? `${avail}px` : '';
+    wrap.style.maxHeight = `${Math.max(avail, TBL_MIN_HEIGHT)}px`;
   });
 }
 

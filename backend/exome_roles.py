@@ -16,7 +16,7 @@ TRACKER_KEY = "exome"
 CAPABILITIES = {
     "admin":   frozenset({"upload", "edit"}),
     "lead":    frozenset({"edit"}),
-    "primary": frozenset({"upload"}),
+    "primary": frozenset({"upload", "edit"}),
     "member":  frozenset(),
     "viewer":  frozenset(),
 }
