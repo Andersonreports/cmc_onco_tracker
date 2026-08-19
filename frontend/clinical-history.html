@@ -1,0 +1,2134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical History Tracker | Anderson Reports</title>
+    <style>
+:root {
+    --primary:        #5b4bbf;
+    --primary-2:      #7c6ce0;
+    --primary-light:  rgba(91, 75, 191, 0.09);
+    --c-total:        #6f5fc4;
+    --c-success:      #3a9e7e;
+    --c-danger:       #d96070;
+    --success:        #3a9e7e;
+    --danger:         #d96070;
+    --warning:        #e8934a;
+    --text-main:      #2c2824;
+    --text-mid:       #6b5f58;
+    --text-dim:       #a09488;
+    --border:         #e8e2db;
+    --border-light:   #f0ece7;
+    --bg:             #f9f6f3;
+    --surface:        #ffffff;
+    --shadow-sm:      0 2px 12px rgba(80, 40, 20, 0.06);
+    --shadow-md:      0 6px 24px rgba(80, 40, 20, 0.09);
+    --shadow-lg:      0 14px 44px rgba(80, 40, 20, 0.13);
+    --font-pro:       'Outfit', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-pro);
+    background: var(--bg);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Back button ── */
+.back-to-home {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 7px;
+    background: rgba(91, 75, 191,0.08); border: 1px solid rgba(91, 75, 191,0.18);
+    color: var(--primary); text-decoration: none; flex-shrink: 0;
+    transition: background .18s, color .18s;
+}
+.back-to-home:hover { background: var(--primary); color: white; border-color: transparent; }
+.back-to-home [data-lucide] { width: 14px; height: 14px; }
+
+/* ── Top Banner ── */
+.top-page-banner {
+    width: 100%;
+    background: var(--surface);
+    padding: 10px 28px;
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+}
+.banner-content {
+    max-width: 1600px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.breadcrumb-nav {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+}
+.breadcrumb-sep { opacity: 0.5; }
+.breadcrumb-current { color: var(--text-main); font-weight: 800; font-size: 20px; }
+
+/* Banner buttons */
+.btn-sync-compact {
+    background: var(--primary); color: white;
+    border: none; padding: 9px 20px; border-radius: 10px;
+    font-weight: 700; font-size: 12px; font-family: var(--font-pro);
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 14px rgba(91, 75, 191,0.28);
+}
+.btn-sync-compact:hover { background: var(--primary-2); transform: translateY(-1px); }
+
+.btn-export {
+    background: var(--surface); border: 1.5px solid var(--border);
+    padding: 8px 18px; border-radius: 10px; font-weight: 700; font-size: 12px;
+    font-family: var(--font-pro); cursor: pointer; transition: all 0.2s;
+    color: var(--text-main);
+}
+.btn-export:hover { border-color: var(--primary); color: var(--primary); }
+
+.btn-send-mail {
+    background: var(--primary-light); border: 1px solid rgba(91, 75, 191,0.18);
+    padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 10px;
+    display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+    transition: all 0.2s; margin-right: 4px; white-space: nowrap; color: var(--primary);
+}
+.btn-send-mail:hover { background: rgba(91, 75, 191,0.14); }
+.btn-send-mail.sent { background: rgba(58,158,126,0.1); color: var(--success); border-color: rgba(58,158,126,0.25); cursor: default; }
+.btn-send-mail.resend { background: rgba(232,147,74,0.1); color: var(--warning); border-color: rgba(232,147,74,0.25); }
+
+.app-shell { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Sidebar ── */
+.app-sidebar {
+    width: 210px;
+    background: var(--surface);
+    color: var(--text-main);
+    display: flex; flex-direction: column; flex-shrink: 0;
+    order: 0;
+    border-right: 1px solid var(--border);
+}
+
+.sidebar-brand {
+    padding: 18px 18px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+}
+.sidebar-brand-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: linear-gradient(145deg, var(--primary-2), var(--primary));
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(91, 75, 191,0.36);
+    display: flex; align-items: center; justify-content: center;
+}
+.sidebar-brand-name { font-size: 14px; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+.sidebar-brand-sub  { font-size: 10px; font-weight: 500; color: var(--text-dim); }
+
+.month-nav { flex: 1; padding: 10px 10px; overflow-y: auto; }
+.nav-label {
+    font-size: 9px; text-transform: uppercase; font-weight: 800;
+    color: var(--text-dim); margin: 14px 10px 6px; letter-spacing: 0.1em;
+}
+
+.nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: 9px;
+    color: var(--text-mid); font-size: 12px; font-weight: 600;
+    cursor: pointer; margin-bottom: 2px; transition: all 0.18s;
+    border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--primary-light); color: var(--primary); }
+.nav-item.active {
+    background: rgba(91, 75, 191,0.08);
+    color: var(--primary); font-weight: 700;
+    border-color: rgba(91, 75, 191,0.14);
+}
+
+.nav-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: transparent; margin-left: auto; flex-shrink: 0;
+    transition: background 0.18s;
+}
+.nav-item.active .nav-dot { background: var(--primary); box-shadow: 0 0 6px rgba(91, 75, 191,0.5); }
+.nav-item:hover .nav-dot  { background: rgba(91, 75, 191,0.3); }
+
+/* Sidebar user profile (bottom) */
+.sidebar-user {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+}
+.user-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 13px;
+    box-shadow: 0 3px 10px rgba(91, 75, 191,0.28);
+}
+.user-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 10px; font-weight: 500; color: var(--text-dim); }
+
+/* ── Main ── */
+.app-main {
+    flex: 1; display: flex; flex-direction: column;
+    overflow: hidden; padding: 22px 26px; order: 1;
+}
+
+/* ── Stat Cards ── */
+.dashboard-grid { display: flex; gap: 16px; margin-bottom: 16px; }
+
+.pro-card {
+    flex: 1; border-radius: 16px; padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 0;
+    cursor: pointer; transition: transform 0.22s, box-shadow 0.22s;
+    background: var(--surface);
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.pro-card::before { display: none; }
+.pro-card::after  { display: none; }
+
+/* Colored outline border per card type */
+.card-total   { border: 1.5px solid var(--c-total); }
+.card-success { border: 1.5px solid var(--c-success); }
+.card-danger  { border: 1.5px solid var(--c-danger); }
+
+.pro-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.pro-card.active { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* Top row: [icon + text] left, badge right */
+.card-top-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0;
+}
+.card-left {
+    display: flex; align-items: center; gap: 14px;
+}
+.card-icon-box {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+}
+.card-total   .card-icon-box { background: rgba(111, 95, 196, 0.14); }
+.card-success .card-icon-box { background: rgba(58, 158, 126, 0.14); }
+.card-danger  .card-icon-box { background: rgba(217, 96, 112, 0.14); }
+
+.card-badge {
+    font-size: 10px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+}
+.badge-ok     { background: rgba(58,158,126,0.1);  color: var(--c-success); }
+.badge-danger { background: rgba(217,96,112,0.1); color: var(--c-danger); }
+
+.card-text-area { display: flex; flex-direction: column; gap: 4px; }
+
+.pro-card h2 {
+    font-size: 20px; font-weight: 800; color: var(--text-main);
+    line-height: 1;
+}
+.pro-card p {
+    font-size: 17px; font-weight: 700; color: var(--text-dim);
+    text-transform: none; letter-spacing: 0;
+}
+
+/* Thick colored bottom accent bar */
+.card-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px;
+}
+.card-total   .card-bar { background: var(--c-total); }
+.card-success .card-bar { background: var(--c-success); }
+.card-danger  .card-bar { background: var(--c-danger); }
+
+/* ── Control Row ── */
+.control-row { display: flex; gap: 12px; margin-bottom: 14px; align-items: center; }
+
+.search-wrapper { position: relative; flex: 1; }
+.search-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); width: 15px; }
+.search-wrapper input {
+    width: 100%; padding: 10px 16px 10px 42px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    border-radius: 10px; font-family: inherit; font-size: 13px; outline: none;
+    color: var(--text-main); transition: border-color .2s, box-shadow .2s;
+}
+.search-wrapper input::placeholder { color: var(--text-dim); }
+.search-wrapper input:focus {
+    border-color: rgba(91, 75, 191,0.4);
+    box-shadow: 0 0 0 4px rgba(91, 75, 191,0.07);
+}
+
+.filters-wrapper { display: flex; align-items: center; gap: 10px; }
+
+.filter-badge {
+    background: var(--primary); color: white;
+    padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 12px;
+    box-shadow: 0 4px 14px rgba(91, 75, 191,0.28); cursor: pointer;
+}
+
+.tat-badge {
+    background: rgba(232,147,74,0.1); color: var(--warning);
+    padding: 9px 15px; border-radius: 10px; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; border: 1px solid rgba(232,147,74,0.28);
+    transition: all .2s; cursor: pointer;
+}
+.tat-badge:hover { background: rgba(232,147,74,0.16); transform: translateY(-1px); }
+
+.select-minimal {
+    padding: 9px 12px; border: 1.5px solid var(--border);
+    background: var(--surface); border-radius: 10px;
+    font-weight: 600; font-size: 12px; font-family: inherit;
+    color: var(--text-main); outline: none; cursor: pointer; transition: all .2s;
+}
+.select-minimal:focus { border-color: rgba(91, 75, 191,0.38); box-shadow: 0 0 0 4px rgba(91, 75, 191,0.07); }
+
+/* ── Data Surface ── */
+.data-surface {
+    flex: 1; background: var(--surface); border-radius: 16px;
+    box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+    overflow: hidden; border: 1px solid var(--border);
+}
+.surface-table-container { flex: 1; overflow-y: auto; }
+
+.table-status-tabs {
+    display: flex; gap: 2px; flex-shrink: 0;
+    background: var(--bg); border-radius: 9px; padding: 3px;
+    border: 1px solid var(--border);
+}
+.status-tab {
+    padding: 5px 14px; border-radius: 7px; border: none;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    color: var(--text-dim); background: none; font-family: var(--font-pro);
+    transition: all 0.18s;
+}
+.status-tab:hover { color: var(--text-main); }
+.status-tab.active {
+    background: var(--surface); color: var(--primary);
+    box-shadow: var(--shadow-sm); border: 1px solid rgba(91, 75, 191,0.18);
+}
+
+/* Table */
+.pro-table { width: 100%; border-collapse: collapse; }
+.pro-table th {
+    position: sticky; top: 0; background: rgba(249,246,243,0.96);
+    padding: 12px 20px; text-align: left;
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    color: var(--text-dim); border-bottom: 1px solid var(--border-light);
+    z-index: 10; letter-spacing: 0.05em; backdrop-filter: blur(10px);
+}
+.pro-table td {
+    padding: 13px 20px; border-bottom: 1px solid var(--border-light);
+    font-size: 13px; transition: background .14s; vertical-align: middle;
+}
+.pro-table tr:hover td { background: rgba(91, 75, 191,0.03); cursor: pointer; }
+.pro-table tr:last-child td { border-bottom: none; }
+
+/* Identity cell */
+.identity-cell { display: flex; flex-direction: column; gap: 2px; }
+.identity-cell .name {
+    font-weight: 700; font-size: 13px; color: var(--text-main); line-height: 1.3;
+}
+.identity-cell .sub {
+    font-size: 11px; color: var(--text-dim); font-weight: 500;
+    max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Anderson ID badge — salmon pill */
+.token-id {
+    display: inline-block;
+    font-family: 'JetBrains Mono'; font-size: 11px; font-weight: 700;
+    background: rgba(111, 95, 196, 0.1);
+    color: var(--c-total);
+    border: 1px solid rgba(111, 95, 196, 0.22);
+    padding: 4px 10px; border-radius: 20px; letter-spacing: 0.02em;
+}
+
+/* Type badge */
+.type-badge { font-size: 12px; font-weight: 700; color: var(--text-main); }
+
+/* Status pills */
+.status-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 13px; border-radius: 20px;
+    font-weight: 700; font-size: 11px; white-space: nowrap;
+}
+.status-pill.pill-ok {
+    background: rgba(58,158,126,0.1); color: var(--c-success);
+    border: 1px solid rgba(58,158,126,0.2);
+}
+.status-pill.pill-missing {
+    background: rgba(232,147,74,0.1); color: var(--warning);
+    border: 1px solid rgba(232,147,74,0.22);
+}
+.pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.pill-ok      .pill-dot { background: var(--c-success); }
+.pill-missing .pill-dot { background: var(--warning); }
+
+/* Details button */
+.btn-details {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 5px 12px; border-radius: 8px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    font-family: var(--font-pro); transition: all 0.18s;
+    box-shadow: var(--shadow-sm);
+}
+.btn-details:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Footer */
+.surface-footer {
+    padding: 11px 20px; border-top: 1px solid var(--border-light);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(249,246,243,0.8);
+}
+.surface-footer span { font-size: 11px; font-weight: 700; color: var(--text-dim); }
+.pagination-pro { display: flex; gap: 4px; }
+.page-btn {
+    min-width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim);
+    font-weight: 700; font-size: 11px; cursor: pointer; font-family: var(--font-pro);
+}
+.page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* ── Side Panel ── */
+.pro-panel {
+    position: fixed; top: 0; right: -650px; width: 650px; height: 100vh;
+    z-index: 2000; transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pro-panel.open { right: 0; }
+.panel-blur {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(24px);
+    border-left: 1px solid var(--border);
+    box-shadow: -20px 0 60px rgba(80,40,20,0.14);
+}
+.panel-content { position: relative; height: 100%; display: flex; flex-direction: column; }
+.panel-header {
+    padding: 16px 30px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.8);
+}
+.btn-back {
+    background: transparent; border: none; display: flex; align-items: center;
+    gap: 8px; font-weight: 700; font-size: 13px; cursor: pointer;
+    color: var(--text-dim); font-family: var(--font-pro);
+}
+.btn-action-pro {
+    background: var(--primary); color: white;
+    border: none; padding: 10px 20px; border-radius: 10px;
+    font-weight: 800; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 6px 18px rgba(91, 75, 191,0.28); transition: all .2s;
+    font-family: var(--font-pro);
+}
+.btn-action-pro:hover { background: var(--primary-2); transform: translateY(-1px); }
+.btn-panel-mail {
+    display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+    border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer;
+    border: 1.5px solid rgba(91, 75, 191,0.35);
+    background: var(--primary-light); color: var(--primary);
+    transition: all 0.2s; font-family: var(--font-pro);
+}
+.btn-panel-mail:hover { background: rgba(91, 75, 191,0.14); }
+.btn-panel-mail.sent { background: rgba(58,158,126,0.1); color: var(--success); border-color: rgba(58,158,126,0.3); cursor: default; }
+.btn-panel-mail.resend { background: rgba(232,147,74,0.1); color: var(--warning); border-color: rgba(232,147,74,0.3); }
+
+.panel-body { flex: 1; overflow-y: auto; padding: 28px 36px; }
+.case-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; color: var(--text-main); }
+.case-meta { display: flex; gap: 10px; margin-bottom: 26px; }
+.id-token { background: rgba(111,95,196,0.1); color: var(--c-total); padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; border: 1px solid rgba(111,95,196,0.2); }
+.month-token { background: rgba(160,148,136,0.1); color: var(--text-dim); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid var(--border); }
+
+.case-details-enhanced { display: flex; flex-direction: column; gap: 26px; }
+.detail-item { display: flex; flex-direction: column; gap: 7px; border-left: 3px solid rgba(91, 75, 191,0.2); padding-left: 16px; }
+.detail-item label { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-dim); }
+.detail-item p { font-size: 16px; font-weight: 700; color: var(--text-main); }
+
+.detail-row-special { display: flex; flex-direction: column; gap: 10px; }
+.detail-row-special > label { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-dim); }
+
+.trf-content-box {
+    background: rgba(91, 75, 191,0.05); border-radius: 12px; padding: 18px;
+    border: 1px solid rgba(91, 75, 191,0.14); font-size: 14px;
+    border-left: 4px solid var(--primary); font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+.history-content-box {
+    background: var(--surface); border-radius: 12px; padding: 22px;
+    border: 1px solid var(--border); font-size: 15px; line-height: 1.8;
+    text-align: justify; box-shadow: var(--shadow-sm);
+}
+.remark-content { font-size: 14px; color: var(--text-dim); font-weight: 500; line-height: 1.6; }
+
+.panel-overlay { position: fixed; inset: 0; background: rgba(44,30,20,0.16); backdrop-filter: blur(3px); z-index: 1500; display: none; }
+.panel-overlay.active { display: block; }
+
+/* Toast */
+.toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--text-main); color: white;
+    padding: 13px 22px; border-radius: 12px;
+    font-weight: 700; font-size: 13px; z-index: 4000;
+    transform: translateY(140px); transition: transform 0.4s;
+    box-shadow: var(--shadow-lg);
+}
+.toast.show { transform: translateY(0); }
+
+/* ── TAT Due Modal ── */
+.tat-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(44,30,20,0.32); backdrop-filter: blur(4px); z-index: 3000; align-items: center; justify-content: center; }
+.tat-modal-overlay.open { display: flex; }
+.tat-modal { background: var(--surface); border-radius: 20px; width: 96vw; max-width: 1200px; height: 90vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden; }
+.tat-modal-header { padding: 24px 28px 14px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); background: rgba(249,246,243,0.6); }
+.tat-modal-header h3 { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+.tat-modal-header p { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+.tat-modal-close { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-dim); }
+.tat-modal-search { padding: 10px 28px 12px; border-bottom: 1px solid var(--border); }
+.tat-modal-search input { width: 100%; padding: 9px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-family: var(--font-pro); font-weight: 600; background: var(--bg); color: var(--text-main); outline: none; }
+.tat-modal-search input:focus { border-color: rgba(91, 75, 191,0.38); }
+.tat-modal-body { overflow-y: auto; flex: 1; }
+.tat-modal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tat-modal-table thead th { padding: 11px 20px; text-align: left; font-size: 10px; text-transform: uppercase; font-weight: 800; color: var(--primary); background: rgba(91, 75, 191,0.05); position: sticky; top: 0; }
+.tat-modal-table tbody tr { border-bottom: 1px solid var(--border-light); }
+.tat-modal-table tbody tr:hover { background: rgba(91, 75, 191,0.03); }
+.tat-modal-table tbody td { padding: 12px 20px; }
+.tat-modal-footer { padding: 16px 28px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; background: rgba(249,246,243,0.6); }
+.btn-send-all { display: flex; align-items: center; gap: 8px; background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: var(--font-pro); box-shadow: 0 4px 14px rgba(91, 75, 191,0.3); }
+.btn-send-all:hover { background: var(--primary-2); }
+.btn-send-all:disabled { background: var(--text-dim); cursor: default; box-shadow: none; }
+.btn-send-all.done { background: var(--success); }
+.btn-modal-send { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 8px; border: 1.5px solid rgba(91, 75, 191,0.3); background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--font-pro); }
+.btn-modal-send:hover { background: rgba(91, 75, 191,0.14); }
+.btn-modal-send:disabled { opacity: 0.5; cursor: default; }
+.btn-modal-send.sent { background: rgba(58,158,126,0.1); border-color: rgba(58,158,126,0.28); color: var(--success); cursor: default; }
+.btn-modal-send.resend { background: rgba(232,147,74,0.1); border-color: rgba(232,147,74,0.28); color: var(--warning); }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Sidebar toggle (mobile only) ── */
+.sidebar-toggle { display: none; }
+
+/* ── Tablet ── */
+@media (max-width: 1080px) {
+  .app-sidebar { width: 190px; }
+  .pro-panel { width: 480px; right: -480px; }
+  .pro-panel.open { right: 0; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  body { height: auto; overflow-y: auto; overflow-x: hidden; }
+  .top-page-banner { padding: 10px 14px; position: sticky; top: 0; z-index: 1000; }
+  .btn-sync-compact span { display: none; }
+  .btn-sync-compact { padding: 8px 10px; }
+  .btn-export { display: none; }
+  .sidebar-toggle { display: flex; align-items: center; justify-content: center; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; flex-shrink: 0; }
+  .app-shell { flex-direction: column; overflow: visible; height: auto; }
+  .app-sidebar { position: fixed; top: 0; left: -290px; width: 280px; height: 100vh; z-index: 2600; transition: left 0.3s ease; overflow-y: auto; }
+  .app-sidebar.open { left: 0; box-shadow: 8px 0 40px rgba(80,40,20,0.15); }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(44,30,20,0.35); z-index: 2500; }
+  .sidebar-overlay.active { display: block; }
+  .app-main { padding: 12px 12px; overflow: visible; height: auto; }
+  .dashboard-grid { gap: 8px; }
+  .pro-card { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; }
+  .card-icon-box { width: 36px; height: 36px; border-radius: 9px; }
+  .pro-card h2 { font-size: 17px; }
+  .pro-card p { font-size: 13px; }
+  .card-badge { display: none; }
+  .control-row { flex-direction: column; gap: 10px; align-items: stretch; }
+  .filters-wrapper { flex-wrap: wrap; gap: 8px; }
+  .filter-badge { font-size: 10px; padding: 6px 10px; }
+  .tat-badge { font-size: 10px; padding: 6px 10px; }
+  .select-minimal { flex: 1; min-width: 0; }
+  .data-surface { border-radius: 12px; }
+  .surface-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .pro-table { min-width: 680px; }
+  .pro-table th, .pro-table td { padding: 10px 12px; font-size: 12px; }
+  .pro-panel { width: 100vw; right: -100vw; border-radius: 0; }
+  .pro-panel.open { right: 0; }
+  .panel-header { padding: 12px 16px; }
+  .panel-body { padding: 18px 16px; }
+  .case-header h2 { font-size: 18px; }
+  .detail-item p { font-size: 14px; }
+  .btn-action-pro, .btn-panel-mail { padding: 8px 14px; font-size: 12px; }
+  .tat-modal { width: 100vw; height: 100vh; border-radius: 0; max-width: 100vw; }
+  .toast { bottom: 14px; right: 10px; left: 10px; text-align: center; }
+}
+
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
+</head>
+<body class="modern-os">
+    <!-- Top Center Title Banner -->
+    <div class="top-page-banner">
+        <div class="banner-content">
+            <div class="breadcrumb-nav">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="sidebar-brand-icon" style="width:32px; height:32px; border-radius:9px; box-shadow:0 3px 10px rgba(91, 75, 191,0.3);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2 C6 8 18 8 18 12 C18 16 6 16 6 22"/>
+                            <path d="M18 2 C18 8 6 8 6 12 C6 16 18 16 18 22"/>
+                            <line x1="6" y1="4"  x2="18" y2="4"/>
+                            <line x1="6" y1="12" x2="18" y2="12"/>
+                            <line x1="6" y1="20" x2="18" y2="20"/>
+                        </svg>
+                    </div>
+                    <span class="breadcrumb-current">Clinical History Tracker</span>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn-export" onclick="exportData()">Export</button>
+                <button id="sync-btn" class="btn-sync-compact">
+                    <i data-lucide="refresh-cw"></i>
+                    <span id="sync-text">Refresh Data</span>
+                </button>
+                <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <!-- Main Content (Left) -->
+        <main class="app-main">
+            
+            <!-- Interactive Dashboard Stats (Primary View Selectors) -->
+            <section class="dashboard-grid">
+                <div class="pro-card card-total active" id="btn-stat-total">
+                    <div class="card-top-row">
+                        <div class="card-left">
+                            <div class="card-icon-box"></div>
+                            <div class="card-text-area">
+                                <p>Total records</p>
+                                <h2 id="stat-total">0</h2>
+                            </div>
+                        </div>
+                        <span class="card-badge badge-ok">All entries</span>
+                    </div>
+                    <div class="card-bar"></div>
+                </div>
+                <div class="pro-card card-success" id="btn-stat-complete">
+                    <div class="card-top-row">
+                        <div class="card-left">
+                            <div class="card-icon-box"></div>
+                            <div class="card-text-area">
+                                <p>History available</p>
+                                <h2 id="stat-complete">0</h2>
+                            </div>
+                        </div>
+                        <span class="card-badge badge-ok" id="coverage-sub">— % coverage</span>
+                    </div>
+                    <div class="card-bar"></div>
+                </div>
+                <div class="pro-card card-danger" id="btn-stat-pending">
+                    <div class="card-top-row">
+                        <div class="card-left">
+                            <div class="card-icon-box"></div>
+                            <div class="card-text-area">
+                                <p>History required</p>
+                                <h2 id="stat-pending">0</h2>
+                            </div>
+                        </div>
+                        <span class="card-badge badge-danger">Needs attention</span>
+                    </div>
+                    <div class="card-bar"></div>
+                </div>
+            </section>
+
+            <!-- Compact Control Row (Search + Filters combined to save space) -->
+            <div class="control-row">
+                <div class="search-wrapper">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="main-search" placeholder="Search patient name, ID, or clinical details...">
+                </div>
+                <div class="filters-wrapper">
+                    <div class="filter-badge" id="current-filter-name">All Records</div>
+                    <select id="test-filter" class="select-minimal">
+                        <option value="all">All Test Categories</option>
+                    </select>
+                    <div class="tat-badge" id="tat-due-count" onclick="openTATModal()" style="cursor:pointer;">Due in 10 days: 0</div>
+                </div>
+                <div class="table-status-tabs">
+                    <button class="status-tab active" id="tab-all"       onclick="switchStatusTab('all',       this)">All</button>
+                    <button class="status-tab"        id="tab-completed" onclick="switchStatusTab('available', this)">Completed</button>
+                    <button class="status-tab"        id="tab-pending"   onclick="switchStatusTab('needed',    this)">Pending</button>
+                </div>
+            </div>
+
+            <!-- Data Surface -->
+            <div class="data-surface">
+                <div class="surface-table-container">
+                    <table class="pro-table">
+                        <thead>
+                            <tr>
+                                <th>Patient Identity</th>
+                                <th>Anderson ID</th>
+                                <th>Test Information</th>
+                                <th>Received</th>
+                                <th>TAT Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="grid-body">
+                            <!-- Rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="surface-footer">
+                    <span id="pagination-info">Showing 0 cases</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Sidebar Navigation (Left) -->
+        <aside class="app-sidebar">
+            <nav class="month-nav" id="sidebar-months">
+                <div class="nav-label">Global View</div>
+                <div class="nav-item active" id="sidebar-all-records" data-month="all">
+                    <span>All records</span><div class="nav-dot"></div>
+                </div>
+                <div class="nav-item" id="sidebar-pending-item" onclick="filterToPending()">
+                    <span>Pending</span><div class="nav-dot"></div>
+                </div>
+                <div class="nav-item nav-static">
+                    <span>Analytics</span><div class="nav-dot"></div>
+                </div>
+                <div class="nav-item nav-static">
+                    <span>Settings</span><div class="nav-dot"></div>
+                </div>
+                <!-- Months injected here -->
+            </nav>
+        </aside>
+
+        <!-- Side Panel -->
+        <div id="side-panel" class="pro-panel">
+            <div class="panel-blur"></div>
+            <div class="panel-content">
+                <header class="panel-header">
+                    <button id="close-panel" class="btn-back"><i data-lucide="arrow-left"></i> <span>Close Panel</span></button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button id="panel-mail-btn" class="btn-panel-mail" style="display:none;">
+                            <i data-lucide="send"></i>
+                            <span id="panel-mail-text">Send Reminder</span>
+                        </button>
+                        <button id="panel-manual-btn" class="btn-panel-mail" style="display:none; background:rgba(91, 75, 191,0.08); border:1.5px solid rgba(91, 75, 191,0.25); color:var(--primary);">
+                            <i data-lucide="pencil-line"></i>
+                            <span>Manual Mail</span>
+                        </button>
+                        <button id="copy-btn" class="btn-action-pro"><i data-lucide="copy"></i> Copy Writeup</button>
+                    </div>
+                </header>
+
+                <div class="panel-body">
+                    <section class="case-header">
+                        <h2 id="d-name">Patient Name</h2>
+                        <div class="case-meta">
+                            <span id="d-id" class="id-token">AND000</span>
+                            <span id="d-month" class="month-token">JUL 2025</span>
+                        </div>
+                    </section>
+
+                    <section class="case-details-enhanced">
+                        <div class="detail-item">
+                            <label><i data-lucide="microscope"></i> Test Information</label>
+                            <p id="d-test">-</p>
+                        </div>
+                        <div class="detail-item">
+                            <label><i data-lucide="building"></i> Client Reference</label>
+                            <p id="d-client">-</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label><i data-lucide="calendar"></i> Received Date</label>
+                            <p id="d-received">-</p>
+                        </div>
+                        <div class="detail-item">
+                            <label><i data-lucide="clock"></i> TAT Date</label>
+                            <p id="d-tat">-</p>
+                        </div>
+                        <div class="detail-item" id="d-reminder-row" style="display:none;">
+                            <label><i data-lucide="mail-check"></i> Reminder Sent</label>
+                            <p id="d-reminder-date" style="color:var(--success,#4caf50); font-weight:600;">-</p>
+                        </div>
+
+                        <div class="detail-row-special">
+                            <label><i data-lucide="file-text"></i> TRF & Reporting Status</label>
+                            <div id="d-trf" class="trf-content-box">-</div>
+                        </div>
+
+                        <div class="detail-row-special">
+                            <label><i data-lucide="align-justify"></i> Clinical History Writeup</label>
+                            <div id="d-history" class="history-content-box">-</div>
+                        </div>
+
+                        <div class="detail-row-special">
+                            <label><i data-lucide="message-circle"></i> Registry Remarks</label>
+                            <p id="d-remark" class="remark-content">-</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <div id="panel-overlay" class="panel-overlay"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    </div>
+
+    <!-- Manual Mail Compose Modal -->
+    <div id="manual-mail-overlay" style="display:none; position:fixed; inset:0; background:rgba(44,30,20,0.32); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#ffffff; border-radius:16px; padding:28px; width:580px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(44,30,20,0.18); border:1px solid rgba(91, 75, 191,0.14);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <span style="font-weight:700; font-size:15px; color:#2c1e14;">Compose Manual Reminder</span>
+                <button onclick="closeManualMailModal()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#9e8878; line-height:1;">×</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <div style="font-size:11px; font-weight:700; color:#9e8878; margin-bottom:5px; letter-spacing:.06em;">TO</div>
+                    <input id="manual-to" type="email" placeholder="recipient@email.com" style="width:100%; padding:9px 12px; border:1.5px solid rgba(91, 75, 191,0.2); border-radius:9px; background:#f9f6f3; color:#2c1e14; font-size:13px; box-sizing:border-box; outline:none; font-family:'Outfit',sans-serif;">
+                </div>
+                <div>
+                    <div style="font-size:11px; font-weight:700; color:#9e8878; margin-bottom:5px; letter-spacing:.06em;">SUBJECT</div>
+                    <input id="manual-subject" type="text" style="width:100%; padding:9px 12px; border:1.5px solid rgba(91, 75, 191,0.2); border-radius:9px; background:#f9f6f3; color:#2c1e14; font-size:13px; box-sizing:border-box; outline:none; font-family:'Outfit',sans-serif;">
+                </div>
+                <div>
+                    <div style="font-size:11px; font-weight:700; color:#9e8878; margin-bottom:5px; letter-spacing:.06em;">MESSAGE</div>
+                    <textarea id="manual-body" rows="13" style="width:100%; padding:9px 12px; border:1.5px solid rgba(91, 75, 191,0.2); border-radius:9px; background:#f9f6f3; color:#2c1e14; font-size:12px; font-family:monospace; box-sizing:border-box; resize:vertical; outline:none; line-height:1.6;"></textarea>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+                <button onclick="closeManualMailModal()" style="padding:9px 18px; border:1.5px solid rgba(91, 75, 191,0.2); border-radius:9px; background:none; cursor:pointer; color:#6b4c3b; font-size:13px; font-family:'Outfit',sans-serif; font-weight:600;">Cancel</button>
+                <button onclick="openManualMailInGmail()" style="padding:9px 22px; border:none; border-radius:9px; background:#5b4bbf; color:#fff; cursor:pointer; font-weight:700; font-size:13px; font-family:'Outfit',sans-serif; display:flex; align-items:center; gap:7px; box-shadow:0 4px 14px rgba(91, 75, 191,0.3);"><i data-lucide="external-link" style="width:14px;height:14px;"></i> Open in Gmail</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAT Due Modal -->
+    <div id="tat-modal-overlay" class="tat-modal-overlay" onclick="closeTATModal(event)">
+        <div class="tat-modal">
+            <div class="tat-modal-header">
+                <div>
+                    <h3>Samples Due in <span id="modal-days">10</span> Days</h3>
+                    <p id="modal-subtitle">0 samples need clinical history</p>
+                </div>
+                <button class="tat-modal-close" onclick="closeTATModal()">&times;</button>
+            </div>
+            <div class="tat-modal-search">
+                <input type="text" id="tat-modal-search" placeholder="Search by name, Anderson ID or test..." oninput="filterTATModal(this.value)">
+            </div>
+            <div class="tat-modal-body">
+                <table class="tat-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Sample Name</th>
+                            <th>Anderson ID</th>
+                            <th>Test</th>
+                            <th>TAT Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tat-modal-rows"></tbody>
+                </table>
+            </div>
+            <div class="tat-modal-footer">
+                <button id="send-all-btn" class="btn-send-all" onclick="sendAllTATReminders(this)">
+                    <i data-lucide="send"></i>
+                    <span id="send-all-text">Send Reminder to All</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script>
+// Clinical History Tracker - Clinical OS Logic
+
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycby0MbYrBhtFov8Kda1wqsQu6YNgwPeKliaLW-oCqehCostpJpqyhQltY1yNGoXddh2zqw/exec';
+const AUTO_SYNC_INTERVAL = 60000; // 60 seconds
+const TAT_REMINDER_DAYS = 10;
+const EMAIL_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby0MbYrBhtFov8Kda1wqsQu6YNgwPeKliaLW-oCqehCostpJpqyhQltY1yNGoXddh2zqw/exec';
+const EMAIL_RECIPIENT = 'jeevav936@gmail.com';
+
+let state = {
+    data: [],
+    filteredData: [],
+    searchQuery: '',
+    filters: {
+        month: 'all',
+        test: 'all',
+        status: 'all'
+    },
+    currentPage: 1,
+    itemsPerPage: 10000, // Effectively unlimited for scrollable view
+    selectedIndex: -1
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    // One-time reset of sent-reminder history (testing data purge — runs once per device)
+    const SENT_RESET_VER = '2026-06-25-v3';
+    if (localStorage.getItem('sentResetVer') !== SENT_RESET_VER) {
+        Object.keys(localStorage)
+            .filter(k => k.startsWith('emailSentDate_') || k.startsWith('emailSent_'))
+            .forEach(k => localStorage.removeItem(k));
+        localStorage.setItem('sentResetVer', SENT_RESET_VER);
+    }
+
+    initEventListeners();
+    loadData();
+
+    // Auto-sync periodically
+    setInterval(() => {
+        syncData(true); // silent sync
+    }, AUTO_SYNC_INTERVAL);
+});
+
+function initEventListeners() {
+    const searchInput = document.getElementById('main-search');
+    if (searchInput) searchInput.addEventListener('input', handleSearch);
+
+    const testFilter = document.getElementById('test-filter');
+    if (testFilter) testFilter.addEventListener('change', handleFilterChange);
+
+    const syncBtn = document.getElementById('sync-btn');
+    if (syncBtn) syncBtn.addEventListener('click', () => syncData(false));
+
+    const closePanel = document.getElementById('close-panel');
+    const overlay = document.getElementById('panel-overlay');
+    if (closePanel) closePanel.onclick = closeSidePanel;
+    if (overlay) overlay.onclick = closeSidePanel;
+
+    // Sidebar All Records Button
+    const sidebarAll = document.getElementById('sidebar-all-records');
+    if (sidebarAll) sidebarAll.onclick = () => restoreAllRecords();
+
+    // Interactive Dashboard Cards (Primary Status Filters)
+    const btnTotal = document.getElementById('btn-stat-total');
+    const btnComplete = document.getElementById('btn-stat-complete');
+    const btnPending = document.getElementById('btn-stat-pending');
+
+    if (btnTotal) btnTotal.onclick = () => {
+        updateCardActiveState('all');
+        state.filters.status = 'all';
+        state.currentPage = 1;
+        applyFilters();
+    };
+
+    if (btnComplete) btnComplete.onclick = () => {
+        updateCardActiveState('available');
+        state.filters.status = 'available';
+        state.currentPage = 1;
+        applyFilters();
+    };
+    if (btnPending) btnPending.onclick = () => {
+        updateCardActiveState('needed');
+        state.filters.status = 'needed';
+        state.currentPage = 1;
+        applyFilters();
+    };
+
+    // Global Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            if (searchInput) searchInput.focus();
+        }
+        if (e.key === 'Escape') closeSidePanel();
+    });
+
+    // Copy Action
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const historyEl = document.getElementById('d-history');
+            if (historyEl) {
+                const text = historyEl.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i data-lucide="check"></i> <span>Copied!</span>';
+                    copyBtn.style.background = 'var(--success)';
+                    showToast('Clinical writeup copied to clipboard');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                        copyBtn.style.background = 'var(--primary)';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }, 2000);
+                });
+            }
+        });
+    }
+}
+
+// THE FIX: Universal Restore Function
+function restoreAllRecords() {
+    console.log('Restoring ALL records across ALL months...');
+    state.filters = { month: 'all', test: 'all', status: 'all' };
+    state.searchQuery = '';
+    state.currentPage = 1;
+
+    // UI Updates
+    const sInput = document.getElementById('main-search');
+    if (sInput) sInput.value = '';
+
+    const tFilter = document.getElementById('test-filter');
+    if (tFilter) tFilter.value = 'all';
+
+    updateCardActiveState('all');
+
+    // Sidebar Active State
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const sidebarAll = document.getElementById('sidebar-all-records');
+    if (sidebarAll) sidebarAll.classList.add('active');
+
+    // Reset table status tabs
+    document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+    const tabAll = document.getElementById('tab-all');
+    if (tabAll) tabAll.classList.add('active');
+
+    applyFilters();
+    showToast('Viewing All Records');
+}
+
+function updateCardActiveState(status) {
+    document.querySelectorAll('.pro-card').forEach(c => c.classList.remove('active'));
+    const badge = document.getElementById('current-filter-name');
+
+    if (status === 'all') {
+        const c = document.getElementById('btn-stat-total');
+        if (c) c.classList.add('active');
+        if (badge) badge.textContent = 'All Records';
+    } else if (status === 'available') {
+        const c = document.getElementById('btn-stat-complete');
+        if (c) c.classList.add('active');
+        if (badge) badge.textContent = 'History Available';
+    } else if (status === 'needed') {
+        const c = document.getElementById('btn-stat-pending');
+        if (c) c.classList.add('active');
+        if (badge) badge.textContent = 'History Required';
+    }
+}
+
+const CACHE_KEY = 'clinicalDataCache';
+let syncInFlight = false;
+
+function applyRawData(rawData) {
+    const primaryData = Array.isArray(rawData) ? rawData : (rawData.primary || rawData);
+    const secondaryData = Array.isArray(rawData) ? [] : (rawData.secondary || []);
+    console.log('[Secondary] rows received:', secondaryData.length);
+    if (secondaryData.length > 0) {
+        console.log('[Secondary] first row keys:', Object.keys(secondaryData[0]));
+        console.log('[Secondary] first row values:', Object.values(secondaryData[0]).map(v => String(v).substring(0, 60)));
+    }
+    const secondaryLookup = buildSecondaryLookup(secondaryData);
+    console.log('[Secondary] lookup keys built:', Object.keys(secondaryLookup).length, Object.keys(secondaryLookup).slice(0, 5));
+    state.data = normalizeData(primaryData, secondaryLookup)
+        .filter(item => {
+            const parts = item.month.split(' ');
+            return parts.length === 2 && parseInt(parts[1]) >= 2026;
+        })
+        .sort((a, b) => getMonthSortValue(b.month) - getMonthSortValue(a.month));
+    populateSidebar();
+    populateFilters();
+    applyFilters();
+}
+
+function buildSecondaryLookup(secondaryData) {
+    const lookup = {};
+    if (!Array.isArray(secondaryData)) return lookup;
+    secondaryData.forEach(row => {
+        // Find history value from known column names
+        const historyCols = [
+            'Clinical History writeup', 'CLINICAL HISTORY WRITEUP',
+            'Clinical history writeup', 'clinical history writeup',
+            'History writeup', 'HISTORY WRITEUP', 'History Writeup', 'history writeup'
+        ];
+        let val = '';
+        for (const col of historyCols) {
+            const v = (row[col] || '').toString().trim();
+            if (v && v.toLowerCase() !== 'nan') { val = v; break; }
+        }
+
+        // If no history column found, scan every cell for "Writeup available"
+        if (!val) {
+            const found = Object.values(row).find(
+                v => v && v.toString().trim().toLowerCase().includes('writeup available')
+            );
+            if (found) val = 'Writeup available';
+        }
+
+        if (!val) return;
+
+        // Find Anderson ID — try known column names, then pattern-match cells (AND...)
+        let id = (
+            row['Anderson_ID'] || row['ANDERSON_ID'] ||
+            row['Anderson ID'] || row['ANDERSON ID'] || row['Anderson id'] ||
+            row['anderson id'] || row['AndersonID'] || row['Sample ID'] || row['SAMPLE ID'] || ''
+        ).toString().trim();
+
+        if (!id) {
+            for (const v of Object.values(row)) {
+                if (v && /^AND\d+/i.test(v.toString().trim())) {
+                    id = v.toString().trim();
+                    break;
+                }
+            }
+        }
+
+        // Find sample name — try known column names
+        const name = (
+            row['Sample Name'] || row['SAMPLE NAME'] || row['Sample name'] ||
+            row['sample name'] || row['Patient Name'] || row['PATIENT NAME'] ||
+            row['Name'] || row['name'] || ''
+        ).toString().trim().toUpperCase();
+
+        if (id) lookup[id] = val;
+        if (name) lookup[name] = val;
+    });
+    return lookup;
+}
+
+async function loadData(forceRefresh = false, silent = false) {
+    // Show cached data instantly if available
+    if (!forceRefresh) {
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                applyRawData(JSON.parse(cached));
+            }
+        } catch (e) {}
+    }
+
+    // Skip if a sync is already in flight — the 30s auto-sync interval used to fire a
+    // fresh request before the previous one (which can take longer than 30s on a cold
+    // Apps Script) had finished, so requests piled up and every one timed out.
+    if (syncInFlight) {
+        if (!silent) showToast('Sync already in progress…');
+        return;
+    }
+    syncInFlight = true;
+
+    if (!silent) showLoading(true);
+    try {
+        const rawData = await fetchFromSyncSource();
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(rawData)); } catch (e) {}
+        applyRawData(rawData);
+        const _sec = Array.isArray(rawData) ? [] : (rawData.secondary || []);
+        const _wup = _sec.filter(r => Object.values(r).some(v => v && v.toString().toLowerCase().includes('writeup available'))).length;
+        if (!silent) showToast(`Synced. Secondary: ${_sec.length} rows, ${_wup} with writeup.`);
+    } catch (error) {
+        console.error('Data Sync Error:', error);
+        if (!silent) showToast(`Sync Failed: ${error.message}`, 'error');
+    } finally {
+        syncInFlight = false;
+        if (!silent) showLoading(false);
+    }
+}
+
+async function fetchFromSyncSource() {
+    if (SYNC_URL.includes('script.google.com')) {
+        // Apps Script's exec URL 302s to a signed script.googleusercontent.com URL, and
+        // that redirect intermittently 404s on a cold container even though the script
+        // itself is healthy — an immediate retry reliably succeeds, so retry a couple
+        // of times before surfacing an error to the user.
+        const MAX_ATTEMPTS = 3;
+        let lastError;
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            const controller = new AbortController();
+            const SYNC_TIMEOUT_MS = 55000; // Apps Script cold starts + full-sheet reads can take a while
+            const timeout = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+            try {
+                const response = await fetch(SYNC_URL, { signal: controller.signal, cache: 'no-store' });
+                clearTimeout(timeout);
+                if (!response.ok) throw new Error(`Apps Script returned HTTP ${response.status}`);
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Non-JSON response from Apps Script:', text.substring(0, 300));
+                    throw new Error('Apps Script returned non-JSON — check deployment access settings');
+                }
+            } catch (e) {
+                clearTimeout(timeout);
+                lastError = e.name === 'AbortError'
+                    ? new Error(`Sync timed out after ${SYNC_TIMEOUT_MS / 1000}s — Apps Script may be slow`)
+                    : e;
+                if (attempt < MAX_ATTEMPTS) {
+                    console.warn(`Sync attempt ${attempt} failed (${lastError.message}), retrying…`);
+                    await new Promise(r => setTimeout(r, 800 * attempt));
+                }
+            }
+        }
+        throw lastError;
+    } else {
+        return new Promise((resolve, reject) => {
+            Papa.parse(SYNC_URL, {
+                download: true,
+                header: true,
+                complete: (results) => resolve(results.data),
+                error: (error) => reject(error)
+            });
+        });
+    }
+}
+
+function normalizeMonth(m) {
+    if (!m || m.toLowerCase().includes('sheet')) return 'OLD';
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const fullMonths = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    let str = m.toString().toUpperCase().replace(/\s+/g, '');
+    let foundMonth = -1;
+    let foundYear = '';
+    for (let i = 0; i < 12; i++) {
+        if (str.includes(months[i]) || str.includes(fullMonths[i])) {
+            foundMonth = i;
+            break;
+        }
+    }
+    const yearMatch = str.match(/\d{4}/);
+    if (yearMatch) foundYear = yearMatch[0];
+    if (foundMonth !== -1 && foundYear) return `${months[foundMonth]} ${foundYear}`;
+    return m.toString().toUpperCase();
+}
+
+function getMonthSortValue(m) {
+    if (m === 'OLD' || m === 'ACTIVE') return -1;
+    const parts = m.split(' ');
+    if (parts.length !== 2) return 0;
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const monthIdx = months.indexOf(parts[0]);
+    const year = parseInt(parts[1]);
+    return (year * 100) + monthIdx;
+}
+
+function getTestCategory(name, sampleName = '') {
+    if (!name) return 'Other';
+    const n = name.toString().toUpperCase().trim();
+    const sn = sampleName.toString().toUpperCase().trim();
+
+    // CM SCHEME - WHOLE EXOME SEQUENCING (CM-WES, CM SCHEME, CM WHOLE EXOME, etc.)
+    if (n.includes('CM') && (n.includes('SCHEME') || n.includes('WES') || n.includes('EXOME')))
+        return 'CM SCHEME - WHOLE EXOME SEQUENCING';
+
+    // ADVAT FOCUS CARRIER SCREENING
+    if (n.includes('ADVAT')) return 'ADVAT FOCUS CARRIER SCREENING';
+
+    // COUPLE CARRIER SCREENING BY CLINICAL EXOME SEQUENCING (before clinical exome check)
+    if (n.includes('COUPLE') && n.includes('CARRIER'))
+        return 'COUPLE CARRIER SCREENING BY CLINICAL EXOME SEQUENCING';
+
+    // COMPREHENSIVE CARRIER SCREENING (before general carrier checks)
+    if (n.includes('COMPREHENSIVE') && n.includes('CARRIER'))
+        return 'COMPREHENSIVE CARRIER SCREENING';
+
+    // FEMALE INFERTILITY (includes WES/Female Infertility combos)
+    if (n.includes('FEMALE INFERTILITY') || n.includes('FEMALE INFERT'))
+        return 'FEMALE INFERTILITY';
+
+    // MALE INFERTILITY (includes WES/Male Infertility combos)
+    if (n.includes('MALE INFERTILITY') || n.includes('MALE INFERT'))
+        return 'MALE INFERTILITY';
+
+    // CLINICAL EXOME SEQUENCING (CES shorthand, clinical exome)
+    if (n === 'CES' || n.includes('CLINICAL EXOME'))
+        return 'CLINICAL EXOME SEQUENCING';
+
+    // AF (Amniotic Fluid) — detected by test name or sample name markers; preserves 20-day TAT
+    if (n.includes('AMNIOTIC') || sn.includes(' AF') || sn.endsWith(' AF') || sn.includes('AF/') || sn.startsWith('AF '))
+        return 'AF';
+
+    // MITOCHONDRIAL DNA SEQUENCING BY NGS (standalone only — not part of WES/CES combos)
+    if (n.includes('MITOCHONDRIAL') && !n.includes('WHOLE EXOME') && !n.includes('WES') && !n.includes('CLINICAL EXOME'))
+        return 'MITOCHONDRIAL DNA SEQUENCING BY NGS';
+
+    // NGS DATA REANALYSIS
+    if (n.includes('REANALYSIS') || n.includes('RE-ANALYSIS') || n.includes('RE ANALYSIS'))
+        return 'NGS DATA REANALYSIS';
+
+    // WHOLE GENOME SEQUENCING (before WES to avoid false match on WHOLE)
+    if (n.includes('WGS') || n.includes('WHOLE GENOME'))
+        return 'WHOLE GENOME SEQUENCING (WGS)';
+
+    // WHOLE EXOME SEQUENCING (WES)
+    if (n.includes('WES') || n.includes('WHOLE EXOME') || n.includes('EXOME'))
+        return 'WHOLE EXOME SEQUENCING (WES)';
+
+    // GENE PANEL (panels, hereditary, single-gene sequencing, etc.)
+    if (n.includes('PANEL') || n.includes('HEREDITARY') || n.includes('HCGP') ||
+        n.includes('SINGLE GENE') || n.includes('SINGLE FULL GENE') ||
+        n.includes('GENE SEQUENCING') || n.includes('MUTATION ANALYSIS') || n.includes('MODY'))
+        return 'GENE PANEL';
+
+    return 'Other Tests';
+}
+
+function calculateTAT(receivedDate, category) {
+    if (!receivedDate || receivedDate === '-' || receivedDate.toString().toLowerCase() === 'nan') return '-';
+
+    let date;
+    const str = receivedDate.toString();
+
+    // Handle ISO strings (common in Excel-to-JSON exports)
+    if (str.includes('T')) {
+        date = new Date(str);
+        // If it's a UTC string from an Excel export, we should treat it as local date
+        // But for now, new Date(str) is the safest way to get a valid date object.
+    } else {
+        // Parse formats: DD-MM-YYYY or DD/MM/YYYY
+        const parts = str.split(/[-/]/);
+        if (parts.length !== 3) return '-';
+
+        let day = parseInt(parts[0]);
+        let month = parseInt(parts[1]) - 1; // 0-indexed
+        let year = parseInt(parts[2]);
+        if (year < 100) year += 2000;
+        date = new Date(year, month, day);
+    }
+
+    if (!date || isNaN(date.getTime())) return '-';
+
+    let daysToAdd = 28; // Default for remaining tests
+    if (category === 'FEMALE INFERTILITY' || category === 'MALE INFERTILITY') {
+        daysToAdd = 15;
+    } else if (category === 'AF') {
+        daysToAdd = 20;
+    }
+
+    date.setDate(date.getDate() + daysToAdd);
+
+    // Format back to DD-MM-YYYY
+    const d = date.getDate().toString().padStart(2, '0');
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const y = date.getFullYear();
+
+    return `${d}-${m}-${y}`;
+}
+
+function normalizeData(data, secondaryLookup = {}) {
+    if (!Array.isArray(data)) return [];
+    return data.filter(row => row && (row['Sample Name'] || row['Anderson ID'] || row['SAMPLE NAME'] || row['ANDERSON ID'])).map(row => {
+        const sampleName = row['Sample Name'] || row['SAMPLE NAME'] || 'N/A';
+        const andersonId = row['Anderson ID'] || row['ANDERSON ID'] || 'N/A';
+        const testName = row['Test Name'] || row['TEST NAME'] || 'Unknown Test';
+        const testCategory = getTestCategory(testName, sampleName);
+        const client = row['Client'] || row['Client '] || row['CLIENT'] || '-';
+        const primaryHistory = row['Clinical History writeup'] || row['CLINICAL HISTORY WRITEUP'] || '';
+        const primaryHasHistory = primaryHistory && primaryHistory.toString().trim().length > 0 && primaryHistory.toString().toLowerCase() !== 'nan';
+        const fallbackHistory = !primaryHasHistory
+            ? (secondaryLookup[andersonId] || secondaryLookup[sampleName.toUpperCase()] || '')
+            : '';
+        const history = primaryHasHistory ? primaryHistory : (fallbackHistory || primaryHistory);
+        const month = normalizeMonth(row['Month']);
+
+        // Aggressive header detection (strips spaces and special chars)
+        const getVal = (patterns) => {
+            const keys = Object.keys(row);
+            const cleanPatterns = patterns.map(p => p.replace(/[^A-Z]/gi, '').toUpperCase());
+            for (const key of keys) {
+                const cleanKey = key.replace(/[^A-Z]/gi, '').toUpperCase();
+                if (cleanPatterns.includes(cleanKey)) {
+                    const val = row[key];
+                    if (val !== undefined && val !== null && val.toString().trim() !== '') return val;
+                }
+            }
+            return '-';
+        };
+
+        let receivedDateRaw = getVal(['Received Date', 'RECEIVED DATE', 'Recieved date', 'Recieved Date', 'Date Received', 'DATE', 'Received']);
+        // Some month tabs have a blank header for the received-date column (a sheet
+        // formatting slip) — fall back to that unnamed column if it holds a value.
+        if ((!receivedDateRaw || receivedDateRaw === '-') && row[''] && row[''].toString().trim() !== '') {
+            receivedDateRaw = row[''];
+        }
+        let receivedDate = receivedDateRaw;
+
+        // If it's an ISO string (from Excel/Google), format it to DD-MM-YYYY for display
+        if (receivedDateRaw.toString().includes('T') || (receivedDateRaw instanceof Date)) {
+            const dObj = new Date(receivedDateRaw);
+            if (!isNaN(dObj.getTime())) {
+                const dd = dObj.getDate().toString().padStart(2, '0');
+                const mm = (dObj.getMonth() + 1).toString().padStart(2, '0');
+                const yyyy = dObj.getFullYear();
+                receivedDate = `${dd}-${mm}-${yyyy}`;
+            }
+        }
+
+        // Auto-calculate TAT date if Received Date is present
+        let tatDate = getVal(['TAT Date', 'TAT DATE', 'TAT date', 'TAT']);
+        if (!tatDate || tatDate === '-' || tatDate.toString().toLowerCase() === 'nan') {
+            tatDate = calculateTAT(receivedDateRaw, testCategory);
+        }
+        const remark = row['Remark'] || row['REMARK'] || '';
+        const trfReport = row['TRF AND REPORTS'] || row['TRF AND REPORT'] || row['TRF and Reports'] || '';
+        const hasHistory = primaryHasHistory || (fallbackHistory.length > 0);
+        const emailSentRaw = getVal(['Email Sent', 'EMAIL SENT', 'Email sent']);
+        const emailSent = (emailSentRaw && emailSentRaw !== '-') ? emailSentRaw.toString().trim() : '';
+
+        return {
+            sampleName, andersonId, testName, testCategory, client, history, trfReport, month, remark, hasHistory, receivedDate, tatDate, emailSent
+        };
+    });
+}
+
+function populateSidebar() {
+    const nav = document.getElementById('sidebar-months');
+    if (!nav) return;
+
+    // Clear existing dynamic months (keep labels and All Records)
+    const labelView = nav.querySelector('.nav-label');
+    const allRecords = document.getElementById('sidebar-all-records');
+    nav.innerHTML = '';
+    if (labelView) nav.appendChild(labelView);
+    if (allRecords) nav.appendChild(allRecords);
+
+    const rawMonths = [...new Set(state.data.map(item => item.month))].filter(Boolean);
+    const sortedMonths = rawMonths.sort((a, b) => getMonthSortValue(b) - getMonthSortValue(a));
+
+    const byMonthLabel = document.createElement('div');
+    byMonthLabel.className = 'nav-label';
+    byMonthLabel.textContent = 'By Month';
+    nav.appendChild(byMonthLabel);
+
+    sortedMonths.forEach(m => {
+        const item = document.createElement('div');
+        item.className = `nav-item ${state.filters.month === m ? 'active' : ''}`;
+        item.dataset.month = m;
+        const label = m.replace(/^([A-Z]{3}) (\d{4})$/, (_, mo, yr) =>
+            mo.charAt(0) + mo.slice(1).toLowerCase() + ' ' + yr);
+        item.innerHTML = `<span>${label}</span><div class="nav-dot"></div>`;
+        item.onclick = () => selectMonth(m, item);
+        nav.appendChild(item);
+    });
+}
+
+function selectMonth(m, el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    state.filters.month = m;
+    state.currentPage = 1;
+    applyFilters();
+    // Close sidebar on mobile after selection
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+function populateFilters() {
+    const categories = [...new Set(state.data.map(item => item.testCategory))].filter(Boolean).sort();
+    const tSelect = document.getElementById('test-filter');
+    if (tSelect) {
+        const current = tSelect.value;
+        tSelect.innerHTML = '<option value="all">All Test Categories</option>';
+        categories.forEach(c => { tSelect.innerHTML += `<option value="${c}">${c}</option>`; });
+        tSelect.value = current || 'all';
+    }
+}
+
+function updateStats() {
+    // Always reflect month + test + search — never affected by status card clicks
+    const base = state.data.filter(item => {
+        const q = state.searchQuery;
+        const matchesSearch = !q ||
+            item.sampleName.toLowerCase().includes(q) ||
+            item.andersonId.toString().toLowerCase().includes(q) ||
+            item.testName.toLowerCase().includes(q) ||
+            item.client.toLowerCase().includes(q);
+        const matchesMonth = state.filters.month === 'all' || item.month === state.filters.month;
+        const matchesTest  = state.filters.test  === 'all' || item.testCategory === state.filters.test;
+        return matchesSearch && matchesMonth && matchesTest;
+    });
+    const total    = base.length;
+    const complete = base.filter(i => i.hasHistory).length;
+    const pending  = total - complete;
+    const sTotal = document.getElementById('stat-total');
+    const sComplete = document.getElementById('stat-complete');
+    const sPending = document.getElementById('stat-pending');
+    if (sTotal) sTotal.textContent = total;
+    if (sComplete) sComplete.textContent = complete;
+    if (sPending) sPending.textContent = pending;
+    const coverageSub = document.getElementById('coverage-sub');
+    if (coverageSub) {
+        const pct = total > 0 ? Math.round((complete / total) * 100) : 0;
+        coverageSub.textContent = `${pct}% coverage`;
+    }
+}
+
+function exportData() {
+    const rows = [['Patient Name', 'Anderson ID', 'Test Category', 'Test Name', 'Client', 'Received Date', 'TAT Date', 'Status', 'Month']];
+    state.filteredData.forEach(item => {
+        rows.push([
+            item.sampleName, item.andersonId, item.testCategory, item.testName,
+            item.client, item.receivedDate, item.tatDate,
+            item.hasHistory ? 'Completed' : 'Action Required', item.month
+        ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'clinical-history-export.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Exported ' + state.filteredData.length + ' records');
+}
+
+function updateTatDueCount() {
+    const dueCount = state.data.filter(item => !item.hasHistory && item.tatDate && item.tatDate !== '-' && isTatDueWithinDays(item.tatDate, TAT_REMINDER_DAYS)).length;
+    const badge = document.getElementById('tat-due-count');
+    if (badge) badge.textContent = `Due in ${TAT_REMINDER_DAYS} days: ${dueCount}`;
+}
+
+function handleSearch(e) {
+    state.searchQuery = e.target.value.toLowerCase();
+    state.currentPage = 1;
+    applyFilters();
+}
+
+function handleFilterChange() {
+    const tFilter = document.getElementById('test-filter');
+    if (tFilter) state.filters.test = tFilter.value;
+    state.currentPage = 1;
+    applyFilters();
+}
+
+function applyFilters() {
+    state.filteredData = state.data.filter(item => {
+        const query = state.searchQuery;
+        const matchesSearch =
+            item.sampleName.toLowerCase().includes(query) ||
+            item.andersonId.toString().toLowerCase().includes(query) ||
+            item.testName.toLowerCase().includes(query) ||
+            item.client.toLowerCase().includes(query);
+        const matchesMonth = state.filters.month === 'all' || item.month === state.filters.month;
+        const matchesTest = state.filters.test === 'all' || item.testCategory === state.filters.test;
+        let matchesStatus = true;
+        if (state.filters.status === 'available') matchesStatus = item.hasHistory;
+        if (state.filters.status === 'needed') matchesStatus = !item.hasHistory;
+        return matchesSearch && matchesMonth && matchesTest && matchesStatus;
+    });
+    renderGrid();
+    updateStats();
+    updateTatDueCount();
+}
+
+function renderGrid() {
+    const body = document.getElementById('grid-body');
+    if (!body) return;
+
+    const totalPages = Math.ceil(state.filteredData.length / state.itemsPerPage);
+    if (state.currentPage > totalPages && totalPages > 0) {
+        state.currentPage = totalPages;
+    }
+
+    body.innerHTML = '';
+    const pageData = state.filteredData;
+    if (pageData.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" style="padding: 100px; text-align:center; color: var(--text-dim);">
+            <i data-lucide="inbox" style="width:40px; height:40px; opacity:0.1; margin-bottom:10px;"></i>
+            <p style="font-weight:600;">No cases found in this view</p>
+        </td></tr>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
+    }
+    pageData.forEach((item, index) => {
+        const absoluteIndex = index;
+        const tr = document.createElement('tr');
+        tr.onclick = () => openSidePanel(absoluteIndex);
+        tr.innerHTML = `
+            <td>
+                <div class="identity-cell">
+                    <span class="name">${item.sampleName}</span>
+                    <span class="sub">${item.client.substring(0, 50)}</span>
+                </div>
+            </td>
+            <td><code class="token-id">${item.andersonId}</code></td>
+            <td>
+                <div style="display:flex; flex-direction:column; gap:3px;">
+                    <span class="type-badge">${item.testCategory}</span>
+                    <span style="font-size:11px; color:var(--text-dim); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.testName}</span>
+                </div>
+            </td>
+            <td style="font-weight:600; font-size:12px; white-space:nowrap; color:var(--text-dim);">${item.receivedDate}</td>
+            <td style="font-weight:600; font-size:12px; white-space:nowrap; color:var(--text-dim);">${item.tatDate}</td>
+            <td>
+                <div class="status-pill ${item.hasHistory ? 'pill-ok' : 'pill-missing'}">
+                    <div class="pill-dot"></div>
+                    <span>${item.hasHistory ? 'Completed' : 'Action Required'}</span>
+                </div>
+            </td>
+            <td style="text-align:right; white-space:nowrap;">
+                <button class="btn-details">Details</button>
+            </td>
+        `;
+        body.appendChild(tr);
+    });
+    const infoEl = document.getElementById('pagination-info');
+    if (infoEl) infoEl.textContent = `Displaying ${state.filteredData.length} records`;
+
+    // Update table section subtitle
+    const subEl = document.getElementById('table-section-sub');
+    if (subEl) {
+        const monthLabel = state.filters.month === 'all' ? 'All months' : state.filters.month;
+        subEl.textContent = `Showing ${monthLabel} · ${state.filteredData.length} entries`;
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / state.itemsPerPage);
+    const container = document.getElementById('pagination');
+    if (!container) return;
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+    const createBtn = (content, page, active = false, disabled = false) => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${active ? 'active' : ''}`;
+        btn.innerHTML = content;
+        btn.disabled = disabled;
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            if (!disabled) { state.currentPage = page; renderGrid(); }
+        };
+        return btn;
+    };
+    container.appendChild(createBtn('&laquo;', state.currentPage - 1, false, state.currentPage === 1));
+    let start = Math.max(1, state.currentPage - 1);
+    let end = Math.min(totalPages, start + 2);
+    if (end - start < 2) start = Math.max(1, end - 2);
+    for (let i = start; i <= end; i++) {
+        container.appendChild(createBtn(i, i, i === state.currentPage));
+    }
+    container.appendChild(createBtn('&raquo;', state.currentPage + 1, false, state.currentPage === totalPages));
+}
+
+function updatePanelMailButton(item, index) {
+    const btn = document.getElementById('panel-mail-btn');
+    const textEl = document.getElementById('panel-mail-text');
+    const manualBtn = document.getElementById('panel-manual-btn');
+    if (!btn || !textEl) return;
+
+    if (item.hasHistory) {
+        btn.style.display = 'none';
+        if (manualBtn) manualBtn.style.display = 'none';
+        return;
+    }
+
+    // Auto send button (existing behaviour unchanged)
+    btn.style.display = '';
+    btn.className = 'btn-panel-mail';
+    btn.disabled = false;
+    btn.onclick = (e) => { e.stopPropagation(); sendSampleReminder(index, btn, textEl); };
+
+    const es = getEmailSentState(item);
+    if (!es.sent) {
+        btn.innerHTML = '<i data-lucide="send"></i><span>Send Reminder</span>';
+    } else if (es.resend) {
+        btn.classList.add('resend');
+        const label = es.date ? `Resend · ${formatSentDate(es.date)}` : 'Resend';
+        btn.innerHTML = `<i data-lucide="send"></i><span>${label}</span>`;
+    } else {
+        btn.classList.add('sent');
+        btn.disabled = true;
+        const label = es.date ? `Sent ${formatSentDate(es.date)}` : 'Sent';
+        btn.innerHTML = `<i data-lucide="check"></i><span>${label}</span>`;
+    }
+
+    // Manual mail button — always shown for pending samples
+    if (manualBtn) {
+        manualBtn.style.display = '';
+        manualBtn.onclick = (e) => { e.stopPropagation(); openManualMailModal(item); };
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function openManualMailModal(item) {
+    const subject = `Action Required: Clinical History Missing for Anderson ID ${item.andersonId}`;
+    const sep = '─'.repeat(58);
+    const body = [
+        'Dear Team,',
+        '',
+        'This is a reminder that the following sample has NO Clinical History recorded.',
+        '',
+        sep,
+        `  Anderson ID   : ${item.andersonId}`,
+        `  Sample Name   : ${item.sampleName}`,
+        `  Client        : ${item.client}`,
+        `  Test          : ${item.testName}`,
+        `  Received Date : ${item.receivedDate}`,
+        `  TAT Date      : ${item.tatDate}`,
+        sep,
+        '',
+        'Kindly provide the Clinical History details at the earliest to avoid',
+        'any delay in processing and releasing the report on time.',
+        '',
+        'Thank you,',
+        'Anderson Lab Reporting System'
+    ].join('\n');
+
+    document.getElementById('manual-to').value = EMAIL_RECIPIENT;
+    document.getElementById('manual-subject').value = subject;
+    document.getElementById('manual-body').value = body;
+    const overlay = document.getElementById('manual-mail-overlay');
+    overlay.style.display = 'flex';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeManualMailModal() {
+    document.getElementById('manual-mail-overlay').style.display = 'none';
+}
+
+function openManualMailInGmail() {
+    const to      = document.getElementById('manual-to').value.trim();
+    const subject = document.getElementById('manual-subject').value.trim();
+    const body    = document.getElementById('manual-body').value;
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(url, '_blank');
+    closeManualMailModal();
+}
+
+function openSidePanel(index) {
+    const item = state.filteredData[index];
+    if (!item) return;
+    document.getElementById('d-name').textContent = item.sampleName;
+    document.getElementById('d-id').textContent = item.andersonId;
+    document.getElementById('d-test').textContent = item.testName;
+    document.getElementById('d-month').textContent = item.month;
+    const dRec = document.getElementById('d-received');
+    if (dRec) dRec.textContent = item.receivedDate;
+    const dTat = document.getElementById('d-tat');
+    if (dTat) dTat.textContent = item.tatDate;
+    document.getElementById('d-client').textContent = item.client;
+    document.getElementById('d-trf').textContent = item.trfReport || 'No TRF information found.';
+    document.getElementById('d-history').textContent = item.history || 'NO CLINICAL WRITEUP PROVIDED';
+    document.getElementById('d-remark').textContent = item.remark || 'No specific registry remarks.';
+    const es = getEmailSentState(item);
+    const reminderRow = document.getElementById('d-reminder-row');
+    const reminderDate = document.getElementById('d-reminder-date');
+    if (reminderRow && reminderDate) {
+        if (es.sent && es.date) {
+            reminderDate.textContent = es.date.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+            reminderRow.style.display = '';
+        } else {
+            reminderRow.style.display = 'none';
+        }
+    }
+    updatePanelMailButton(item, index);
+    document.getElementById('side-panel').classList.add('open');
+    document.getElementById('panel-overlay').classList.add('active');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeSidePanel() {
+    document.getElementById('side-panel').classList.remove('open');
+    document.getElementById('panel-overlay').classList.remove('active');
+}
+
+function showLoading(show) {
+    const btn = document.getElementById('sync-btn');
+    if (btn) {
+        if (show) {
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> <span>Syncing...</span>';
+            btn.disabled = true;
+        } else {
+            btn.innerHTML = '<i data-lucide="refresh-cw"></i> <span>Refresh Data</span>';
+            btn.disabled = false;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.textContent = message;
+        toast.style.borderLeft = `5px solid ${type === 'error' ? 'var(--danger)' : 'var(--success)'}`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+}
+
+function parseDateString(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const str = value.toString().trim();
+    if (!str) return null;
+    let date = null;
+    if (str.includes('T')) {
+        date = new Date(str);
+    } else if (/\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/.test(str)) {
+        const parts = str.split(/[-/]/).map(p => p.trim());
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        let year = parseInt(parts[2], 10);
+        if (year < 100) year += 2000;
+        date = new Date(year, month, day);
+    } else {
+        date = new Date(str);
+    }
+    return date && !isNaN(date.getTime()) ? date : null;
+}
+
+function isTatDueWithinDays(tatDate, days) {
+    const date = parseDateString(tatDate);
+    if (!date) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
+    return diff >= 0 && diff <= days;
+}
+
+function formatSentDate(date) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const d = date.getDate();
+    const m = months[date.getMonth()];
+    const y = date.getFullYear();
+    return new Date().getFullYear() === y ? `${d} ${m}` : `${d} ${m} ${y}`;
+}
+
+function getEmailSentState(item) {
+    // Gather candidates: sheet column + localStorage (manual sends)
+    const sheetVal   = item.emailSent && item.emailSent !== '' ? item.emailSent : null;
+    const localVal   = localStorage.getItem(`emailSentDate_${item.andersonId}`);
+
+    // Reset boundary: ignore any sheet-recorded sends on or before this date
+    // (testing period purge — only new sends via this tracker count going forward)
+    const RESET_CUTOFF = new Date('2026-04-29T23:59:59');
+
+    // Legacy "Yes" with no date — treat as sent but no date
+    if (sheetVal === 'Yes' && !localVal) return { sent: false };
+
+    // Pick the most recent valid date from either source
+    const sheetDate  = sheetVal && sheetVal !== 'Yes' ? parseDateString(sheetVal) : null;
+    const localDate  = localVal ? parseDateString(localVal) : null;
+
+    // Ignore sheet date if it falls within the reset period and no local send exists
+    const effectiveSheetDate = (sheetDate && sheetDate <= RESET_CUTOFF && !localVal) ? null : sheetDate;
+
+    let sentDate = null;
+    if (effectiveSheetDate && localDate) sentDate = effectiveSheetDate >= localDate ? effectiveSheetDate : localDate;
+    else sentDate = effectiveSheetDate || localDate;
+
+    if (!sentDate) return { sent: false };
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const d = new Date(sentDate);
+    d.setHours(0, 0, 0, 0);
+    const daysSince = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+    return { sent: true, date: sentDate, daysSince, resend: daysSince >= 7 };
+}
+
+function buildMailButton(item, index) {
+    const es = getEmailSentState(item);
+    if (!es.sent) {
+        return `<button class="btn-send-mail" onclick="event.stopPropagation(); sendSampleReminder(${index}, this)"><i data-lucide="send"></i>Mail</button>`;
+    }
+    if (es.resend) {
+        const label = es.date ? `Resend · ${formatSentDate(es.date)}` : 'Resend';
+        return `<button class="btn-send-mail resend" onclick="event.stopPropagation(); sendSampleReminder(${index}, this)"><i data-lucide="send"></i>${label}</button>`;
+    }
+    const label = es.date ? `Sent ${formatSentDate(es.date)}` : 'Sent';
+    return `<button class="btn-send-mail sent" disabled><i data-lucide="check"></i>${label}</button>`;
+}
+
+function getTodayDateStr() {
+    const t = new Date();
+    const dd = t.getDate().toString().padStart(2, '0');
+    const mm = (t.getMonth() + 1).toString().padStart(2, '0');
+    return `${dd}-${mm}-${t.getFullYear()}`;
+}
+
+function clearStaleEmailLocalStorage() {
+    Object.keys(localStorage)
+        .filter(k => k.startsWith('emailSent_') || k.startsWith('emailSentDate_'))
+        .forEach(k => localStorage.removeItem(k));
+}
+
+function markButtonSent(btnEl, dateStr) {
+    const date = parseDateString(dateStr);
+    const label = date ? `Sent ${formatSentDate(date)}` : 'Sent';
+    btnEl.classList.remove('resend');
+    btnEl.classList.add('sent');
+    btnEl.disabled = true;
+    btnEl.innerHTML = `<i data-lucide="check"></i><span>${label}</span>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function sendSampleReminder(index, btnEl) {
+    const item = state.filteredData[index];
+    if (!item) return;
+    const dateKey = `emailSentDate_${item.andersonId}`;
+    const todayStr = getTodayDateStr();
+
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<i data-lucide="loader-2" class="spin"></i>';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    if (EMAIL_WEBHOOK_URL) {
+        try {
+            const params = new URLSearchParams({
+                action: 'sendReminder',
+                andersonId: item.andersonId,
+                sampleName: item.sampleName,
+                client: item.client,
+                testName: item.testName,
+                receivedDate: item.receivedDate,
+                tatDate: item.tatDate
+            });
+            const response = await fetch(`${EMAIL_WEBHOOK_URL}?${params}`);
+            if (!response.ok) throw new Error('Mail service error');
+            const data = await response.json();
+            if (data.success) {
+                item.emailSent = todayStr;
+                localStorage.setItem(`emailSentDate_${item.andersonId}`, todayStr);
+                markButtonSent(btnEl, todayStr);
+                showToast(`Reminder sent for ${item.andersonId}`);
+                return;
+            }
+            throw new Error(data.error || 'Service failed');
+        } catch (err) {
+            console.error('Send reminder failed', err);
+            btnEl.disabled = false;
+            btnEl.innerHTML = '<i data-lucide="send"></i><span>Send Reminder</span>';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            showToast(`Mail failed: ${err.message}`, 'error');
+        }
+    }
+
+    // Fallback: open Gmail compose in a new tab (pre-filled with table format)
+    const subject = `Action Required: Clinical History Missing for Anderson ID ${item.andersonId}`;
+    const sep = '─'.repeat(60);
+    const body = [
+        'Dear Team,',
+        '',
+        `This is a reminder that the following sample has NO Clinical History recorded.`,
+        '',
+        sep,
+        `  Anderson ID   : ${item.andersonId}`,
+        `  Sample Name   : ${item.sampleName}`,
+        `  Client        : ${item.client}`,
+        `  Test          : ${item.testName}`,
+        `  Received Date : ${item.receivedDate}`,
+        `  TAT Date      : ${item.tatDate}`,
+        sep,
+        '',
+        'Kindly provide the Clinical History details at the earliest to avoid',
+        'any delay in processing and releasing the report on time.',
+        '',
+        'Thank you,',
+        'Anderson Lab Reporting System'
+    ].join('\n');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(EMAIL_RECIPIENT)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
+    // Mark as sent so button persists across refreshes and prevents duplicates
+    item.emailSent = todayStr;
+    localStorage.setItem(`emailSentDate_${item.andersonId}`, todayStr);
+    markButtonSent(btnEl, todayStr);
+    showToast('Gmail opened — marked as sent to prevent duplicates.');
+}
+
+// ── TAT Due Modal ──────────────────────────────────────────
+function getTATDueItems() {
+    return state.data.filter(item =>
+        !item.hasHistory &&
+        item.tatDate && item.tatDate !== '-' &&
+        isTatDueWithinDays(item.tatDate, TAT_REMINDER_DAYS)
+    );
+}
+
+function openTATModal() {
+    const items = getTATDueItems();
+    const overlay = document.getElementById('tat-modal-overlay');
+    const tbody = document.getElementById('tat-modal-rows');
+    const subtitle = document.getElementById('modal-subtitle');
+    if (!overlay || !tbody) return;
+
+    subtitle.textContent = `${items.length} sample${items.length !== 1 ? 's' : ''} need clinical history`;
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="padding:40px; text-align:center; color:var(--text-dim); font-weight:600;">No samples due within ${TAT_REMINDER_DAYS} days</td></tr>`;
+    } else {
+        items.forEach((item, i) => {
+            const es = getEmailSentState(item);
+            let actionBtn;
+            if (!es.sent) {
+                actionBtn = `<button class="btn-modal-send" id="ms-${i}" onclick="sendModalReminder(${i}, this)"><i data-lucide="send"></i>Send</button>`;
+            } else if (es.resend) {
+                const lbl = es.date ? `Resend · ${formatSentDate(es.date)}` : 'Resend';
+                actionBtn = `<button class="btn-modal-send resend" id="ms-${i}" onclick="sendModalReminder(${i}, this)"><i data-lucide="send"></i>${lbl}</button>`;
+            } else {
+                const lbl = es.date ? `Sent ${formatSentDate(es.date)}` : 'Sent';
+                actionBtn = `<button class="btn-modal-send sent" id="ms-${i}" disabled><i data-lucide="check"></i>${lbl}</button>`;
+            }
+            const tr = document.createElement('tr');
+            tr.dataset.index = i;
+            tr.innerHTML = `
+                <td style="font-weight:700;">${item.sampleName}</td>
+                <td><code class="token-id" style="font-size:11px;">${item.andersonId}</code></td>
+                <td style="font-size:12px; color:var(--text-dim);">${item.testCategory}</td>
+                <td style="font-weight:700; color:#b35a00;">${item.tatDate}</td>
+                <td>${actionBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Reset send-all button
+    const btn = document.getElementById('send-all-btn');
+    const btnText = document.getElementById('send-all-text');
+    if (btn) { btn.disabled = false; btn.className = 'btn-send-all'; }
+    if (btnText) btnText.textContent = 'Send Reminder to All';
+
+    const searchInput = document.getElementById('tat-modal-search');
+    if (searchInput) searchInput.value = '';
+
+    overlay.classList.add('open');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function sendModalReminder(i, btn) {
+    const items = getTATDueItems();
+    const item = items[i];
+    if (!item) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i>';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    const result = await sendReminderForItem(item);
+
+    const d = getTodayDateStr();
+    if (result.success) {
+        item.emailSent = d;
+        localStorage.setItem(`emailSentDate_${item.andersonId}`, d);
+        btn.className = 'btn-modal-send sent';
+        btn.innerHTML = '<i data-lucide="check"></i>Sent';
+    } else {
+        // Webhook failed — open Gmail compose and still mark as sent
+        const subject = `Action Required: Clinical History Missing for Anderson ID ${item.andersonId}`;
+        const body = `Dear Team,\n\nAnderson ID: ${item.andersonId}\nSample: ${item.sampleName}\nClient: ${item.client}\nTest: ${item.testName}\nReceived: ${item.receivedDate}\nTAT: ${item.tatDate}\n\nPlease provide clinical history at the earliest.\n\nThank you,\nAnderson Lab`;
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(EMAIL_RECIPIENT)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+        item.emailSent = d;
+        localStorage.setItem(`emailSentDate_${item.andersonId}`, d);
+        btn.className = 'btn-modal-send sent';
+        btn.innerHTML = '<i data-lucide="check"></i>Sent';
+        showToast('Gmail opened — marked as sent.');
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function filterTATModal(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('#tat-modal-rows tr').forEach(tr => {
+        const text = tr.textContent.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+    });
+}
+
+function closeTATModal(e) {
+    if (e && e.target !== document.getElementById('tat-modal-overlay')) return;
+    document.getElementById('tat-modal-overlay').classList.remove('open');
+}
+
+async function sendReminderForItem(item) {
+    if (!EMAIL_WEBHOOK_URL) return { success: false, error: 'No webhook URL configured' };
+    try {
+        const params = new URLSearchParams({
+            action: 'sendReminder',
+            andersonId: item.andersonId,
+            sampleName: item.sampleName,
+            client: item.client,
+            testName: item.testName,
+            receivedDate: item.receivedDate,
+            tatDate: item.tatDate
+        });
+        const response = await fetch(`${EMAIL_WEBHOOK_URL}?${params}`);
+        if (!response.ok) return { success: false, error: `HTTP ${response.status}` };
+        const data = await response.json();
+        return data.success ? { success: true } : { success: false, error: data.error || 'Failed' };
+    } catch (err) {
+        return { success: false, error: err.message };
+    }
+}
+
+async function sendAllTATReminders(btn) {
+    const items = getTATDueItems();
+    if (items.length === 0) return;
+
+    btn.disabled = true;
+    const btnText = document.getElementById('send-all-text');
+
+    let sent = 0, failed = 0;
+    for (let i = 0; i < items.length; i++) {
+        const statusEl = document.getElementById(`ms-${i}`);
+        if (statusEl) { statusEl.className = 'mail-status sending'; statusEl.textContent = 'Sending...'; }
+
+        const result = await sendReminderForItem(items[i]);
+
+        if (result.success) {
+            sent++;
+            const d = getTodayDateStr();
+            items[i].emailSent = d;
+            localStorage.setItem(`emailSentDate_${items[i].andersonId}`, d);
+            if (statusEl) { statusEl.className = 'btn-modal-send sent'; statusEl.innerHTML = '<i data-lucide="check"></i>Sent'; }
+        } else {
+            failed++;
+            if (statusEl) { statusEl.className = 'btn-modal-send'; statusEl.innerHTML = '<i data-lucide="x"></i>Failed'; }
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        if (btnText) btnText.textContent = `Sending ${i + 1} / ${items.length}...`;
+    }
+
+    btn.className = 'btn-send-all done';
+    btn.disabled = true;
+    if (btnText) btnText.textContent = `Done — ${sent} sent${failed > 0 ? `, ${failed} failed` : ''}`;
+    showToast(`${sent} reminder${sent !== 1 ? 's' : ''} sent successfully.`);
+    updateTatDueCount();
+}
+
+function filterToPending() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById('sidebar-pending-item');
+    if (el) el.classList.add('active');
+    updateCardActiveState('needed');
+    state.filters.status = 'needed';
+    state.currentPage = 1;
+    applyFilters();
+}
+
+function switchStatusTab(status, btn) {
+    document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    updateCardActiveState(status === 'all' ? 'all' : status === 'available' ? 'available' : 'needed');
+    state.filters.status = status;
+    state.currentPage = 1;
+    applyFilters();
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.app-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (!sidebar) return;
+    sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('active');
+}
+
+/* expose exportData globally */
+window.exportData = exportData;
+
+async function syncData(silent = false) {
+    await loadData(true, silent);
+}
+
+    </script>
+</body>
+</html>

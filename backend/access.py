@@ -36,6 +36,12 @@ TRACKERS = {
         "page": "exome-tracker/index.html",
         "section": "bioinfo",
     },
+    "clinical-history": {
+        "label": "Clinical History Tracker",
+        "path": "/clinical-history/",
+        "page": "clinical-history.html",
+        "section": "bioinfo",
+    },
     "coverage": {
         "label": "Coverage Checker",
         "path": "/anderson-coverage/",

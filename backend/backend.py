@@ -221,6 +221,19 @@ def exome_tracker_page(anderson_session: str | None = Cookie(default=None)):
     )
 
 
+@app.get("/clinical-history", include_in_schema=False)
+def clinical_history_slash():
+    return RedirectResponse("/clinical-history/")
+
+
+@app.get("/clinical-history/", response_class=HTMLResponse)
+def clinical_history_page(anderson_session: str | None = Cookie(default=None)):
+    sess = read_session(anderson_session)
+    if not sess:
+        return _to_login()
+    return _gate(sess, access.can_open_tracker(sess["acc"], "clinical-history"), "clinical-history.html")
+
+
 @app.get("/anderson-coverage", include_in_schema=False)
 def coverage_slash():
     return RedirectResponse("/anderson-coverage/")
