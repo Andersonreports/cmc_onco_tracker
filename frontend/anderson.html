@@ -7,6 +7,7 @@
   <title>Anderson Trackers · Anderson Trackings</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="/access-gate.js"></script>
   <style>
     :root {
       --accent: #0d9488;
@@ -395,7 +396,7 @@
     </section>
 
     <main class="grid">
-      <a class="card active" href="../bioinfo/">
+      <a class="card active" href="../bioinfo/" data-section="bioinfo">
         <div class="icon"><img src="/germline-logo.png" alt="Bioinfo"></div>
         <div class="body">
           <h3>Bioinfo Trackers</h3>
@@ -405,7 +406,7 @@
         </div>
       </a>
 
-      <a class="card active navy" href="/anderson-coverage/">
+      <a class="card active navy" href="/anderson-coverage/" data-tracker="coverage">
         <div class="icon"><i data-lucide="activity"></i></div>
         <div class="body">
           <h3>Coverage Checker</h3>

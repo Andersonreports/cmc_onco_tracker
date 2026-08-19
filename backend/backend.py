@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from fastapi import FastAPI, Cookie, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from auth import router as auth_router, read_session, renew_session_cookie, COOKIE_NAME
@@ -49,13 +49,18 @@ async def reports_api_unsupported(request: Request, exc: reports_client.ReportsA
 
 
 @app.exception_handler(reports_client.ReportsAPIError)
-async def reports_api_unavailable(request: Request, exc: reports_client.ReportsAPIError):
+async def reports_api_error(request: Request, exc: reports_client.ReportsAPIError):
     print(f"[reports] {request.url.path}: {exc}")
-    return JSONResponse(
-        {"error": "The Exome Tracker reports service is unreachable. It is hosted by IT — "
-                  "check that it is running and connected, then retry."},
-        status_code=503,
-    )
+    if exc.status is None:
+        return JSONResponse({"error": str(exc)}, status_code=503)
+    # IT reports failures as {"success": false, "message": "..."}, so their body
+    # passed through verbatim reads as a bare status in the tracker. Their own
+    # wording is the useful part: lift it into the "error" the frontend shows.
+    detail = reports_client.error_message(exc.body)
+    if detail:
+        return JSONResponse({"error": detail}, status_code=exc.status)
+    return Response(exc.body, status_code=exc.status,
+                    media_type=exc.content_type or "application/json")
 
 
 @app.middleware("http")
@@ -98,7 +103,9 @@ def _to_login() -> RedirectResponse:
 
 
 def _home_for(sess: dict) -> RedirectResponse:
-    return RedirectResponse(access.home_for(sess.get("acc")))
+    # The role carries the landing page, so redirect on it rather than on the
+    # grants it expands to.
+    return RedirectResponse(access.home_for(sess.get("role") or sess.get("acc")))
 
 
 def _gate(sess, allowed: bool, page: str):
@@ -122,6 +129,11 @@ def landing(anderson_session: str | None = Cookie(default=None)):
         return _to_login()
     if not sess["acc"]:
         return _to_login()
+    # Every role names its own landing page; only those that land here get the
+    # shared one, which keeps a role out of a page listing sections it lacks.
+    home = access.home_for(sess.get("role") or sess.get("acc"))
+    if home != "/":
+        return RedirectResponse(home)
     return _serve("landing.html")
 
 
@@ -207,7 +219,7 @@ def exome_tracker_page(anderson_session: str | None = Cookie(default=None)):
     mapping = role_store.get(mobile) or {}
     user = {
         "username": (mapping.get("name") or "").strip() or mobile,
-        "role": exome_roles.role_for_accesses(sess["acc"]),
+        "role": exome_roles.role_for_accesses(sess["acc"], sess.get("role")),
     }
     payload = json.dumps(user).replace("</", "<\\/")
 
@@ -237,8 +249,11 @@ def _mount_coverage_checker() -> None:
         from a2wsgi import WSGIMiddleware
         import app as coverage_app
     except Exception as e:
-        print(f"[coverage] not mounted ({type(e).__name__}: {e}). "
-              f"Install anderson-coverage/requirements.txt to enable it.")
+        hint = ("Install anderson-coverage/requirements.txt to enable it."
+                if isinstance(e, ImportError) else
+                f"Check {COVERAGE_DIR}. Only a missing dependency needs "
+                f"requirements.txt; this is something else.")
+        print(f"[coverage] not mounted ({type(e).__name__}: {e}). {hint}")
         return
 
     wsgi = WSGIMiddleware(coverage_app.app)
@@ -249,7 +264,8 @@ def _mount_coverage_checker() -> None:
             await RedirectResponse("/login")(scope, receive, send)
             return
         if not access.can_open_tracker(sess.get("acc"), "coverage"):
-            await RedirectResponse(access.home_for(sess.get("acc")))(scope, receive, send)
+            home = access.home_for(sess.get("role") or sess.get("acc"))
+            await RedirectResponse(home)(scope, receive, send)
             return
         await wsgi(scope, receive, send)
 

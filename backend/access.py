@@ -48,32 +48,116 @@ GRANTABLE = (ADMIN,) + tuple(TRACKERS)
 
 LABELS = {ADMIN: "Admin", **{k: v["label"] for k, v in TRACKERS.items()}}
 
-LEGACY = {
-    "cmc": ["cmc-onco"],
-    "anderson": ["exome"],
+# A role is what an admin actually assigns. Its trackers are derived from the
+# section tree rather than listed, so a tracker added to SECTIONS/TRACKERS lands
+# in the right roles on its own — "sections" is what the role reaches, "without"
+# carves a branch back out of it.
+ROLES = {
+    "cmc": {
+        "label": "CMC",
+        "sections": ("cmc",),
+        "home": "/cmc/",
+    },
+    "anderson": {
+        "label": "Anderson",
+        "sections": ("anderson",),
+        "without": ("bioinfo",),
+        "home": "/anderson/",
+    },
+    # Same reach as each other; they differ only in what they may do inside a
+    # tracker, which "duty" names and exome_roles turns into permissions.
+    "and-bioinfo-primary": {
+        "label": "Anderson + Bioinfo · Primary Team",
+        "sections": ("anderson",),
+        "home": "/anderson/",
+        "duty": "primary",
+    },
+    "and-bioinfo-lead": {
+        "label": "Anderson + Bioinfo · Team Lead",
+        "sections": ("anderson",),
+        "home": "/anderson/",
+        "duty": "lead",
+    },
+    "and-bioinfo-member": {
+        "label": "Anderson + Bioinfo · Team Member",
+        "sections": ("anderson",),
+        "home": "/anderson/",
+        "duty": "member",
+    },
+    ADMIN: {
+        "label": "Admin",
+        "everything": True,
+        "home": "/",
+    },
 }
 
 
-def normalize(value) -> list[str]:
+# Assigned before the team duties existed; a lead is the closest equivalent.
+ALIASES = {"and-bioinfo": "and-bioinfo-lead"}
+
+
+def _parts(value) -> list[str]:
     if not value:
         return []
     if isinstance(value, str):
-        parts = [p.strip() for p in value.replace(";", ",").split(",")]
-    else:
-        parts = [str(p).strip() for p in value]
-    expanded = []
-    for p in parts:
-        expanded.extend(LEGACY.get(p, [p]))
+        value = value.replace(";", ",").split(",")
+    return [ALIASES.get(s, s) for s in (str(p).strip() for p in value) if s]
+
+
+def duty_of(value) -> str:
+    """What the role may do inside a tracker, as opposed to which it reaches."""
+    role = role_of(value)
+    if role == ADMIN:
+        return ADMIN
+    return ROLES.get(role, {}).get("duty", "") if role else ""
+
+
+def role_trackers(role_key: str) -> list[str]:
+    spec = ROLES.get(role_key)
+    if not spec:
+        return []
+    if spec.get("everything"):
+        return list(TRACKERS)
+    reaches = set(spec.get("sections", ()))
+    without = set(spec.get("without", ()))
+    keys = []
+    for key, tracker in TRACKERS.items():
+        chain = set(_section_chain(tracker["section"]))
+        if chain & reaches and not chain & without:
+            keys.append(key)
+    return keys
+
+
+def role_of(value) -> str | None:
+    """The named role stored for a user, if their value carries one."""
+    for part in _parts(value):
+        if part in ROLES:
+            return part
+    return None
+
+
+def normalize(value) -> list[str]:
+    """Expand a stored value into the grants the page gates test against.
+
+    Takes a role name, or the bare tracker keys that predate roles, so an
+    older stored value keeps working untouched.
+    """
     seen, out = set(), []
-    for p in expanded:
-        if p and p in GRANTABLE and p not in seen:
-            seen.add(p)
-            out.append(p)
+    for part in _parts(value):
+        granted = ([ADMIN] if part == ADMIN else []) + role_trackers(part) \
+            if part in ROLES else [part]
+        for key in granted:
+            if key in GRANTABLE and key not in seen:
+                seen.add(key)
+                out.append(key)
     return out
 
 
 def to_stored(accesses) -> str:
-    return ",".join(normalize(accesses))
+    """A role is stored under its own name; only pre-role values keep a list,
+    since expanding a role would lose the landing page that comes with it."""
+    role = role_of(accesses)
+    return role if role else ",".join(normalize(accesses))
 
 
 def is_admin(accesses) -> bool:
@@ -111,7 +195,16 @@ def visible_sections(accesses, parent=None) -> list[str]:
             if v["parent"] == parent and can_open_section(accesses, k)]
 
 
+def open_sections(accesses) -> list[str]:
+    """Every section the user may open, nested ones included, so a section page
+    can hide the cards leading somewhere they'd only be bounced back from."""
+    return [k for k in SECTIONS if can_open_section(accesses, k)]
+
+
 def home_for(accesses) -> str:
+    role = role_of(accesses)
+    if role:
+        return ROLES[role]["home"]
     acc = normalize(accesses)
     if not acc:
         return "/login"

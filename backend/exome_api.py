@@ -4,7 +4,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 import reports_client
-from exome_roles import can_edit, forbidden, require_tracker_access, username_for
+from exome_roles import (can_edit, can_upload, forbidden, require_tracker_access,
+                         username_for)
 
 router = APIRouter(prefix="/exome-tracker/api", dependencies=[Depends(require_tracker_access)])
 
@@ -24,28 +25,29 @@ class ReportIn(BaseModel):
     ana_date: str = ""
     pri_rev: str = ""
     final: str = ""
-    remark: str = ""
-    rel_date: str = ""
+    remarks: str = ""
+    report_release_date: str = ""
     history: str = ""
     bioinfo_time: str = ""
     last_updated_by: str = ""
     run_text: str = ""
     is_priority: bool = False
     is_reanalysis: bool = False
+    visible: bool = True
 
 
 class BulkReleaseIn(BaseModel):
-    ids: list[str]
-    rel_date: str
+    id: list[str]
+    report_release_date: str
 
 
 class BulkRemarkIn(BaseModel):
-    ids: list[str]
-    remark: str
+    id: list[str]
+    remarks: str
 
 
 class BulkReviewerIn(BaseModel):
-    ids: list[str]
+    id: list[str]
     pri_rev: str
 
 
@@ -62,7 +64,7 @@ def _stamped(report: ReportIn, request: Request) -> dict:
 
 @router.post("/reports")
 def create_report(report: ReportIn, request: Request):
-    if not can_edit(request):
+    if not can_upload(request):
         return forbidden()
     return reports_client.create_report(_stamped(report, request))
 
@@ -71,27 +73,27 @@ def create_report(report: ReportIn, request: Request):
 def bulk_release(payload: BulkReleaseIn, request: Request):
     if not can_edit(request):
         return forbidden()
-    rel_date = payload.rel_date.strip()
-    if not rel_date:
-        return JSONResponse({"error": "rel_date is required"}, status_code=400)
-    if not payload.ids:
+    report_release_date = payload.report_release_date.strip()
+    if not report_release_date:
+        return JSONResponse({"error": "report_release_date is required"}, status_code=400)
+    if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_release(payload.ids, rel_date)
+    count = reports_client.bulk_release(payload.id, report_release_date)
     return {"ok": True, "count": count}
 
 
-@router.put("/reports/bulk-remark")
-def bulk_remark(payload: BulkRemarkIn, request: Request):
+@router.put("/reports/bulk-remarks")
+def bulk_remarks(payload: BulkRemarkIn, request: Request):
     if not can_edit(request):
         return forbidden()
-    remark = payload.remark.strip()
-    if not remark:
-        return JSONResponse({"error": "remark is required"}, status_code=400)
-    if not payload.ids:
+    remarks = payload.remarks.strip()
+    if not remarks:
+        return JSONResponse({"error": "remarks is required"}, status_code=400)
+    if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_remark(payload.ids, remark)
+    count = reports_client.bulk_remarks(payload.id, remarks)
     return {"ok": True, "count": count}
 
 
@@ -107,10 +109,10 @@ def bulk_reviewer(payload: BulkReviewerIn, request: Request):
     reviewer = payload.pri_rev.strip()
     if not reviewer:
         return JSONResponse({"error": "pri_rev is required"}, status_code=400)
-    if not payload.ids:
+    if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_reviewer(payload.ids, reviewer)
+    count = reports_client.bulk_reviewer(payload.id, reviewer)
     return {"ok": True, "count": count}
 
 
@@ -129,16 +131,24 @@ def update_report(
 
 
 @router.delete("/reports/{report_id}")
-def delete_report(report_id: str, request: Request):
-    if not can_edit(request):
-        return forbidden()
-    reports_client.delete_report(report_id)
-    return {"ok": True}
+def delete_report(report_id: str):
+    """No sample leaves the tracker from here.
+
+    Cancelling used to hide a sample by clearing IT's visible flag, which is
+    unrecoverable from this side — one stray click and a run's sample was gone
+    from every list. A sample called off is recorded in its remarks instead,
+    which keeps the row readable and its history intact.
+    """
+    return JSONResponse(
+        {"error": "Samples cannot be deleted. Record the cancellation in the "
+                  "sample's remarks instead."},
+        status_code=405,
+    )
 
 
 @router.post("/reports/bulk-add")
 def bulk_add(reports: list[ReportIn], request: Request):
-    if not can_edit(request):
+    if not can_upload(request):
         return forbidden()
     if not reports:
         return {"ok": True, "count": 0}

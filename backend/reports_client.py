@@ -7,6 +7,7 @@ import ssl
 import threading
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 import genetics_auth_client
@@ -17,9 +18,6 @@ try:
 except Exception:
     pass
 
-# IT integration API: every endpoint is POST, bodies wrap in "sample_data",
-# responses come back under "response". No delete, no partial update, and
-# /genetics/get_sample_data is not deployed.
 REPORTS_API_BASE = (os.getenv("REPORTS_API_BASE", "").strip().rstrip("/")
                     or genetics_auth_client.GENETICS_BASE_URL)
 REPORTS_API_KEY = os.getenv("REPORTS_API_KEY", "").strip()
@@ -37,7 +35,19 @@ PATH_BULK = _env_path("REPORTS_PATH_BULK", "/genetics/insert_bulk_data")
 
 
 class ReportsAPIError(Exception):
-    """Raised when the IT reports API is unreachable or returns an error."""
+    """Raised when the API is unreachable or returns an error.
+
+    When status/body/content_type hold that answer verbatim so
+    callers can pass it straight through instead of inventing one. They stay
+    unset when nothing came back at all (unreachable, timed out, unconfigured).
+    """
+
+    def __init__(self, message: str, status: int | None = None,
+                 body: str = "", content_type: str = ""):
+        super().__init__(message)
+        self.status = status
+        self.body = body
+        self.content_type = content_type
 
 
 class ReportNotFound(ReportsAPIError):
@@ -45,11 +55,29 @@ class ReportNotFound(ReportsAPIError):
 
 
 class ReportsAPIUnsupported(ReportsAPIError):
-    """Raised for operations IT's API does not expose (e.g. delete)."""
+    """Raised for operations where API does not expose (e.g. delete)."""
 
 
 def is_configured() -> bool:
     return bool(REPORTS_API_BASE)
+
+
+_MESSAGE_KEYS = ("message", "error", "detail", "msg")
+
+
+def error_message(body: str) -> str:
+    """The API's own wording for a failure, or "" when its body carries none."""
+    try:
+        parsed = json.loads(body or "")
+    except Exception:
+        return ""
+    if not isinstance(parsed, dict):
+        return ""
+    for key in _MESSAGE_KEYS:
+        val = parsed.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+    return ""
 
 
 def _auth_header() -> str | None:
@@ -78,8 +106,12 @@ def _post(path: str, payload: dict | None = None, _retry: bool = True):
         if e.code in (401, 403) and _retry and not REPORTS_API_KEY:
             genetics_auth_client.service_token(force=True)
             return _post(path, payload, _retry=False)
-        body = e.read().decode() if e.fp else ""
-        raise ReportsAPIError(f"POST {path} failed ({e.code}): {body[:300]}") from e
+        body = e.read().decode(errors="replace") if e.fp else ""
+        raise ReportsAPIError(
+            f"POST {path} failed ({e.code}): {body[:300]}",
+            status=e.code, body=body,
+            content_type=e.headers.get("Content-Type", "") if e.headers else "",
+        ) from e
     except ReportsAPIError:
         raise
     except Exception as e:
@@ -90,7 +122,7 @@ _LIST_KEYS = ("response", "sample_data", "data", "records", "rows", "result", "r
 
 
 def _records(resp) -> list[dict]:
-    """Pull the record list out of whatever envelope IT wraps it in."""
+    """Pull the record list out of whatever envelope API wraps it in."""
     if isinstance(resp, list):
         return [r for r in resp if isinstance(r, dict)]
     if not isinstance(resp, dict):
@@ -117,15 +149,17 @@ FIELD_MAP = {
     "cnv_status":  "cnv_status",
     "analyst_raw": "analyze_by",
     "ana_date":    "analyze_date",
-    "pri_rev":     "primary_reviewer_clinical_review",
-    "remark":      "remark",
-    "rel_date":    "report_release_date",
+    "pri_rev":     "reviewer",
+    "remarks":     "remarks",
+    "report_release_date": "report_release_date",
     "history":     "history_writeup",
     "run_text":    "run_number",
     "bioinfo_time": "bioinfo_analysis_time",
 }
 
-_DATE_FIELDS = ("tat", "ana_date", "rel_date")
+_DATE_FIELDS = ("tat", "ana_date", "report_release_date")
+
+_NULLABLE_DATES = ("ana_date", "report_release_date")
 
 BOOL_MAP = {
     "is_priority":   "is_priority",
@@ -169,7 +203,6 @@ _date_in = _date_norm
 _date_out = _date_norm
 
 
-# A run with no number must not read as run 0 — below 54 counts as released.
 UNASSIGNED_RUN = 9999
 
 
@@ -200,6 +233,7 @@ def _to_app(rec: dict) -> dict:
     for app_key, it_key in BOOL_MAP.items():
         row[app_key] = bool(rec.get(it_key))
 
+    row["visible"] = bool(rec.get("visible", True))
     row["id"] = report_id(rec)
     row["run_number"] = _run_number(row["run_text"])
     row["last_updated_by"] = str(rec.get("last_updated_by") or "").strip()
@@ -218,26 +252,43 @@ def _to_app(rec: dict) -> dict:
 
 
 def _clean(value) -> str:
-    """A placeholder dash means absent; IT should get an empty string."""
+    """A placeholder dash means absent; API should get an empty string."""
     s = str(value or "").strip()
     return "" if _is_blank(s) else s
+
+
+UNKNOWN_USER = "Tracker"
+
+
+def _timestamp() -> str:
+    """UTC in the millisecond ISO form API's own records come back in."""
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def _to_it(row: dict, record_id: str = "") -> dict:
     rec: dict = {}
     for app_key, it_key in FIELD_MAP.items():
         val = row.get(app_key, "")
-        rec[it_key] = _date_out(val) if app_key in _DATE_FIELDS else _clean(val)
+        if app_key not in _DATE_FIELDS:
+            rec[it_key] = _clean(val)
+            continue
+        out = _date_out(val)
+        rec[it_key] = (out or None) if app_key in _NULLABLE_DATES else out
     for app_key, it_key in BOOL_MAP.items():
         rec[it_key] = bool(row.get(app_key))
 
-    updated_by = str(row.get("last_updated_by") or "").strip()
-    if updated_by:
-        rec["last_updated_by"] = updated_by
+    rec["visible"] = bool(row.get("visible", True))
+
+    who = str(row.get("last_updated_by") or "").strip() or UNKNOWN_USER
+    rec["last_updated_by"] = who
+    rec["last_updated_at"] = _timestamp()
 
     key = str(record_id or row.get("id") or "").strip()
     if key.isdigit():
         rec["id"] = int(key)
+    else:
+        rec["created_by"] = who
+        rec["created_at"] = rec["last_updated_at"]
     return rec
 
 
@@ -295,10 +346,13 @@ def status() -> dict:
 
 
 def list_reports() -> list[dict]:
-    return [_to_app(rec) for rec in _records(_post(PATH_LIST, {"sample_data": {}}))]
+    """visible=False is API's own soft delete, set from their side. The tracker
+    never sets it and shows a called-off sample by its remarks instead, but it
+    still honours a row they have hidden."""
+    return [_to_app(rec) for rec in _records(_post(PATH_LIST, {"sample_data": {}}))
+            if rec.get("visible", True)]
 
 
-# The params endpoint only filters by run_number; every other lookup must match here.
 def get_report(report_id_: str) -> dict | None:
     """Single record, used to rebuild a full row before a whole-record update."""
     for rec in _records(_post(PATH_QUERY, {"sample_data": {"id": report_id_}})):
@@ -316,19 +370,16 @@ def create_report(payload: dict) -> dict:
         matches = [r for r in _records(_post(PATH_QUERY, {"sample_data": {"gen_id": gen_id}}))
                    if str(r.get("gen_id") or "").strip() == gen_id]
         if matches:
-            row["id"] = report_id(matches[-1])
+            row["id"] = report_id(max(matches, key=lambda r: int(str(r.get("id") or 0))))
     _overlay_set(row["id"], payload)
     row["_response"] = resp if isinstance(resp, dict) else {}
     return row
 
 
-# Updates send whole records, so a blank here would wipe the stored value.
 _PRESERVED = ("bioinfo_time",)
 
 
 def update_report(report_id_: str, payload: dict) -> dict | None:
-    # An update with no id is NOT a no-op on IT's side: it blanks unrelated
-    # records. Never send one.
     if not str(report_id_ or "").strip().isdigit():
         return None
 
@@ -341,20 +392,13 @@ def update_report(report_id_: str, payload: dict) -> dict | None:
                     payload[f] = current.get(f, "")
 
     rec = _to_it(payload, record_id=report_id_)
-    if not rec.get("id"):          # belt and braces — never update without one
+    if not rec.get("id"):        
         return None
     _post(PATH_UPDATE, {"sample_data": rec})
     _overlay_set(report_id_, payload)
     row = dict(payload)
     row["id"] = report_id_
     return row
-
-
-def delete_report(report_id_: str) -> bool:
-    raise ReportsAPIUnsupported(
-        "IT's integration API has no delete endpoint, so reports cannot be "
-        "removed from here. Ask IT to expose one, or clear the record's fields "
-        "instead.")
 
 
 def bulk_add(reports: list[dict]) -> int:
@@ -375,22 +419,22 @@ def bulk_add(reports: list[dict]) -> int:
     return len(reports)
 
 
-def _patch_many(ids: list[str], changes: dict) -> int:
+def _patch_many(id: list[str], changes: dict) -> int:
     """Apply the same change to a batch of records.
 
-    IT only accepts whole records, so each one has to be read before it can be
+    API only accepts whole records, so each one has to be read before it can be
     written. One list read covers the whole batch instead of a lookup per id,
     which halves the round trips — allocation hands over a full run at a time.
     """
-    if not ids:
+    if not id:
         return 0
-    wanted = {str(i) for i in ids}
+    wanted = {str(i) for i in id}
     stored = {row["id"]: row for row in list_reports() if row["id"] in wanted}
 
     count = 0
-    for id_ in ids:
+    for id_ in id:
         row = stored.get(str(id_))
-        if row is None:            # deleted or renumbered since the page loaded
+        if row is None:
             continue
         row.update(changes)
         update_report(str(id_), row)
@@ -398,13 +442,13 @@ def _patch_many(ids: list[str], changes: dict) -> int:
     return count
 
 
-def bulk_release(ids: list[str], rel_date: str) -> int:
-    return _patch_many(ids, {"rel_date": rel_date})
+def bulk_release(id: list[str], report_release_date: str) -> int:
+    return _patch_many(id, {"report_release_date": report_release_date})
 
 
-def bulk_remark(ids: list[str], remark: str) -> int:
-    return _patch_many(ids, {"remark": remark})
+def bulk_remarks(id: list[str], remarks: str) -> int:
+    return _patch_many(id, {"remarks": remarks})
 
 
-def bulk_reviewer(ids: list[str], pri_rev: str) -> int:
-    return _patch_many(ids, {"pri_rev": pri_rev})
+def bulk_reviewer(id: list[str], pri_rev: str) -> int:
+    return _patch_many(id, {"pri_rev": pri_rev})

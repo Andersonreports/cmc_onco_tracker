@@ -260,6 +260,7 @@
     .b-ong{background:rgba(245,158,11,.12);color:#b45309;border:1px solid rgba(245,158,11,.28)}
     .b-cmp{background:rgba(16,185,129,.12);color:#047857;border:1px solid rgba(16,185,129,.25)}
     .b-rel{background:rgba(139,92,246,.12);color:#6d28d9;border:1px solid rgba(139,92,246,.25)}
+    .b-can{background:rgba(100,116,139,.12);color:#475569;border:1px solid rgba(100,116,139,.28)}
     .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px}
     .qcard{
       padding:15px 17px;border-radius:var(--rs);border-left:3px solid transparent;
@@ -865,6 +866,7 @@
     .b-ong  { background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(251,191,36,.08)) !important; box-shadow: 0 1px 4px rgba(245,158,11,.12); }
     .b-cmp  { background: linear-gradient(135deg, rgba(16,185,129,.14), rgba(52,211,153,.08)) !important; box-shadow: 0 1px 4px rgba(16,185,129,.12); }
     .b-rel  { background: linear-gradient(135deg, rgba(139,92,246,.14), rgba(167,139,250,.08)) !important; box-shadow: 0 1px 4px rgba(139,92,246,.12); }
+    .b-can  { background: linear-gradient(135deg, rgba(100,116,139,.14), rgba(148,163,184,.08)) !important; box-shadow: 0 1px 4px rgba(100,116,139,.12); }
     .tab:not(.active):hover { background: rgba(99,102,241,.09) !important; color: #4f46e5 !important; border-radius: 10px 10px 0 0; }
 
     .hdr-title {
@@ -925,6 +927,7 @@
     .b-ong { background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(251,191,36,.1)); color: #b45309; border: 1px solid rgba(245,158,11,.3); }
     .b-cmp { background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(52,211,153,.1)); color: #065f46; border: 1px solid rgba(16,185,129,.3); }
     .b-rel { background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(167,139,250,.1)); color: #6d28d9; border: 1px solid rgba(139,92,246,.3); }
+    .b-can { background: linear-gradient(135deg, rgba(100,116,139,.15), rgba(148,163,184,.1)); color: #475569; border: 1px solid rgba(100,116,139,.3); }
 
     .an-check-item:hover { background: linear-gradient(90deg, rgba(79,70,229,.06), rgba(139,92,246,.04)); border-radius: 6px; }
 
@@ -1168,24 +1171,24 @@
     .prail-title{font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--c-ong)}
     .prail-star{color:var(--c-ong);display:inline-flex}
     .prail-list{
-      display:flex;flex-direction:column;gap:12px;
+      display:flex;flex-direction:column;gap:8px;
       max-height:392px;overflow-y:auto;padding-right:4px;
     }
     .pcard{
-      border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+      border:1px solid var(--line);border-radius:10px;padding:9px 12px;
       background:var(--surface);transition:var(--tr);cursor:pointer;position:relative;
     }
     .pcard:hover{border-color:#d1d5db;box-shadow:0 4px 14px rgba(16,24,40,.07);transform:translateY(-1px)}
     .pcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-    .pcard-id{font-size:13px;font-weight:700;letter-spacing:-.1px}
+    .pcard-id{font-size:11.5px;font-weight:700;letter-spacing:-.1px;line-height:1.25}
     .pcard-ic{flex-shrink:0;display:inline-flex}
-    .pcard-ic svg{width:15px;height:15px}
+    .pcard-ic svg{width:13px;height:13px}
     .pcard-name{
-      font-size:15.5px;font-weight:700;color:var(--ink);margin-top:7px;letter-spacing:-.3px;
+      font-size:13.5px;font-weight:700;color:var(--ink);margin-top:3px;letter-spacing:-.3px;line-height:1.3;
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
-    .pcard-meta{font-size:12.5px;color:var(--ink-3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .pcard-status{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;font-weight:600}
+    .pcard-meta{font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pcard-status{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:11px;font-weight:600;line-height:1.25}
     .pcard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
     .prail-foot{text-align:center;margin-top:16px}
     .prail-foot button{
@@ -1289,6 +1292,14 @@
     .tbl-wrap tbody td{border-bottom:1px solid var(--bdr)}
     .tbl-wrap tbody tr:last-child td{border-bottom:none}
 
+    #tbl-max-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:490;backdrop-filter:blur(2px)}
+    #tbl-max-backdrop.show{display:block}
+    .tbl-wrap.tbl-maximized{
+      position:fixed !important;top:24px;left:24px;right:24px;bottom:24px;
+      z-index:500;width:auto !important;max-width:none !important;max-height:none !important;
+      box-shadow:0 30px 80px rgba(0,0,0,.4);
+    }
+
     #qmodal-body th{background:var(--fz-head-bg,#f0f0fb) !important;background-image:none !important}
 
     #sort-btn-allSamples svg, [id^="sort-btn-"] svg, [id^="freeze-btn-"] svg{flex-shrink:0}
@@ -1318,6 +1329,8 @@
     </div>
   </div>
 </header>
+
+<div id="tbl-max-backdrop" onclick="exitTableMaximize()"></div>
 
 <div id="qmodal-backdrop" onclick="closeQModal(event)">
   <div id="qmodal">
@@ -1371,9 +1384,9 @@
           <label>Clinical Reviewer</label>
           <select class="sel" id="rf-final" style="height:38px;width:100%"></select>
         </div>
-        <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-rel_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
+        <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-report_release_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
         <div class="rf-item"><label>Run Number</label><input type="text" id="rf-run_text" placeholder="e.g. SURFseq- Run-102" /></div>
-        <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remark"></textarea></div>
+        <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remarks"></textarea></div>
         <div class="rf-item rf-wide"><label>History</label><textarea id="rf-history"></textarea></div>
         <div class="rf-item rf-wide">
           <label class="rf-check">
@@ -1398,9 +1411,8 @@
       </div>
     </div>
     <div id="report-modal-actions">
-      <button class="btn btn-out btn-sm" id="report-delete-btn" onclick="deleteReportFromModal()" style="display:none;border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.06);color:#dc2626;margin-right:auto">Delete</button>
       <button class="btn btn-out btn-sm" onclick="closeReportModal(null)">Cancel</button>
-      <button class="btn btn-pri btn-sm" onclick="submitReportForm()">Save</button>
+      <button class="btn btn-pri btn-sm" id="report-save-btn" onclick="submitReportForm()">Save</button>
     </div>
   </div>
 </div>
@@ -1758,6 +1770,9 @@
               <button class="btn btn-sm btn-pri" onclick="downloadChart0Data()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download
               </button>
+              <button class="btn btn-sm btn-out" onclick="downloadChart0Image()" title="Save this chart as a PNG image">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Save Image
+              </button>
               <span class="badge b-yet">Donut Chart</span>
               <div id="an-total-0" class="an-total-box">Total: 0</div>
             </div>
@@ -1939,8 +1954,16 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         <span id="ra-clear-team-label">Clear team</span>
       </button>
+      <button class="rel-filter-toggle" onclick="downloadReanalysisExcel()" style="border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08);color:#059669">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Excel
+      </button>
+      <button id="ra-max-btn" class="rel-filter-toggle" onclick="toggleTableMaximize('ra-tbl-wrap','ra-max-btn')" title="Maximize table">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <span class="tbl-max-label">Maximize</span>
+      </button>
     </div>
-    <div class="tbl-wrap glass"><div id="ra-table"></div></div>
+    <div class="tbl-wrap glass" id="ra-tbl-wrap"><div id="ra-table"></div></div>
   </div>
 
 </main>
@@ -2081,6 +2104,7 @@ const IC = {
   dna:     '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/><path d="M17 6l-2.5-2.5"/><path d="M14 8l-1-1"/><path d="M7 18l2.5 2.5"/><path d="M3.5 14.5l.5.5"/><path d="M20 9l.5.5"/><path d="M6.5 12.5l1 1"/><path d="M16.5 10.5l1 1"/><path d="M10 16l1.5 1.5"/></svg>',
   home:    '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
   pin:     '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg>',
+  ban:     '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
   rocket:  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
   folder:  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   user:    '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
@@ -2108,7 +2132,6 @@ const COL_MAP = {
   tat:       ['tat(30 days)','tat','turnaround'],
   rep_exp:   ['repeat expansion','repeat'],
   cnv_status:['cnv status','cnv'],
-  mito_status:['mito status','mito'],
   analyst:   ['analyze by','analysed by','analyzed by','analyst','analyze_by'],
   ana_date:  ['analyze date','analysis date','analyzed date','date of analysis','analyze_date'],
   pri_rev:   ['reviewer','primary reviwer (diwakar/naveen)','primary reviewer','primary review','primary_reviewer'],
@@ -2117,8 +2140,8 @@ const COL_MAP = {
   reanalysis:['re-analysis','re analysis','reanalysis'],
   priority:  ['priority','is priority','urgent'],
   run:       ['run_no','run no','run number','run'],
-  remark:    ['remark','remarks','note','notes'],
-  rel_date:  ['report release date','release date','released on','report_release_date'],
+  remarks:    ['remark','remarks','note','notes'],
+  report_release_date:  ['report release date','release date','released on','report_release_date'],
   history:   ['history writeup','history','writeup'],
 };
 
@@ -2128,23 +2151,10 @@ function extractRunNumber(text) {
   return m ? parseInt(m[1], 10) : null;
 }
 
-function deriveMitoStatus(testRaw, mitoRaw) {
-  const explicit = String(mitoRaw || '').trim();
-  if (explicit) return explicit;
-  const test = String(testRaw || '').toLowerCase();
-  if (!test) return '';
-  if (test.includes('mito')) {
-    if (test.includes('wes') || test.includes('exome')) return 'WES + Mito';
-    if (test.includes('ces')) return 'CES + Mito';
-    return 'Mito';
-  }
-  return '';
-}
-
 // Categories that jump the queue, checked as each run is imported.
 const PRIORITY_RULES = [
-  { label: 'Fast track',          fields: ['remark'],       re: /fast\s*-?\s*track/i },
-  { label: 'Expedited TAT',       fields: ['remark'],       re: /\b(?:dr\.?\s*)?(raman|sachin|anand|siva)\b/i },
+  { label: 'Fast track',          fields: ['remarks'],      re: /fast\s*-?\s*track/i },
+  { label: 'Expedited TAT',       fields: ['remarks'],      re: /\b(?:dr\.?\s*)?(raman|sachin|anand|siva)\b/i },
   { label: 'Single gene',         fields: ['test'],         re: /single\s*gene/i },
   { label: 'Female infertility',  fields: ['test'],         re: /female\s*infertility/i },
   // "female infertility" contains "male infertility" — the boundary stops a double match.
@@ -2191,15 +2201,14 @@ function mapRow(raw) {
     tat:          fmtDate(get(COL_MAP.tat)),
     rep_exp:      get(COL_MAP.rep_exp),
     cnv_status:   get(COL_MAP.cnv_status),
-    mito_status:  deriveMitoStatus(get(COL_MAP.test), get(COL_MAP.mito_status)),
     analyst:      analystClean,
     analyst_raw:  analystRaw,
     assign_date:  assignDate,
     ana_date:     fmtDate(get(COL_MAP.ana_date)),
     pri_rev:      get(COL_MAP.pri_rev),
     final:        get(COL_MAP.final),
-    remark:       get(COL_MAP.remark),
-    rel_date:     fmtDate(get(COL_MAP.rel_date)),
+    remarks:       get(COL_MAP.remarks),
+    report_release_date:     fmtDate(get(COL_MAP.report_release_date)),
     history:      get(COL_MAP.history),
     bioinfo_time: get(COL_MAP.bioinfo_time),
     is_reanalysis: yes(get(COL_MAP.reanalysis)),
@@ -2215,14 +2224,55 @@ function mapRow(raw) {
 // Runs before 54 predate release-date capture, so they count as released.
 const FIRST_RUN_WITH_RELEASE_DATES = 54;
 
+// A sample called off leaves every count, whatever its release date says. Any
+// remark saying it was cancelled counts, with or without who asked for it, so
+// this reads the same samples as IT's own remarks filter. Older runs keep
+// counting as they always did, so no month already reported on moves.
+const FIRST_RUN_WITH_CANCELLATIONS = 107;
+const CANCELLED_REMARK = /\bcancell?ed\b/i;
+
+function isCancelled(r) {
+  return parseInt(r.run_number || 0, 10) >= FIRST_RUN_WITH_CANCELLATIONS &&
+         CANCELLED_REMARK.test(r.remarks || '');
+}
+
+// Handed off to Siva sir's team — still unreleased, but no longer this
+// tracker's queue to chase, so it shouldn't sit in Yet to Start or Overdue.
+const SENT_TO_SIVA_REMARK = /sent\s*to\s*siva\s*sir/i;
+
+function isSentToSiva(r) {
+  return SENT_TO_SIVA_REMARK.test(r.remarks || '');
+}
+
+// The patient came back and a fresh sample carries the actual release date —
+// this original row never gets one of its own, so it would sit in Overdue
+// forever. It's done, just not a release in its own right, so it's kept out
+// of the Released count too (the repeat row supplies that).
+const REPEAT_SAMPLE_REMARK = /repeat\s*sample/i;
+
+function isRepeatSample(r) {
+  return REPEAT_SAMPLE_REMARK.test(r.remarks || '');
+}
+
 function getStatus(r) {
   const run = parseInt(r.run_number || 0, 10);
-  const hasRelDate = r.rel_date && r.rel_date !== '—' && r.rel_date !== '-' &&
-                     String(r.rel_date).trim() !== '';
+  const hasRelDate = r.report_release_date && r.report_release_date !== '—' && r.report_release_date !== '-' &&
+                     String(r.report_release_date).trim() !== '';
 
+  if (isCancelled(r)) return 'Cancelled';
   if (run < FIRST_RUN_WITH_RELEASE_DATES || hasRelDate) return 'Released';
+  if (isRepeatSample(r)) return 'Repeat Sample';
+  if (isSentToSiva(r)) return 'On Hold';
   if (r.pri_rev) return 'Ongoing';
   return 'Yet to Start';
+}
+
+// Work still owed: everything a reviewer, a TAT alert or an allocation cares
+// about. Cancelled, on-hold and repeat-sample rows are owed nothing, so they
+// sit outside it.
+function isPending(r) {
+  const st = getStatus(r);
+  return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Repeat Sample';
 }
 
 function parseDate(v) {
@@ -2349,7 +2399,7 @@ function getTatAlerts() {
   const warnLimit = new Date(today); warnLimit.setDate(warnLimit.getDate() + TAT_WARN_DAYS);
 
   const dueSoon = [], overdue = [], dueToday = [];
-  applySelfFilter(rows).filter(r => getStatus(r) !== 'Released').forEach(r => {
+  applySelfFilter(rows).filter(isPending).forEach(r => {
     const td = parseTatDate(r);
     if (!td) return;
     td.setHours(0,0,0,0);
@@ -2401,7 +2451,7 @@ let _prailRows = [];
 
 function getPriorityRows() {
   return applySelfFilter(rows)
-    .filter(r => r.is_priority && getStatus(r) !== 'Released')
+    .filter(r => r.is_priority && isPending(r))
     .sort((a,b) => {
       const da = parseTatDate(a), db = parseTatDate(b);
       return (da ? da.getTime() : Infinity) - (db ? db.getTime() : Infinity);
@@ -2465,16 +2515,16 @@ function tatDetailBlock(id, r, cols = 4) {
     ['Reviewer', r.pri_rev],
     ['Clinical Reviewer', r.final],
     ['CNV', r.cnv_status],
-    ['Remark', r.remark],
+    ['Remark', r.remarks],
   ];
   const releaseRow = canEditReports() ? `
     <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" class="date-txt" id="qrd-${id}" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" value="${esc(formatInputDate(r.rel_date)||'')}" />
+      <input type="text" class="date-txt" id="qrd-${id}" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" value="${esc(formatInputDate(r.report_release_date)||'')}" />
       <button class="btn btn-pri btn-sm" onclick="quickSetReleaseDate('${id}','${r.id}')">Mark Released</button>
     </div>` : '';
   const remarkRow = canEditReports() ? `
     <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" id="qrm-${id}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
+      <input type="text" id="qrm-${id}" placeholder="Add remark…" value="${esc(r.remarks||'')}" />
       <button class="btn btn-out btn-sm" onclick="quickSetRemark('${r.id}','qrm-${id}')">Save Remark</button>
     </div>` : '';
   const clinRow = canEditReports() ? `
@@ -2530,14 +2580,14 @@ async function quickPatchReport(reportId, patch, okMsg, errLabel) {
 async function quickSetReleaseDate(localId, reportId) {
   const dateVal = (document.getElementById('qrd-' + localId)?.value || '').trim();
   if (!dateVal) { toast('Enter a release date', 'warn'); return; }
-  await quickPatchReport(reportId, { rel_date: toApiDate(dateVal) },
+  await quickPatchReport(reportId, { report_release_date: toApiDate(dateVal) },
     'Release date saved — moved to Released', 'release date');
 }
 
 async function quickSetRemark(reportId, inputId) {
   const el = document.getElementById(inputId);
   if (!el) return;
-  await quickPatchReport(reportId, { remark: el.value.trim() }, 'Remark saved', 'remark');
+  await quickPatchReport(reportId, { remarks: el.value.trim() }, 'Remark saved', 'remarks');
 }
 
 async function quickSetClinicalReviewer(reportId, selectId) {
@@ -2596,7 +2646,7 @@ function filterTatSoon() {
   }
   const today = new Date(); today.setHours(0,0,0,0);
   const results = [];
-  rows.filter(r => getStatus(r) !== 'Released').forEach(r => {
+  rows.filter(isPending).forEach(r => {
     const td = parseTatDate(r);
     if (!td) return;
     td.setHours(0,0,0,0);
@@ -2615,7 +2665,7 @@ const BULK_RELEASE_DUE_DAYS = 10;
 function getBulkReleaseCandidates() {
   const today = new Date(); today.setHours(0,0,0,0);
   const out = [];
-  applySelfFilter(rows).filter(r => getStatus(r) !== 'Released').forEach(r => {
+  applySelfFilter(rows).filter(isPending).forEach(r => {
     const td = parseTatDate(r);
     if (!td) return;
     td.setHours(0,0,0,0);
@@ -2669,7 +2719,7 @@ function renderBulkReleaseList() {
       </div>
       <div id="bulk-remark-${esc(r.id)}" style="display:none">
         <div class="tat-release-row">
-          <input type="text" id="bulk-remark-input-${esc(r.id)}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
+          <input type="text" id="bulk-remark-input-${esc(r.id)}" placeholder="Add remark…" value="${esc(r.remarks||'')}" />
           <button class="btn btn-pri btn-sm" onclick="quickSetRemark('${r.id}','bulk-remark-input-${r.id}')">Save Remark</button>
         </div>
         <div class="tat-release-row">
@@ -2728,7 +2778,7 @@ async function submitBulkRelease() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkReleaseSelected], rel_date: toApiDate(dateVal) }),
+      body: JSON.stringify({ id: [..._bulkReleaseSelected], report_release_date: toApiDate(dateVal) }),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
@@ -2749,11 +2799,11 @@ async function submitBulkRemark() {
   if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
 
   try {
-    const resp = await fetch('api/reports/bulk-remark', {
+    const resp = await fetch('api/reports/bulk-remarks', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkReleaseSelected], remark: remarkVal }),
+      body: JSON.stringify({ id: [..._bulkReleaseSelected], remarks: remarkVal }),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
@@ -2775,7 +2825,7 @@ function getBulkAssignCandidates() {
   const includeAssigned = !!document.getElementById('bulk-assign-include-assigned')?.checked;
   const run = document.getElementById('bulk-assign-run')?.value || '';
   return applySelfFilter(rows)
-    .filter(r => getStatus(r) !== 'Released')
+    .filter(isPending)
     .filter(r => includeAssigned || !normalizeAnalystName(r.pri_rev))
     .filter(r => !run || r.run_text === run)
     .sort((a, b) => {
@@ -2797,7 +2847,7 @@ function populateBulkAssignReviewers() {
   const sel = document.getElementById('bulk-assign-run');
   if (sel) {
     const keep = sel.value;
-    const unreleased = applySelfFilter(rows).filter(r => getStatus(r) !== 'Released');
+    const unreleased = applySelfFilter(rows).filter(isPending);
     const runs = [...new Set(unreleased.map(r => r.run_text).filter(Boolean))]
       .sort((a, b) => (extractRunNumber(b) || 0) - (extractRunNumber(a) || 0));
     sel.innerHTML = '<option value="">All Runs</option>' +
@@ -2911,7 +2961,7 @@ async function submitBulkAssign() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkAssignSelected], pri_rev: reviewer }),
+      body: JSON.stringify({ id: [..._bulkAssignSelected], pri_rev: reviewer }),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
@@ -2930,9 +2980,11 @@ async function submitBulkAssign() {
 
 function badgeHtml(status) {
   const cls = {
-    'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel'
+    'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel','Cancelled':'b-can',
+    'On Hold':'b-can','Repeat Sample':'b-rel'
   }[status] || 'b-yet';
-  const icon = {'Yet to Start':IC.pin,'Ongoing':IC.user,'Released':IC.rocket}[status]||'';
+  const icon = {'Yet to Start':IC.pin,'Ongoing':IC.user,'Released':IC.rocket,
+                'Cancelled':IC.ban,'On Hold':IC.ban,'Repeat Sample':IC.rocket}[status]||'';
   return `<span class="badge ${cls}">${icon} ${esc(status)}</span>`;
 }
 
@@ -3036,7 +3088,7 @@ function parseBinary(data) {
 async function apiError(resp) {
   try {
     const body = await resp.json();
-    const msg = body && (body.error || body.detail);
+    const msg = body && (body.error || body.detail || body.message);
     if (msg) return new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
   } catch (e) { /* non-JSON body */ }
   return new Error(`HTTP ${resp.status}`);
@@ -3074,7 +3126,7 @@ function startAutoSync() {
 let raTeamFilter = null;
 let raSearch     = '';
 
-const REANALYSIS_COLS = ['name','test','gen_id','and_id','run_text','client','tat','mito_status','ana_date','pri_rev','remark'];
+const REANALYSIS_COLS = ['name','test','gen_id','and_id','run_text','client','tat','ana_date','pri_rev','remarks'];
 
 function getReanalysisRows() {
   return applySelfFilter(rows).filter(r => r.is_reanalysis);
@@ -3125,6 +3177,29 @@ function raOnSearch(v) {
   renderReanalysis();
 }
 
+function getFilteredReanalysisRows() {
+  let data = getReanalysisRows();
+  if (raTeamFilter) {
+    data = data.filter(r => String(r.pri_rev || '').toLowerCase().includes(raTeamFilter));
+  }
+  if (raSearch) {
+    const q = raSearch.toLowerCase();
+    data = data.filter(r => REANALYSIS_COLS.some(c => String(r[c] || '').toLowerCase().includes(q)));
+  }
+  return data;
+}
+
+function downloadReanalysisExcel() {
+  try {
+    const tm = raTeamFilter ? TEAM_MEMBERS.find(t => t.key === raTeamFilter) : null;
+    const suffix = buildFilenameSuffix([tm ? tm.label : '', raSearch]);
+    exportTableToExcel(getFilteredReanalysisRows(), REANALYSIS_COLS, `Reanalysis${suffix}`);
+  } catch(e) {
+    toast('Download failed: ' + e.message, 'err');
+    console.error('[downloadReanalysisExcel]', e);
+  }
+}
+
 function renderReanalysis() {
   const chartEl = document.getElementById('ra-chart-body');
   const tableEl = document.getElementById('ra-table');
@@ -3151,14 +3226,7 @@ function renderReanalysis() {
   if (totalEl) totalEl.textContent = 'Total: ' + total;
   chartEl.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:space-evenly;align-items:flex-start;padding:24px 16px">${buildReanalysisRingsHtml(teamCount, total)}</div>`;
 
-  let data = all;
-  if (raTeamFilter) {
-    data = data.filter(r => String(r.pri_rev || '').toLowerCase().includes(raTeamFilter));
-  }
-  if (raSearch) {
-    const q = raSearch.toLowerCase();
-    data = data.filter(r => REANALYSIS_COLS.some(c => String(r[c] || '').toLowerCase().includes(q)));
-  }
+  const data = getFilteredReanalysisRows();
 
   if (countEl) countEl.textContent = data.length;
   if (clearBtn) {
@@ -3176,25 +3244,36 @@ function renderReanalysis() {
 
 let currentUser = null;
 
+// Mirrors CAPABILITIES in exome_roles.py — the server is what enforces these.
+const ROLE_CAPS = {
+  admin:   ['upload', 'edit'],
+  lead:    ['edit'],
+  primary: ['upload'],
+  member:  [],
+  viewer:  [],
+};
+
+function userCan(capability) {
+  return !!currentUser && (ROLE_CAPS[currentUser.role] || []).includes(capability);
+}
+
 function canEditReports() {
-  return !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'lead');
+  return userCan('edit');
+}
+
+function canUploadReports() {
+  return userCan('upload');
 }
 
 function isAdminUser() {
   return !!currentUser && currentUser.role === 'admin';
 }
 
-function isSelfFilterActive() {
-  return !!currentUser && currentUser.role !== 'admin';
-}
-
-function matchesCurrentUser(r) {
-  if (!currentUser) return false;
-  return normalizeAnalystName(r.pri_rev).toLowerCase() === currentUser.username.toLowerCase();
-}
-
+// Every duty reads the whole list: a lead allocates from it, the primary team
+// uploads into it, and members are there to see it. Kept as the one seam to
+// narrow again if a duty ever needs only its own samples.
 function applySelfFilter(list) {
-  return isSelfFilterActive() ? list.filter(matchesCurrentUser) : list;
+  return list;
 }
 
 const DEV_USER = null;
@@ -3221,7 +3300,8 @@ function applyRolePermissions() {
   const addBtn = document.getElementById('add-report-btn');
   const bulkReleaseBtn = document.getElementById('bulk-release-toggle-btn');
   const bulkAssignBtn = document.getElementById('bulk-assign-toggle-btn');
-  if (addBtn) addBtn.style.display = canEdit ? '' : 'none';
+  // Adding samples belongs to the Primary team, allocation and release to the lead.
+  if (addBtn) addBtn.style.display = canUploadReports() ? '' : 'none';
   if (bulkReleaseBtn) bulkReleaseBtn.style.display = canEdit ? '' : 'none';
   if (bulkAssignBtn) bulkAssignBtn.style.display = canEdit ? '' : 'none';
 
@@ -3231,11 +3311,11 @@ function applyRolePermissions() {
 
 const REPORT_FORM_FIELDS = [
   'name','test','gen_id','and_id','client','tat','rep_exp','cnv_status','analyst_raw',
-  'ana_date','pri_rev','final','rel_date','run_text','remark','history',
+  'ana_date','pri_rev','final','report_release_date','run_text','remarks','history',
 ];
 // run_number is parsed from the run label for sorting; a run with no number sorts last.
 const DEFAULT_RUN_NUMBER = 9999;
-const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil'];
+const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram'];
 const CLINICAL_REVIEWERS = ['Dr.Sarath', 'Dr.Robert'];
 const CNV_STATUSES = ['No CNV', 'CNV - Suspected', 'CNV - Reported'];
 
@@ -3257,7 +3337,10 @@ function openReportModal(row) {
   document.getElementById('rf-is_reanalysis').checked = !!row?.is_reanalysis;
   document.getElementById('rf-upload-section').style.display = row ? 'none' : 'flex';
   document.getElementById('rf-excel-file').value = '';
-  document.getElementById('report-delete-btn').style.display = row ? '' : 'none';
+  // Editing a saved sample is the lead's; adding one is the Primary team's, so
+  // Save has to follow whichever the modal is currently doing.
+  const saveBtn = document.getElementById('report-save-btn');
+  if (saveBtn) saveBtn.style.display = (row ? canEditReports() : canUploadReports()) ? '' : 'none';
   REPORT_FORM_FIELDS.forEach(f => {
     const el = document.getElementById('rf-' + f);
     if (!el) return;
@@ -3267,7 +3350,7 @@ function openReportModal(row) {
       el.innerHTML = clinicalReviewerOptions(row?.final || '');
     } else if (f === 'cnv_status') {
       el.innerHTML = cnvStatusOptions(row?.cnv_status || '');
-    } else if (f === 'tat' || f === 'ana_date' || f === 'rel_date') {
+    } else if (f === 'tat' || f === 'ana_date' || f === 'report_release_date') {
       el.value = row ? formatInputDate(row[f] || '') : '';
     } else {
       el.value = row ? (row[f] || '') : '';
@@ -3303,7 +3386,7 @@ async function submitReportForm() {
 
   payload.tat = toApiDate(payload.tat);
   payload.ana_date = toApiDate(payload.ana_date);
-  payload.rel_date = toApiDate(payload.rel_date);
+  payload.report_release_date = toApiDate(payload.report_release_date);
   payload.test = normalizeTestName(payload.test);
   const assignDateMatch = payload.analyst_raw.match(/\(([^)]+)\)/);
   payload.assign_date = assignDateMatch ? assignDateMatch[1].trim() : '';
@@ -3368,35 +3451,6 @@ async function handleReportExcelUpload(event) {
   }
 }
 
-async function deleteReport(id) {
-  if (!confirm('Delete this report? This cannot be undone.')) return;
-  try {
-    const resp = await fetch(`api/reports/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-    if (!resp.ok) throw await apiError(resp);
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    toast('Report deleted');
-  } catch (e) {
-    toast('Failed to delete report: ' + e.message, 'err');
-  }
-}
-
-async function deleteReportFromModal() {
-  const id = document.getElementById('rf-id').value;
-  if (!id) { toast('Nothing to delete — this report has not been saved yet', 'warn'); return; }
-  if (!confirm('Delete this report? This cannot be undone.')) return;
-  try {
-    const resp = await fetch(`api/reports/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-    if (!resp.ok) throw await apiError(resp);
-    closeReportModal(null);
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    toast('Report deleted');
-  } catch (e) {
-    toast('Failed to delete report: ' + e.message, 'err');
-  }
-}
-
 function sortAllSamplesData() {
   _allModalData = sortRowsByDate(_allModalData, r => parseDate(r.tat), _sortDir.allSamples);
 }
@@ -3418,6 +3472,7 @@ function rowEditAttrs(r) {
 const PAGE_MAP = { dashboard:'page-dashboard', assigned:'page-assigned', released:'page-released', overdue:'page-overdue', analytics:'page-analytics', reanalysis:'page-reanalysis' };
 
 function switchTab(id, btn) {
+  exitTableMaximize();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(PAGE_MAP[id]).classList.add('active');
@@ -3432,19 +3487,22 @@ function switchTab(id, btn) {
 }
 
 function getRowYear(r) {
-  const d = parseDate(r.tat) || parseDate(r.ana_date) || parseDate(r.rel_date);
+  const d = parseDate(r.tat) || parseDate(r.ana_date) || parseDate(r.report_release_date);
   return d ? d.getFullYear() : null;
 }
 
 function updateStatsByYear() {
-  const filtered = rows;
+  const cancelled = rows.filter(isCancelled);
+  const filtered = rows.filter(r => !isCancelled(r));
 
   const yet = filtered.filter(r=>getStatus(r)==='Yet to Start');
   const ong = filtered.filter(r=>getStatus(r)==='Ongoing');
   const rel = filtered.filter(r=>getStatus(r)==='Released');
 
   document.getElementById('s-all').textContent = filtered.length;
-  document.getElementById('s-all-sub').textContent = 'Click to view all samples';
+  document.getElementById('s-all-sub').textContent = cancelled.length
+    ? `${cancelled.length} cancelled, not counted — click to view all`
+    : 'Click to view all samples';
   document.getElementById('s-yet').textContent = yet.length;
   document.getElementById('s-ong').textContent = ong.length;
   document.getElementById('s-rel').textContent = rel.length;
@@ -3612,8 +3670,8 @@ function populateDateFilters(monthId, yearId, data) {
   const ySel = document.getElementById(yearId);
   if (!mSel || !ySel) return;
   const curM = mSel.value, curY = ySel.value;
-  const months = [...new Set(data.map(r=>{ const d=parseDate(r.rel_date); return d?d.getMonth()+1:null; }).filter(Boolean))].sort((a,b)=>a-b);
-  const years  = [...new Set(data.map(r=>{ const d=parseDate(r.rel_date); return d?d.getFullYear():null; }).filter(Boolean))].filter(y=>y<=2026).sort((a,b)=>b-a);
+  const months = [...new Set(data.map(r=>{ const d=parseDate(r.report_release_date); return d?d.getMonth()+1:null; }).filter(Boolean))].sort((a,b)=>a-b);
+  const years  = [...new Set(data.map(r=>{ const d=parseDate(r.report_release_date); return d?d.getFullYear():null; }).filter(Boolean))].filter(y=>y<=2026).sort((a,b)=>b-a);
   mSel.innerHTML = '<option value="">All Months</option>' + months.map(m=>`<option value="${m}">${MONTHS[m-1]}</option>`).join('');
   ySel.innerHTML = '<option value="">All Years</option>'  + years.map(y=>`<option value="${y}">${y}</option>`).join('');
   if (months.map(String).includes(curM)) mSel.value=curM;
@@ -3813,18 +3871,18 @@ function openTeamWorkloadModal() {
 }
 
 const MODAL_COLS = {
-  assigned: ['name','test','gen_id','and_id','run_text','client','tat','mito_status','rep_exp','cnv_status','ana_date'],
+  assigned: ['name','test','gen_id','and_id','run_text','client','tat','rep_exp','cnv_status','ana_date'],
 };
 
 function getColClass(c) {
   const classMap = {
     'name':'col-w-name','client':'col-w-client','test':'col-w-test',
     'gen_id':'col-w-id','and_id':'col-w-id','run_text':'col-w-run',
-    'tat':'col-w-tat','rel_date':'col-w-date','ana_date':'col-w-date','assign_date':'col-w-date',
+    'tat':'col-w-tat','report_release_date':'col-w-date','ana_date':'col-w-date','assign_date':'col-w-date',
     '_status':'col-w-status','_rel':'col-w-date',
     'analyst':'col-w-analyst','analyst_txt':'col-w-analyst','pri_rev':'col-w-analyst',
     'analyst_raw':'col-w-analyst','final':'col-w-analyst','last_updated_by':'col-w-analyst',
-    'remark':'col-w-text','history':'col-w-text','last_updated_at':'col-w-stamp',
+    'remarks':'col-w-text','history':'col-w-text','last_updated_at':'col-w-stamp',
     'bioinfo_time':'col-w-flag','is_priority':'col-w-flag','is_reanalysis':'col-w-flag',
   };
   return classMap[c]||'';
@@ -3859,11 +3917,11 @@ function buildModalTable(data, cols, applyStatusColors = false) {
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
-    if (c==='rel_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
+    if (c==='report_release_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
     if (c==='ana_date') return `<td class="${cls} col-date" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='tat') return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
-    if (c==='_rel') { const st=getStatus(r); return `<td class="${cls} col-date" data-col="${c}">${st==='Released'?fmtRelDate(r.rel_date,r):'<span class="muted-val">—</span>'}</td>`; }
+    if (c==='_rel') { const st=getStatus(r); return `<td class="${cls} col-date" data-col="${c}">${st==='Released'?fmtRelDate(r.report_release_date,r):'<span class="muted-val">—</span>'}</td>`; }
     if (c==='is_priority'||c==='is_reanalysis') {
       const on = !!r[c];
       const tag = c==='is_priority' ? 'PRIORITY' : 'RE-AN';
@@ -3877,8 +3935,8 @@ function buildModalTable(data, cols, applyStatusColors = false) {
 
 const ALL_COLS = [
   'name','test','gen_id','and_id','client','run_text','tat','bioinfo_time',
-  'rep_exp','cnv_status','mito_status','analyst_raw','ana_date','pri_rev','final',
-  '_status','remark','rel_date','history','is_priority','is_reanalysis',
+  'rep_exp','cnv_status','analyst_raw','ana_date','pri_rev','final',
+  '_status','remarks','report_release_date','history','is_priority','is_reanalysis',
   'last_updated_by','last_updated_at',
 ];
 let _allModalData = [];
@@ -3890,10 +3948,11 @@ function openAllSamplesModal(defaultStatus) {
   _allModalFiltered = _allModalData;
 
   const tests = [...new Set(_allModalData.map(r=>r.test).filter(Boolean))].sort();
-  const statuses = ['Yet to Start','Ongoing','Released'];
+  const statuses = ['Yet to Start','Ongoing','Released','Cancelled'];
   const clients = [...new Set(_allModalData.map(r=>r.client).filter(Boolean))].sort();
-  const runs = [...new Set(_allModalData.map(r=>r.run_text).filter(Boolean))].sort();
+  const runs = runOptions(_allModalData);
   const cnvStatuses = [...new Set(_allModalData.map(r=>r.cnv_status).filter(Boolean))].sort();
+  const reviewers = REVIEWERS.slice().sort();
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const tatMonths = [...new Set(_allModalData.map(r=>{ const d=parseDate(r.tat); return d?d.getMonth()+1:null; }).filter(Boolean))].sort((a,b)=>a-b);
@@ -3926,6 +3985,7 @@ function openAllSamplesModal(defaultStatus) {
         <div class="rel-panel-item"><label>Status</label><select class="sel" id="all-f-status" onchange="filterAllSamples()">${'<option value="">All Statuses</option>'+statuses.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Client</label><select class="sel" id="all-f-client" onchange="filterAllSamples()">${'<option value="">All Clients</option>'+clients.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>CNV Status</label><select class="sel" id="all-f-cnv" onchange="filterAllSamples()">${'<option value="">All CNV Statuses</option>'+cnvStatuses.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Reviewer</label><select class="sel" id="all-f-reviewer" onchange="filterAllSamples()">${'<option value="">All Reviewers</option>'+reviewers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>TAT Month</label><select class="sel" id="all-f-month" onchange="filterAllSamples()">${'<option value="">All Months</option>'+tatMonths.map(m=>`<option value="${m}">${MONTHS[m-1]}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>TAT Year</label><select class="sel" id="all-f-year" onchange="filterAllSamples()">${'<option value="">All Years</option>'+tatYears.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Re-analysis</label><select class="sel" id="all-f-reanalysis" onchange="filterAllSamples()">
@@ -3959,6 +4019,7 @@ function filterAllSamples() {
   const status  = document.getElementById('all-f-status')?.value||'';
   const clientF = document.getElementById('all-f-client')?.value||'';
   const cnv     = document.getElementById('all-f-cnv')?.value||'';
+  const reviewer = document.getElementById('all-f-reviewer')?.value||'';
   const month   = document.getElementById('all-f-month')?.value||'';
   const year    = document.getElementById('all-f-year')?.value||'';
   const reanaly = document.getElementById('all-f-reanalysis')?.value||'';
@@ -3970,6 +4031,7 @@ function filterAllSamples() {
   if (status)  data = data.filter(r=>getStatus(r)===status);
   if (clientF) data = data.filter(r=>r.client===clientF);
   if (cnv)     data = data.filter(r=>r.cnv_status===cnv);
+  if (reviewer) data = data.filter(r=>extractAnalysts(r.pri_rev).includes(reviewer));
   if (month)   data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getMonth()+1)===month; });
   if (year)    data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getFullYear())===year; });
   if (q)       data = data.filter(r=>
@@ -3995,6 +4057,7 @@ function downloadAllSamplesExcel() {
       document.getElementById('all-f-status')?.value,
       document.getElementById('all-f-client')?.value,
       document.getElementById('all-f-cnv')?.value,
+      document.getElementById('all-f-reviewer')?.value,
       monthLabel(document.getElementById('all-f-month')?.value),
       document.getElementById('all-f-year')?.value,
     ]);
@@ -4006,14 +4069,14 @@ function downloadAllSamplesExcel() {
 }
 
 function clearAllSamplesFilters() {
-  ['all-f-test','all-f-run','all-f-status','all-f-client','all-f-cnv','all-f-month','all-f-year','all-f-reanalysis'].forEach(id => {
+  ['all-f-test','all-f-run','all-f-status','all-f-client','all-f-cnv','all-f-reviewer','all-f-month','all-f-year','all-f-reanalysis'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   const q = document.getElementById('all-q'); if (q) q.value = '';
   filterAllSamples();
 }
 
-const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','_status','rel_date'];
+const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','_status','report_release_date'];
 function performGlobalSearch() {
   const input = document.getElementById('global-search');
   const resultsEl = document.getElementById('global-search-results');
@@ -4051,7 +4114,7 @@ function performGlobalSearch() {
       if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(v):'—'}</td>`;
       if (c==='gen_id'||c==='and_id') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
       if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)">${badgeHtml(st)}</td>`; }
-      if (c==='rel_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
+      if (c==='report_release_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
       return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
     }).join('')}</tr>`).join('');
 
@@ -4100,6 +4163,35 @@ function toggleQModalMaximize() {
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeQModal(null); });
 
+let _maximizedTable = null;
+
+function setTableMaximized(wrapId, btnId, on) {
+  document.getElementById(wrapId)?.classList.toggle('tbl-maximized', on);
+  document.getElementById('tbl-max-backdrop')?.classList.toggle('show', on);
+  document.body.style.overflow = on ? 'hidden' : '';
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.title = on ? 'Restore table size' : 'Maximize table';
+    const label = btn.querySelector('.tbl-max-label');
+    if (label) label.textContent = on ? 'Restore' : 'Maximize';
+    const svg = btn.querySelector('svg');
+    if (svg) svg.innerHTML = on
+      ? '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>'
+      : '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+  }
+  _maximizedTable = on ? { wrapId, btnId } : null;
+}
+
+function toggleTableMaximize(wrapId, btnId) {
+  setTableMaximized(wrapId, btnId, !document.getElementById(wrapId)?.classList.contains('tbl-maximized'));
+}
+
+function exitTableMaximize() {
+  if (_maximizedTable) setTableMaximized(_maximizedTable.wrapId, _maximizedTable.btnId, false);
+}
+
+document.addEventListener('keydown', e => { if (e.key==='Escape') exitTableMaximize(); });
+
 function openEmpModal(empName) {
   let empRows = rows.filter(r =>
     getStatus(r) === 'Ongoing' &&
@@ -4129,18 +4221,18 @@ function renderQuickCards(containerId, data, status) {
 const TABLE_CFG = {
   assigned:  { status:'Ongoing',      q:'q-asgn', test:'f-asgn-test', run:'f-asgn-run', reviewer:'f-asgn-employee', tat:'f-asgn-tat', relMonth:null,          relYear:null,
                cnv:'f-asgn-cnv',
-               cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','mito_status','rep_exp','cnv_status','ana_date','remark'] },
+               cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','rep_exp','cnv_status','ana_date','remarks'] },
   released:  { status:'Released',     q:'q-rel',  test:'f-rel-test',  run:'f-rel-run',  analyst:'f-rel-analyst', team:'f-rel-team', client:'f-rel-client', tat:null,
                relMonth:'f-rel-month', relYear:'f-rel-year', relDate:'f-rel-date', clientNorm:true, selfFilter:true,
                cnv:'f-rel-cnv',
-               cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','mito_status','rep_exp','cnv_status','rel_date','remark'] },
+               cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','rep_exp','pri_rev','final','cnv_status','report_release_date','remarks'] },
 };
 
 const COL_LABELS = {
   name:'Sample Name', test:'Test', gen_id:'Gen. ID', and_id:'And. ID', run_text: 'Run',
-  client:'Client', tat:'TAT', rep_exp:'Repeat Exp', cnv_status:'CNV Status', mito_status:'MITO Status',
+  client:'Client', tat:'TAT', rep_exp:'Repeat Exp', cnv_status:'CNV Status',
   analyst:'Assigned To', analyst_raw:'Analyze By', analyst_txt:'Analyst', assign_date:'Assigned Date', ana_date:'Analyze Date', pri_rev:'Reviewer',
-  final:'Clinical Reviewer', remark:'Remark', rel_date:'Release Date', history:'History',
+  final:'Clinical Reviewer', remarks:'Remark', report_release_date:'Release Date', history:'History',
   bioinfo_time:'Bioinfo Time', is_priority:'Priority', is_reanalysis:'Re-analysis',
   last_updated_by:'Updated By', last_updated_at:'Updated At',
   _status:'Status', _rel:'Release Date', _overdue_days:'Days Overdue',
@@ -4176,9 +4268,9 @@ function getFilteredTableData(key) {
   if (reviewer) data = data.filter(r=>r.pri_rev===reviewer);
   if (tat)      data = data.filter(r=>r.tat===tat);
   if (cnv)      data = data.filter(r=>r.cnv_status===cnv);
-  if (relMonth) data = data.filter(r=>{ const d=parseDate(r.rel_date); return d&&String(d.getMonth()+1)===relMonth; });
-  if (relYear)  data = data.filter(r=>{ const d=parseDate(r.rel_date); return d&&String(d.getFullYear())===relYear; });
-  if (relDate)  data = data.filter(r=>{ const d=parseDate(r.rel_date); const pick=parseDate(relDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
+  if (relMonth) data = data.filter(r=>{ const d=parseDate(r.report_release_date); return d&&String(d.getMonth()+1)===relMonth; });
+  if (relYear)  data = data.filter(r=>{ const d=parseDate(r.report_release_date); return d&&String(d.getFullYear())===relYear; });
+  if (relDate)  data = data.filter(r=>{ const d=parseDate(r.report_release_date); const pick=parseDate(relDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
   if (tatMonth) data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getMonth()+1)===tatMonth; });
   if (tatYear)  data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getFullYear())===tatYear; });
   if (tatDate)  data = data.filter(r=>{ const d=parseDate(r.tat); const pick=parseDate(tatDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
@@ -4195,7 +4287,7 @@ function getFilteredTableData(key) {
   );
 
   if (key === 'assigned')  data = sortRowsByDate(data, r => parseDate(r.assign_date), _sortDir.assigned);
-  if (key === 'released')  data = sortRowsByDate(data, r => parseDate(fmtRelDate(r.rel_date, r)), _sortDir.released);
+  if (key === 'released')  data = sortRowsByDate(data, r => parseDate(fmtRelDate(r.report_release_date, r)), _sortDir.released);
 
   return data;
 }
@@ -4226,7 +4318,7 @@ function renderTable(key) {
     if (c==='analyst_raw') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='analyst_txt') { const av = r.analyst||''; return `<td class="${cls}" data-col="${c}" style="font-size:13px;color:var(--text)" title="${esc(av)}">${esc(av)||'<span class="muted-val">—</span>'}</td>`; }
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
-    if (c==='rel_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
+    if (c==='report_release_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
     if (c==='ana_date') return `<td class="${cls} col-date" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='pri_rev'||c==='final') return `<td class="${cls}" data-col="${c}">${v?`<span class="badge b-cmp">${IC.check} ${esc(fmtDate(v))}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='tat') return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
@@ -4277,7 +4369,7 @@ const OVERDUE_COLS = ['name','test','gen_id','and_id','run_text', 'client','tat'
 function getOverdueRows() {
   const today = new Date(); today.setHours(0,0,0,0);
   return applySelfFilter(rows).filter(r => {
-    if (getStatus(r) === 'Released') return false;
+    if (!isPending(r)) return false;
     const td = parseTatDate(r);
     if (!td) return false;
     td.setHours(0,0,0,0);
@@ -4383,8 +4475,8 @@ function clearOverdueFilters() {
 
 function cellExportValue(r, c) {
   if (c === '_status') return getStatus(r);
-  if (c === '_rel') return getStatus(r) === 'Released' ? (fmtRelDate(r.rel_date, r) === '—' ? '' : fmtRelDate(r.rel_date, r)) : '';
-  if (c === 'rel_date') { const s = fmtRelDate(r.rel_date, r); return s === '—' ? '' : s; }
+  if (c === '_rel') return getStatus(r) === 'Released' ? (fmtRelDate(r.report_release_date, r) === '—' ? '' : fmtRelDate(r.report_release_date, r)) : '';
+  if (c === 'report_release_date') { const s = fmtRelDate(r.report_release_date, r); return s === '—' ? '' : s; }
   if (c === 'tat' || c === 'ana_date' || c === 'assign_date') { const s = fmtDate(r[c]); return s === '—' ? '' : s; }
   if (c === 'run_text') return r.run_text || '';
   if (c === '_overdue_days') return r._overdue_days != null ? r._overdue_days : '';
@@ -4613,7 +4705,7 @@ function loadFromStorage() {
 }
 
 let _priorityRows = [];
-const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','mito_status','pri_rev'];
+const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','pri_rev'];
 
 function openPriorityModal() {
   _priorityRows = getPriorityRows();
@@ -4744,7 +4836,7 @@ function anToggleAll(chartPrefix, checked) {
 
 function anInitFilters() {
   const years = [...new Set(rows.map(r => {
-    const d = parseDate(r.tat) || parseDate(r.rel_date);
+    const d = parseDate(r.tat) || parseDate(r.report_release_date);
     return d ? d.getFullYear() : null;
   }).filter(Boolean))].sort((a, b) => b - a);
 
@@ -4821,7 +4913,7 @@ function anDrawChart1() {
   const checkedTests = Array.from(document.querySelectorAll('#an-f1-test-list input:checked')).map(i => i.value);
 
   const filtered = rows.filter(r => {
-    const d = parseDate(r.tat) || parseDate(r.rel_date);
+    const d = parseDate(r.tat) || parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch = year === 'All' || String(d.getFullYear()) === year;
     const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
@@ -4851,7 +4943,7 @@ function anDrawChart2() {
   const checkedClients = Array.from(document.querySelectorAll('#an-f2-client-list input:checked')).map(i => i.value);
 
   const filtered = rows.filter(r => {
-    const d = parseDate(r.tat) || parseDate(r.rel_date);
+    const d = parseDate(r.tat) || parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch = year === 'All' || String(d.getFullYear()) === year;
     const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
@@ -4875,7 +4967,7 @@ function anDrawChart2() {
 
 function _relOrTat(r) {
   const today = new Date();
-  const rd = parseDate(r.rel_date);
+  const rd = parseDate(r.report_release_date);
   if (rd && rd <= today) return rd;
   return parseDate(r.tat);
 }
@@ -5029,20 +5121,20 @@ function anDrawChart0() {
   if (legendEl) legendEl.innerHTML = '';
 }
 
-const REVIEWER_RELEASED_COLS = ['name','test','gen_id','and_id','run_text','client','tat','mito_status','rep_exp','cnv_status','rel_date','analyst','remark'];
+const REVIEWER_RELEASED_COLS = ['name','test','gen_id','and_id','run_text','client','tat','rep_exp','cnv_status','report_release_date','analyst','remarks'];
 
 function reviewerReleasedSamples(key) {
   const year  = document.getElementById('an-f0-year').value;
   const month = document.getElementById('an-f0-month').value;
   return rows.filter(r => {
     if (getStatus(r) !== 'Released') return false;
-    const d = parseDate(r.rel_date);
+    const d = parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch  = year  === 'All' || String(d.getFullYear()) === year;
     const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
     return yearMatch && monthMatch && String(r.pri_rev || '').toLowerCase().trim().includes(key);
   }).sort((a, b) => {
-    const da = parseDate(a.rel_date), db = parseDate(b.rel_date);
+    const da = parseDate(a.report_release_date), db = parseDate(b.report_release_date);
     return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
   });
 }
@@ -5172,6 +5264,67 @@ function downloadChart0Data() {
   } catch(e) {
     toast('Download failed: ' + e.message, 'err');
     console.error('[downloadChart0Data]', e);
+  }
+}
+
+// The reviewer/re-analysis "donut" charts are hand-drawn inline SVG inside a
+// div, not a <canvas> or <img> — browsers don't offer "Save image as" on
+// that, unlike the Chart.js canvases elsewhere on this page. This rasterizes
+// the card into a real PNG so it can be saved the normal way.
+function exportNodeAsPng(node, filename) {
+  return new Promise((resolve, reject) => {
+    const rect = node.getBoundingClientRect();
+    const width = Math.ceil(rect.width) || 900;
+    const height = Math.ceil(rect.height) || 400;
+
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll('button, .an-fp').forEach(el => el.remove());
+    clone.style.margin = '0';
+
+    const svgMarkup =
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+      `<foreignObject width="100%" height="100%">` +
+      `<div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Inter,system-ui,sans-serif;` +
+      `background:#ffffff;width:${width}px;box-sizing:border-box">${clone.outerHTML}</div>` +
+      `</foreignObject></svg>`;
+
+    const url = URL.createObjectURL(new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' }));
+    const img = new Image();
+    img.onload = () => {
+      const scale = 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => {
+        if (!blob) { reject(new Error('Could not render canvas')); return; }
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        resolve();
+      }, 'image/png');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not render chart as an image')); };
+    img.src = url;
+  });
+}
+
+async function downloadChart0Image() {
+  try {
+    const card = document.getElementById('an-chart-body-0').closest('.an-chart-card');
+    await exportNodeAsPng(card, `reviewer-releases-${todayDDMMYYYY()}.png`);
+    toast('Chart saved as image');
+  } catch (e) {
+    toast('Could not save chart as image: ' + e.message, 'err');
+    console.error('[downloadChart0Image]', e);
   }
 }
 
