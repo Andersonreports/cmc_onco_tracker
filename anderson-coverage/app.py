@@ -20,15 +20,16 @@ from urllib.parse import quote
 from flask import Flask, request, jsonify, render_template_string, Response
 
 from coverage_index import Panel, merge_intervals, tokenize, _STOP_TOKENS, resolve_alias
+import samples as samplemod
 import coverage_db
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BED_DIR = os.environ.get("BED_DIR", "/data/bed")
-# Precomputed coverage DBs — the sole source of sample read-depth coverage,
-# one panel per DB. Build with build/build_db.py (Twist Spikein) /
-# build/build_db_cnv.py (spike-in CNV backbone panel).
+# Precomputed coverage DBs — when present the app reports sample coverage from
+# them (no BAM files needed), one panel per DB. Build with build/build_db.py
+# (Twist Spikein) / build/build_db_cnv.py (spike-in CNV backbone panel).
 # COVERAGE_DB overrides/adds the primary one; any other *.db dropped in HERE
-# is picked up automatically. A panel with no DB reports panel coverage only.
+# is picked up automatically.
 DB_PATH = os.environ.get("COVERAGE_DB", os.path.join(HERE, "coverage.db"))
 COVDBS = []    # list of CoverageDB, set in setup_panels()
 
@@ -80,13 +81,25 @@ def discover_panels():
 
 
 def discover_db_paths():
-    """Primary DB (COVERAGE_DB, default coverage.db) first, then any other
-    *.db file found alongside it (e.g. coverage_cnv.db)."""
-    paths = []
-    if os.path.exists(DB_PATH):
-        paths.append(DB_PATH)
-    for p in sorted(glob.glob(os.path.join(HERE, "*.db"))):
-        if p not in paths:
+    """Primary DB (COVERAGE_DB, default coverage.db) first, then any other *.db
+    found alongside it (e.g. coverage_cnv.db), then docs/.
+
+    The DBs live in docs/ and are reached here through symlinks, so docs/ is
+    searched too — a checkout that did not preserve those symlinks still finds
+    the real files. Deduplicated by real path so a symlink and its target are
+    never loaded as two panels.
+    """
+    docs = os.path.join(HERE, "docs")
+    # The primary DB's docs/ copy sits directly behind it, so if the symlink did
+    # not survive the checkout its panel still loads first and stays the default.
+    ordered = ([DB_PATH, os.path.join(docs, os.path.basename(DB_PATH))]
+               + sorted(glob.glob(os.path.join(HERE, "*.db")))
+               + sorted(glob.glob(os.path.join(docs, "*.db"))))
+    paths, seen = [], set()
+    for p in ordered:
+        real = os.path.realpath(p)
+        if os.path.exists(p) and real not in seen:
+            seen.add(real)
             paths.append(p)
     return paths
 
@@ -98,11 +111,15 @@ def setup_panels():
     global COVDBS
     discover_panels()
     COVDBS = []
+    from_db = set()
     for path in discover_db_paths():
         db = coverage_db.open_db(path)
         if db is None:
             continue
         name = db.panel_name
+        if name in from_db:      # same panel from a second file (e.g. the docs/ copy)
+            continue
+        from_db.add(name)
         if name in PANELS:                     # drop the BED-loaded duplicate
             PANEL_ORDER.remove(name); del PANELS[name]
         PANELS[name] = db.panel                # already loaded; ids match cov table
@@ -180,19 +197,6 @@ def resolve_rsid(rsid):
 
 
 # ── annotation parsing for display ─────────────────────────────────────────────
-def merge_by_chrom(intervals):
-    """Merge (chrom, start, end) list -> dict chrom -> merged [(s, e)].
-
-    Grouped per chromosome so intervals with the same coordinates on different
-    chromosomes are never merged together.
-    """
-    by_chrom = {}
-    for c, s, e in intervals:
-        if e > s:
-            by_chrom.setdefault(c, []).append((s, e))
-    return {c: merge_intervals(ivs) for c, ivs in by_chrom.items()}
-
-
 def split_annot(annot):
     genes, ids, other = [], [], []
     seen_g, seen_i = set(), set()
@@ -302,6 +306,7 @@ def do_query(q, qtype, panel_name, sample_accs=None):
                 "found": bool(rows),
                 "summary": summarize_rows(rows),
                 "sample_coverage": compute_sample_coverage(panel, idxs, sample_accs),
+                "coding_pct": gene_coding_pct(panel, alias or name),
             }
             if alias:
                 gene_entry["alias_of"] = alias
@@ -314,7 +319,7 @@ def do_query(q, qtype, panel_name, sample_accs=None):
             "n_genes": len(names),
             "n_found": sum(1 for g in genes if g["found"]),
             "combined_summary": {
-                "targeted_bp": sum(e - s for ivs in merge_by_chrom(all_ivs).values()
+                "targeted_bp": sum(e - s for ivs in samplemod._merge(all_ivs).values()
                                    for s, e in ivs),
                 "intervals": len(all_idxs),
             },
@@ -388,6 +393,7 @@ def do_query(q, qtype, panel_name, sample_accs=None):
     # gene or transcript (token lookup), with free-text fallback
     idxs = panel.rows_for_token(q)
     used_fallback = False
+    alias = None
     if not idxs:
         idxs = panel.free_text(q)
         used_fallback = bool(idxs)
@@ -406,6 +412,7 @@ def do_query(q, qtype, panel_name, sample_accs=None):
         "fallback": used_fallback,
         "found": bool(rows),
         "sample_coverage": compute_sample_coverage(panel, idxs, sample_accs),
+        "coding_pct": gene_coding_pct(panel, alias or q),
     })
     return result
 
@@ -417,16 +424,34 @@ def covdb_for_panel(panel):
     return None
 
 
+def gene_coding_pct(panel, name):
+    """Look up the tool's own per-gene coding-region-coverage percentage."""
+    cdb = covdb_for_panel(panel)
+    if not cdb or not cdb.gene_pct:
+        return None
+    pct = cdb.gene_pct.get(name.upper())
+    if pct is None:
+        alias = resolve_alias(name)
+        if alias:
+            pct = cdb.gene_pct.get(alias.upper())
+    return pct
+
+
 def compute_sample_coverage(panel, idxs, sample_accs):
-    """Per-sample depth over panel interval ids, read from the precomputed
-    coverage DB for this panel. Returns None if the panel has no DB."""
+    """Per-sample depth over panel interval ids. Uses the precomputed DB when
+    present (no BAMs), else computes live from BAMs."""
     if not sample_accs or not idxs:
         return None
     try:
         covdb = covdb_for_panel(panel)
-        if covdb is None:
+        if covdb is not None:
+            return covdb.coverage(sample_accs, idxs)
+        # BAM mode: build coords from the panel rows
+        accs = [a for a in sample_accs if a in samplemod.SAMPLES]
+        if not accs:
             return None
-        return covdb.coverage(sample_accs, idxs)
+        coords = [(panel.r_chrom[i], panel.r_start[i], panel.r_end[i]) for i in idxs]
+        return samplemod.coverage_multi(accs, coords)
     except Exception as e:
         return [{"error": f"Depth computation failed: {e}"}]
 
@@ -484,11 +509,11 @@ def index():
 def sample_list_and_thresholds():
     if COVDBS:
         return COVDBS[0].list_samples(), COVDBS[0].thresholds
-    return [], []
+    return samplemod.list_samples(), samplemod.THRESHOLDS
 
 
 def sample_order():
-    return COVDBS[0].sample_order if COVDBS else []
+    return COVDBS[0].sample_order if COVDBS else list(samplemod.SAMPLE_ORDER)
 
 
 @app.route("/api/samples")
@@ -599,8 +624,8 @@ PAGE = r"""<!DOCTYPE html>
   .schip input { cursor: pointer; }
   .schip.on { background: #eaf3ec; border-color: #2a7a47; color: #1a6033; font-weight: bold; }
   .depthwrap { background:#fff; border:1px solid #d0d5de; border-radius:8px; overflow:auto; margin-top:12px; }
-  td.d-hi { color:#1a6033; font-weight:bold; } td.d-mid { color:#9a6a00; font-weight:bold; }
-  td.d-lo { color:#8b1a1a; font-weight:bold; }
+  .d-hi { color:#1a6033; font-weight:bold; } .d-mid { color:#9a6a00; font-weight:bold; }
+  .d-lo { color:#8b1a1a; font-weight:bold; }
   .legend { font-size:10px; color:#777; margin-top:6px; }
   tr.combined td { background:#fff4e8; border-top:2px solid #F08020; font-weight:bold; }
   .hint { font-size: 11px; color: #6a7180; margin-top: 8px; }
@@ -767,6 +792,11 @@ function dcell(pct){
   const cls = pct>=95?'d-hi':(pct>=80?'d-mid':'d-lo');
   return '<td class="'+cls+'">'+pct+'%</td>';
 }
+function codingPctBadge(pct){
+  if(pct==null) return '';
+  const cls = pct>=95?'d-hi':(pct>=80?'d-mid':'d-lo');
+  return ' · <span class="'+cls+'">'+pct+'% coding region covered</span>';
+}
 function depthTable(cov, opts){
   opts = opts || {};
   if(!cov || !cov.length) return '';
@@ -803,7 +833,9 @@ function depthTable(cov, opts){
     for(const t of THRESHOLDS) h += dcell(avg(valid.map(c=>c.pct[String(t)]||0)));
     h += '</tr>';
   }
-  h += '</tbody></table></div><div class="legend">% of target bases at or above each depth. '+
+  h += '</tbody></table></div><div class="legend">% of target bases at or above each depth, '+
+       'computed only over bases already in the panel design — not the gene\'s full length '+
+       '(see <b>Coding region covered</b> above, where shown, for that). '+
        'Green &ge;95% · amber &ge;80% · red &lt;80%. Reads: duplicates/secondary/QC-fail excluded. '+
        '<b>Overall Coverage</b> = average across all reference samples.</div>';
   return h;
@@ -927,7 +959,7 @@ function render(d){
       const s = g.summary;
       h += '<div class="empty" style="padding:4px 0">'+
            '<b>'+s.intervals+'</b> intervals · <b>'+fmt(s.targeted_bp)+'</b> targeted bp · '+
-           esc(s.chroms.join(', '))+'</div>';
+           esc(s.chroms.join(', '))+codingPctBadge(g.coding_pct)+'</div>';
       h += depthTable(g.sample_coverage, {title:'Read-depth coverage — '+g.name});
     }
     out.innerHTML = h; return;
@@ -990,12 +1022,17 @@ function render(d){
            '</b> in this panel.</div>';
       out.innerHTML = h; return;
     }
-    h += sumBar([
+    const geneCells = [
       {val: s.intervals, lbl:'Target intervals'},
       {val: fmt(s.targeted_bp), lbl:'Targeted bases (bp)', cls:'val-green'},
       {val: esc(s.chroms.join(', ')), lbl:'Chromosome'},
       {val: s.span_start!=null? fmt(s.span_end - s.span_start):'—', lbl:'Genomic span (bp)'},
-    ]);
+    ];
+    if(d.coding_pct!=null){
+      geneCells.push({val: d.coding_pct+'%', lbl:'Coding region covered',
+        cls: d.coding_pct>=95?'val-green':(d.coding_pct<80?'val-red':'val-total')});
+    }
+    h += sumBar(geneCells);
     h += dlButtons();
     h += depthTable(d.sample_coverage, {title:'Sample read-depth coverage over targets'});
     h += referencePanel(d.sample_coverage);

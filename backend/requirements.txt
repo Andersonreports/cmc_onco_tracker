@@ -1,21 +1,15 @@
-# Anderson Trackings - Requirements
 # Install with: pip install -r requirements.txt
 
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
 gunicorn>=21.2.0
 
-# Loads backend/.env (OTP API settings, session secret). Optional but recommended.
 python-dotenv>=1.0.0
 
-# MySQL driver for the role-mapping store (pure-Python, no build step).
-# Only used when MYSQL_* is set in .env; otherwise the app uses roles.json.
 PyMySQL>=1.1.0
 
-# Runs the Coverage Checker (anderson-coverage/, a Flask app) in-process behind
-# this app's login. a2wsgi bridges its WSGI app onto ASGI; the rest are its own
-# dependencies, needed because it shares this process. Without these the app
-# still starts — the Coverage Checker is skipped and logs why.
 a2wsgi>=1.10
 Flask>=3.0
 requests>=2.28
+pysam>=0.22
+numpy>=1.24

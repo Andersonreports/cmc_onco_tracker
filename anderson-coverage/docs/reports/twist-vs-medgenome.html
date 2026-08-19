@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twist v2.0.2 vs MedGenome — Panel Comparison</title>
+<style>
+:root {
+  --surface-1:      #fcfcfb;
+  --page:           #f9f9f7;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --grid:           #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --series-1:       #2a78d6;  /* Twist */
+  --series-2:       #1baf7a;  /* MedGenome */
+  --series-3:       #eda100;  /* MedGenome-only */
+  --seq-450:        #2a78d6;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.viz-root {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--page);
+  color: var(--text-primary);
+  padding: 32px 16px 64px;
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+
+header.page-head { margin-bottom: 28px; }
+header.page-head h1 { font-size: 22px; margin: 0 0 4px; }
+header.page-head p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.card h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+.card p.note { color: var(--text-secondary); font-size: 13px; margin: 12px 0 0; }
+.card p.note code { background: var(--grid); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+/* Stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+.tile { padding: 14px 4px; }
+.tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.tile .value { font-size: 26px; font-variant-numeric: tabular-nums; font-weight: 600; }
+.tile .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.tile.accent-1 .value { color: var(--series-1); }
+.tile.accent-2 .value { color: var(--series-2); }
+
+/* Legend */
+.legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; color: var(--text-secondary); }
+.legend .item { display: flex; align-items: center; gap: 6px; }
+.legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+/* Composition bar (part-to-whole) */
+.comp-bar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; }
+.comp-bar .seg { min-width: 2px; }
+.comp-caption { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+
+/* Grouped bar chart (per-chromosome) */
+.bars { display: flex; align-items: flex-end; gap: 10px; height: 220px; border-bottom: 1px solid var(--baseline); padding: 0 4px; }
+.bargroup { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 100%; }
+.bar { width: 40%; border-radius: 3px 3px 0 0; }
+.bar.b1 { background: var(--series-1); }
+.bar.b2 { background: var(--series-2); }
+.xlabels { display: flex; gap: 10px; padding: 0 4px; margin-top: 6px; }
+.xlabels span { flex: 1; text-align: center; font-size: 10px; color: var(--text-muted); }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--grid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+th { color: var(--text-secondary); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.gene { font-weight: 600; }
+.minibar-cell { display: flex; align-items: center; gap: 8px; }
+.minibar-track { flex: 1; height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; max-width: 140px; }
+.minibar-fill { height: 100%; border-radius: 4px; background: var(--seq-450); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+footer.foot { text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+<header class="page-head">
+  <h1>Panel Comparison — Twist Exome+SpikeIn v2.0.2 vs MedGenome</h1>
+  <p>Build: GRCh38/hg38 &nbsp;&middot;&nbsp; Method: bedtools merge / intersect / subtract &nbsp;&middot;&nbsp; No intra-file overlaps in either panel</p>
+</header>
+
+<div class="card">
+  <h2>Headline coverage</h2>
+  <div class="tiles">
+    <div class="tile accent-1">
+      <div class="label">Twist v2.0.2 total</div>
+      <div class="value">37.45 Mb</div>
+      <div class="sub">287,879 intervals</div>
+    </div>
+    <div class="tile accent-2">
+      <div class="label">MedGenome total</div>
+      <div class="value">36.72 Mb</div>
+      <div class="sub">215,623 intervals</div>
+    </div>
+    <div class="tile">
+      <div class="label">Shared (overlap)</div>
+      <div class="value">36.53 Mb</div>
+      <div class="sub">97.5% of Twist &middot; 99.5% of MedGenome</div>
+    </div>
+    <div class="tile">
+      <div class="label">Net footprint (union)</div>
+      <div class="value">37.64 Mb</div>
+      <div class="sub">merged, non-redundant</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Composition — where the two panels agree / diverge</h2>
+  <div class="legend">
+    <div class="item"><span class="swatch" style="background:var(--series-1)"></span>Twist-only (926.7 kb)</div>
+    <div class="item"><span class="swatch" style="background:var(--series-2)"></span>Shared (36.53 Mb)</div>
+    <div class="item"><span class="swatch" style="background:var(--series-3)"></span>MedGenome-only (188.8 kb)</div>
+  </div>
+  <div class="comp-bar">
+    <div class="seg" style="width:2.46%; background:var(--series-1)" title="Twist-only: 926,711 bp (2.5%)"></div>
+    <div class="seg" style="width:97.04%; background:var(--series-2)" title="Shared: 36,526,422 bp (97.0%)"></div>
+    <div class="seg" style="width:0.50%; background:var(--series-3)" title="MedGenome-only: 188,818 bp (0.5%)"></div>
+  </div>
+  <div class="comp-caption"><span>Twist-only 2.5%</span><span>Shared 97.0%</span><span>MedGenome-only 0.5%</span></div>
+  <p class="note">Twist-only gaps are overwhelmingly narrow (median 1 bp, mean 10.6 bp, max 6,186 bp) — mostly probe-boundary rounding across 87,098 micro-intervals, not missing genes. MedGenome-only regions are fewer (1,328) but larger on average (median 78 bp, mean 142 bp, max 2,964 bp) and fall outside Twist's targets entirely.</p>
+</div>
+
+<div class="card">
+  <h2>Per-chromosome target size</h2>
+  <div class="legend">
+    <div class="item"><span class="swatch" style="background:var(--series-1)"></span>Twist v2.0.2</div>
+    <div class="item"><span class="swatch" style="background:var(--series-2)"></span>MedGenome</div>
+  </div>
+  <div class="bars" id="chrbars"></div>
+  <div class="xlabels" id="chrlabels"></div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h2>Hereditary cancer panel (27 genes) — bp missing from MedGenome</h2>
+    <table>
+      <colgroup><col style="width:32%"><col style="width:28%"><col></colgroup>
+      <thead><tr><th>Gene</th><th class="num">Gap (bp)</th><th>Relative</th></tr></thead>
+      <tbody id="panelgaps"></tbody>
+    </table>
+    <p class="note">All 27 genes are &gt;99% concordant between panels; gaps shown are Twist-only micro-intervals not present in MedGenome, not full exon loss.</p>
+  </div>
+
+  <div class="card">
+    <h2>Top genome-wide genes by Twist-only gap</h2>
+    <table>
+      <colgroup><col style="width:44%"><col style="width:32%"><col></colgroup>
+      <thead><tr><th>Gene</th><th class="num">Gap (bp)</th><th class="num">Segments</th></tr></thead>
+      <tbody id="topgenes"></tbody>
+    </table>
+    <p class="note">9,533 genes carry &ge;1 bp of Twist-only gap; the list above is genome-wide (not limited to the 27-gene panel). <code>(unannotated)</code> rows fall outside any gene body in the Twist annotation.</p>
+  </div>
+</div>
+
+<footer class="foot">Generated from hg38_exome_comp_spikein_v2.0.2_targets_sorted.re_annotated.bed and New/Medgenome.bed via bedtools v2.30.0</footer>
+
+</div>
+</div>
+
+<script>
+const chrData = [
+  ["chr1",3762272,3720414],["chr2",2749706,2709788],["chr3",2112850,2074087],
+  ["chr4",1470598,1452818],["chr5",1701773,1666899],["chr6",1877427,1836469],
+  ["chr7",1782545,1746777],["chr8",1257947,1245384],["chr9",1528882,1506272],
+  ["chr10",1459448,1433203],["chr11",2213659,2152305],["chr12",1956099,1909658],
+  ["chr13",688578,675535],["chr14",1209086,1186201],["chr15",1290793,1272761],
+  ["chr16",1609676,1572012],["chr17",2163946,2096239],["chr18",590132,572997],
+  ["chr19",2445138,2385055],["chr20",892171,869619],["chr21",385455,378511],
+  ["chr22",802656,778818],["chrX",1401960,1373129],["chrY",100336,100289],
+];
+const maxBp = Math.max(...chrData.map(d => Math.max(d[1], d[2])));
+const barsEl = document.getElementById('chrbars');
+const labelsEl = document.getElementById('chrlabels');
+chrData.forEach(([chrom, twist, med]) => {
+  const group = document.createElement('div');
+  group.className = 'bargroup';
+  const b1 = document.createElement('div');
+  b1.className = 'bar b1';
+  b1.style.height = (twist / maxBp * 100) + '%';
+  b1.title = `${chrom} · Twist: ${twist.toLocaleString()} bp`;
+  const b2 = document.createElement('div');
+  b2.className = 'bar b2';
+  b2.style.height = (med / maxBp * 100) + '%';
+  b2.title = `${chrom} · MedGenome: ${med.toLocaleString()} bp`;
+  group.appendChild(b1); group.appendChild(b2);
+  barsEl.appendChild(group);
+  const lbl = document.createElement('span');
+  lbl.textContent = chrom.replace('chr', '');
+  labelsEl.appendChild(lbl);
+});
+
+const panelGaps = [
+  ["ATM",597],["BRCA1",546],["RAD50",457],["PTEN",424],["TP53",377],
+  ["MSH2",315],["APC",402],["MSH6",213],["RAD51D",235],["BRCA2",480],
+  ["MLH1",252],["EPCAM",245],["SMAD4",210],["RAD51C",203],["BARD1",280],
+  ["STK11",161],["MUTYH",160],["NBN",166],["CDH1",151],["BRIP1",185],
+  ["PALB2",130],["PMS2",138],["CHEK2",134],["MRE11",124],["BMPR1A",81],
+  ["CDKN2A",33],["CDK4",38],
+];
+panelGaps.sort((a,b) => b[1]-a[1]);
+const maxPanelGap = Math.max(...panelGaps.map(d => d[1]));
+const panelBody = document.getElementById('panelgaps');
+panelGaps.forEach(([gene, bp]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="gene">${gene}</td><td class="num">${bp.toLocaleString()}</td>
+    <td><div class="minibar-cell"><div class="minibar-track"><div class="minibar-fill" style="width:${(bp/maxPanelGap*100).toFixed(0)}%"></div></div></div></td>`;
+  panelBody.appendChild(tr);
+});
+
+const topGenes = [
+  ["PWWP4",6186,1],["KIAA0753",3582,3],["CLIP1",2318,4],["MYO18A",2273,9],
+  ["KLHDC7B",1923,1],["ZNF20",1624,5],["GMCL2",1581,1],["EPB41L3",1539,8],
+  ["SIGLEC16",1474,9],["CDC14C",1432,1],["DST",1425,44],["RENO1",1365,2],
+  ["TRIM51G",1359,6],["PDE10A",1293,10],["SUN1",1233,13],["LHFPL6",1160,3],
+  ["CELF4",1155,9],["CEP126",1150,1],["AAK1",1132,2],
+];
+const topBody = document.getElementById('topgenes');
+topGenes.forEach(([gene, bp, segs]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="gene">${gene}</td><td class="num">${bp.toLocaleString()}</td><td class="num">${segs}</td>`;
+  topBody.appendChild(tr);
+});
+</script>
+</body>
+</html>
