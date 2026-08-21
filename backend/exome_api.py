@@ -36,19 +36,17 @@ class ReportIn(BaseModel):
     visible: bool = True
 
 
-class BulkReleaseIn(BaseModel):
-    id: list[str]
-    report_release_date: str
-
-
-class BulkRemarkIn(BaseModel):
-    id: list[str]
-    remarks: str
-
-
 class BulkReviewerIn(BaseModel):
     id: list[str]
     pri_rev: str
+
+
+class BulkApplyIn(BaseModel):
+    id: list[str]
+    report_release_date: str = ""
+    remarks: str = ""
+    final: str = ""
+    cnv_status: str = ""
 
 
 @router.get("/reports")
@@ -69,31 +67,31 @@ def create_report(report: ReportIn, request: Request):
     return reports_client.create_report(_stamped(report, request))
 
 
-@router.put("/reports/bulk-release")
-def bulk_release(payload: BulkReleaseIn, request: Request):
+@router.put("/reports/bulk-apply")
+def bulk_apply(payload: BulkApplyIn, request: Request):
+    """Release-panel bulk action: apply whichever fields were filled in.
+
+    Any subset of date/remark/clinical reviewer/CNV status may be set — the
+    user isn't required to fill all of them to apply to the selected batch.
+    """
     if not can_edit(request):
         return forbidden()
-    report_release_date = payload.report_release_date.strip()
-    if not report_release_date:
-        return JSONResponse({"error": "report_release_date is required"}, status_code=400)
     if not payload.id:
         return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
 
-    count = reports_client.bulk_release(payload.id, report_release_date, username_for(request))
-    return {"ok": True, "count": count}
+    changes = {}
+    if payload.report_release_date.strip():
+        changes["report_release_date"] = payload.report_release_date.strip()
+    if payload.remarks.strip():
+        changes["remarks"] = payload.remarks.strip()
+    if payload.final.strip():
+        changes["final"] = payload.final.strip()
+    if payload.cnv_status.strip():
+        changes["cnv_status"] = payload.cnv_status.strip()
+    if not changes:
+        return JSONResponse({"error": "Fill in at least one field to apply"}, status_code=400)
 
-
-@router.put("/reports/bulk-remarks")
-def bulk_remarks(payload: BulkRemarkIn, request: Request):
-    if not can_edit(request):
-        return forbidden()
-    remarks = payload.remarks.strip()
-    if not remarks:
-        return JSONResponse({"error": "remarks is required"}, status_code=400)
-    if not payload.id:
-        return JSONResponse({"error": "No valid report ids provided"}, status_code=400)
-
-    count = reports_client.bulk_remarks(payload.id, remarks, username_for(request))
+    count = reports_client.bulk_apply(payload.id, changes, username_for(request))
     return {"ok": True, "count": count}
 
 

@@ -78,6 +78,8 @@
     }
     .btn-pri{background:var(--pri);color:#fff;border-color:var(--pri)}
     .btn-pri:hover{background:var(--pri-h);transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,70,229,.35)}
+    .btn-green{background:#10b981;color:#fff;border-color:#10b981}
+    .btn-green:hover{background:#059669;border-color:#059669;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,.35)}
     .btn-out{background:var(--ib);color:var(--text);border-color:var(--bdr)}
     .btn-out:hover{border-color:var(--pri);color:var(--pri);background:rgba(79,70,229,.06)}
     .btn-sm{padding:5px 11px;font-size:12px}
@@ -333,6 +335,9 @@
       background:rgba(16,185,129,.14);color:#047857;
     }
     .ti-owner.ti-unassigned{background:rgba(239,68,68,.13);color:#b91c1c}
+    .od-pill{display:inline-block;min-width:74px;text-align:center;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
+    .od-pill.od-over{background:rgba(239,68,68,.15);color:#b91c1c}
+    .od-pill.od-soon{background:rgba(245,158,11,.15);color:#92400e}
     .tat-item{cursor:pointer;transition:var(--tr)}
     .tat-item:hover{background:rgba(0,0,0,.06)}
     .tat-detail{
@@ -1121,12 +1126,17 @@
       min-width:24px;height:22px;padding:0 7px;border-radius:7px;
       font-size:12px;font-weight:700;background:rgba(0,0,0,.06);color:var(--ink-2);
     }
-    .panel-tools{padding:11px 20px;border-bottom:1px solid var(--line);background:#fcfcfd}
+    .panel-tools{padding:11px 20px;border-bottom:1px solid var(--line);background:#fcfcfd;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .panel-tools input{
-      width:100%;padding:7px 11px;border-radius:8px;border:1px solid var(--line);
+      flex:1;min-width:160px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);
       background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12.5px;
     }
     .panel-tools input:focus{outline:none;border-color:var(--ink-3)}
+    .panel-tools select{
+      flex-shrink:0;max-width:200px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);
+      background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12.5px;
+    }
+    .panel-tools select:focus{outline:none;border-color:var(--ink-3)}
     .panel-body{max-height:392px;overflow-y:auto}
 
     .ptable{width:100%;border-collapse:collapse;font-size:13px}
@@ -1419,7 +1429,11 @@
 
 <main class="main">
 
-<div class="page-heading" id="page-heading">
+<div class="page-heading" id="page-heading" style="position:relative">
+  <div class="rel-search-wrap glass" style="flex:1;min-width:220px;height:42px" onclick="this.querySelector('input').focus()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="global-search" placeholder="Search samples..." oninput="performGlobalSearch()" style="font-size:14px" />
+  </div>
   <div class="ph-actions">
     <button class="btn btn-quiet" id="refresh-btn" onclick="fetchReports()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Refresh Now
@@ -1427,6 +1441,9 @@
     <button class="btn btn-ink" id="add-report-btn" onclick="openReportModal()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Report
     </button>
+  </div>
+  <div id="global-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:8px;background:white;border:1px solid var(--pb);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden" onclick="event.stopPropagation()">
+    <div style="max-height:500px;overflow-y:auto" id="global-search-table-wrap"></div>
   </div>
 </div>
 
@@ -1441,15 +1458,11 @@
       </div>
       <div class="scard glass sc-yet clickable" onclick="openAllSamplesModal('Yet to Start')"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg></span><div class="s-lbl">Yet to Start</div><div class="s-val" id="s-yet">0</div><div class="s-sub">No reviewer assigned</div></div>
       <div class="scard glass sc-ong clickable" onclick="openTeamWorkloadModal()"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><div class="s-lbl">In Review</div><div class="s-val" id="s-ong">0</div><div class="s-sub" id="s-ong-sub">Assigned to reviewers</div></div>
-      <div class="scard glass sc-rel clickable" onclick="openAllSamplesModal('Released')"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
+      <div class="scard glass sc-rel"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
     </div>
 
     <div style="margin-bottom:20px;position:relative">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <div class="rel-search-wrap glass" style="max-width:400px;flex:1;min-width:220px" onclick="this.querySelector('input').focus()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" id="global-search" placeholder="Search samples..." oninput="performGlobalSearch()" style="font-size:13px" />
-        </div>
         <button class="btn btn-out btn-sm" id="bulk-release-toggle-btn" onclick="toggleBulkReleasePanel()" style="display:none;gap:6px;height:38px;padding:0 14px;font-weight:600;flex-shrink:0;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/></svg> Release Date
         </button>
@@ -1457,52 +1470,52 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Allocate Samples
         </button>
       </div>
-      <div id="global-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:8px;background:white;border:1px solid var(--pb);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden" onclick="event.stopPropagation()">
-        <div style="max-height:500px;overflow-y:auto" id="global-search-table-wrap"></div>
-      </div>
 
-      <div id="bulk-release-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px;max-width:760px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <input type="text" class="date-txt sel" id="bulk-release-date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" />
-          <button class="btn btn-pri btn-sm" onclick="submitBulkRelease()">Mark Selected as Released</button>
-          <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600">0 selected</span>
+      <div id="bulk-release-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <div class="rel-search-wrap" style="flex:0 1 340px;min-width:220px" onclick="this.querySelector('input').focus()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="bulk-release-search" placeholder="Search samples..." oninput="renderBulkReleaseList()" style="font-size:13px" />
+          </div>
+          <select id="bulk-release-reviewer-filter" onchange="renderBulkReleaseList()" title="Filter by reviewer" style="height:42px;padding:0 10px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--ib);color:var(--text);font-family:inherit;font-size:13px;max-width:180px;flex-shrink:0">
+            <option value="">All Reviewers</option>
+          </select>
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <input type="text" id="bulk-remark-text" class="sel" placeholder="Remark — applies to every selected sample" style="max-width:320px;flex:1;min-width:200px" />
-          <button class="btn btn-out btn-sm" onclick="submitBulkRemark()">Apply Remark to Selected</button>
-        </div>
-        <div class="rel-search-wrap" style="max-width:400px;margin-bottom:12px" onclick="this.querySelector('input').focus()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" id="bulk-release-search" placeholder="Search samples..." oninput="renderBulkReleaseList()" style="font-size:13px" />
+          <input type="text" class="date-txt sel" id="bulk-release-date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" style="flex-shrink:0" />
+          <input type="text" id="bulk-remark-text" class="sel" placeholder="Remark…" style="flex:1;min-width:160px" />
+          <select id="bulk-release-clin-reviewer" class="sel" style="height:38px;flex:1;min-width:160px" title="Clinical reviewer these samples go to"></select>
+          <select id="bulk-release-cnv-status" class="sel" style="height:38px;flex:1;min-width:160px" title="CNV status these samples go to"></select>
+          <button class="btn btn-green btn-sm" onclick="submitBulkApply()" style="flex-shrink:0">Apply to Selected</button>
+          <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
         </div>
         <div id="bulk-release-caption" style="font-size:11px;color:var(--muted);margin:-6px 0 10px"></div>
-        <div id="bulk-release-list" style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+        <div id="bulk-release-list" style="max-height:460px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
       </div>
 
       <div id="bulk-assign-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <select id="bulk-assign-reviewer" class="sel" style="height:38px;max-width:260px;flex:1;min-width:200px" title="Reviewer these samples go to"></select>
-          <button class="btn btn-pri btn-sm" onclick="submitBulkAssign()">Assign Selected</button>
-          <span id="bulk-assign-selected-count" style="font-size:12px;color:var(--muted);font-weight:600">0 selected</span>
-        </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-          <div class="rel-search-wrap" style="max-width:340px;flex:1;min-width:200px" onclick="this.querySelector('input').focus()">
+          <select id="bulk-assign-reviewer" class="sel" style="height:38px;max-width:200px;flex:0 1 200px" title="Reviewer these samples go to"></select>
+          <button class="btn btn-pri btn-sm" onclick="submitBulkAssign()" style="flex-shrink:0">Assign Selected</button>
+
+          <div class="rel-search-wrap" style="flex:1;min-width:180px" onclick="this.querySelector('input').focus()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input type="text" id="bulk-assign-search" placeholder="Search samples..." oninput="renderBulkAssignList()" style="font-size:13px" />
           </div>
-          <select class="sel" id="bulk-assign-run" onchange="renderBulkAssignList()" style="height:38px;max-width:200px" title="Allocate one run at a time">
+          <select class="sel" id="bulk-assign-run" onchange="renderBulkAssignList()" style="height:38px;max-width:160px;flex-shrink:0" title="Allocate one run at a time">
             <option value="">All Runs</option>
           </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">
             <input type="checkbox" id="bulk-assign-select-all" onchange="toggleBulkAssignSelectAll(this)" style="width:15px;height:15px;cursor:pointer" />
             Select all shown
           </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">
             <input type="checkbox" id="bulk-assign-include-assigned" onchange="renderBulkAssignList()" style="width:15px;height:15px;cursor:pointer" />
             Include samples that already have a reviewer
           </label>
+
+          <span id="bulk-assign-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
         </div>
         <div id="bulk-assign-caption" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
         <div id="bulk-assign-list" style="max-height:440px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
@@ -1519,6 +1532,9 @@
             <span class="ph-name">TAT Overdue Status</span>
             <span class="panel-count" id="tat-over-count">0</span>
             <span class="ph-right">
+              <select id="tat-over-reviewer" onchange="renderTatAlerts()" title="Filter by reviewer" style="height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12px;max-width:160px">
+                <option value="">All Reviewers</option>
+              </select>
               <span class="chip-alarm" id="tat-over-chip" style="display:none">Action Required</span>
               <button class="btn btn-sm btn-quiet" onclick="downloadOverdueExcel()" title="Download overdue list as Excel">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1543,6 +1559,9 @@
           </div>
           <div class="panel-tools">
             <input id="tat-days-search" type="number" min="0" placeholder="Filter by days remaining…" oninput="filterTatSoon()" />
+            <select id="tat-soon-reviewer" onchange="filterTatSoon()" title="Filter by reviewer">
+              <option value="">All Reviewers</option>
+            </select>
           </div>
           <div class="panel-body">
             <table class="ptable">
@@ -2238,7 +2257,7 @@ function isCancelled(r) {
 
 // Handed off to Siva sir's team — still unreleased, but no longer this
 // tracker's queue to chase, so it shouldn't sit in Yet to Start or Overdue.
-const SENT_TO_SIVA_REMARK = /sent\s*to\s*siva\s*sir/i;
+const SENT_TO_SIVA_REMARK = /sent\s*to\s*(?:dr\.?\s*)?siva(?:\s*sir)?/i;
 
 function isSentToSiva(r) {
   return SENT_TO_SIVA_REMARK.test(r.remarks || '');
@@ -2272,8 +2291,15 @@ function getStatus(r) {
 // about. Cancelled, on-hold, repeat-sample and re-analysis rows are owed
 // nothing here — re-analysis has no TAT/release date of its own and lives on
 // its own tab — so they sit outside it.
+//
+// The run-107 cutoff on isCancelled() exists only to keep already-reported
+// months' Cancelled/Released counts from shifting. It doesn't apply here:
+// a live work queue (Overdue, Due Soon, awaiting release date, allocation)
+// isn't an archived report, so a remark saying "cancelled" pulls a sample
+// out of it regardless of run number.
 function isPending(r) {
   const st = getStatus(r);
+  if (st !== 'Cancelled' && CANCELLED_REMARK.test(r.remarks || '')) return false;
   return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Repeat Sample' && st !== 'Re-analysis';
 }
 
@@ -2417,30 +2443,50 @@ function getTatAlerts() {
   return { dueSoon, dueToday, overdue };
 }
 
+function matchesReviewerFilter(r, val) {
+  if (!val) return true;
+  const reviewer = normalizeAnalystName(r.pri_rev);
+  if (val === '__unassigned__') return !reviewer;
+  return reviewer === val;
+}
+
+function populateTatReviewerFilters() {
+  const options = `<option value="">All Reviewers</option>` +
+    REVIEWERS.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('') +
+    `<option value="__unassigned__">Unassigned</option>`;
+  ['tat-over-reviewer', 'tat-soon-reviewer', 'bulk-release-reviewer-filter'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const keep = sel.value;
+    sel.innerHTML = options;
+    sel.value = keep;
+  });
+}
+
 function renderTatAlerts() {
   const { dueSoon, dueToday, overdue } = getTatAlerts();
   const soonAll = [...dueToday, ...dueSoon];
 
   _tatSoonAll = soonAll;
-  document.getElementById('tat-soon-count').textContent = soonAll.length;
   const daysInput = document.getElementById('tat-days-search');
   if (daysInput) daysInput.value = '';
-  renderTatSoonList(soonAll);
+  filterTatSoon();
 
-  document.getElementById('tat-over-count').textContent = overdue.length;
+  const overReviewer = document.getElementById('tat-over-reviewer')?.value || '';
+  const overdueFiltered = overdue.filter(r => matchesReviewerFilter(r, overReviewer));
+  document.getElementById('tat-over-count').textContent = overdueFiltered.length;
   const overChip = document.getElementById('tat-over-chip');
-  if (overChip) overChip.style.display = overdue.length ? '' : 'none';
+  if (overChip) overChip.style.display = overdueFiltered.length ? '' : 'none';
   const overEl = document.getElementById('tat-over-list');
-  overEl.innerHTML = overdue.length ? overdue.map((r,i) => {
+  overEl.innerHTML = overdueFiltered.length ? overdueFiltered.map((r,i) => {
     const days = Math.abs(r.diff);
-    return `<tr class="prow" onclick="toggleTatDetail('over-${i}')">
+    return `<tr class="prow"${rowEditAttrs(r)}>
       <td class="cell-id" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-date">${fmtDate(r.tat)}</td>
       <td class="cell-num">+${days}d</td>
       <td class="cell-right">${esc(normalizeAnalystName(r.pri_rev) || '—')}</td>
-    </tr>
-    ${tatDetailBlock('over-'+i, r, 5)}`;
+    </tr>`;
   }).join('') : emptyRow(`All good! ${IC.check}`, 5);
 
 }
@@ -2505,114 +2551,9 @@ function renderPrioritySamples() {
   }).join('');
 }
 
-function tatDetailBlock(id, r, cols = 4) {
-  const chips = [
-    ['Sample', r.name],
-    ['Gen ID', r.gen_id],
-    ['Anderson ID', r.and_id],
-    ['Test', r.test],
-    ['Client', r.client],
-    ['TAT', fmtDate(r.tat)],
-    ['Analyst', r.analyst],
-    ['Reviewer', r.pri_rev],
-    ['Clinical Reviewer', r.final],
-    ['CNV', r.cnv_status],
-    ['Remark', r.remarks],
-  ];
-  const releaseRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" class="date-txt" id="qrd-${id}" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" value="${esc(formatInputDate(r.report_release_date)||'')}" />
-      <button class="btn btn-pri btn-sm" onclick="quickSetReleaseDate('${id}','${r.id}')">Mark Released</button>
-    </div>` : '';
-  const remarkRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" id="qrm-${id}" placeholder="Add remark…" value="${esc(r.remarks||'')}" />
-      <button class="btn btn-out btn-sm" onclick="quickSetRemark('${r.id}','qrm-${id}')">Save Remark</button>
-    </div>` : '';
-  const clinRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <select class="sel" id="qcr-${id}" title="Clinical Reviewer" style="height:32px;flex:1">
-        ${clinicalReviewerOptions(r.final||'')}
-      </select>
-      <button class="btn btn-out btn-sm" onclick="quickSetClinicalReviewer('${r.id}','qcr-${id}')">Save Clinical Reviewer</button>
-    </div>` : '';
-  const cnvRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <select class="sel" id="qcnv-${id}" title="CNV Status" style="height:32px;flex:1">
-        ${cnvStatusOptions(r.cnv_status||'')}
-      </select>
-      <button class="btn btn-out btn-sm" onclick="quickSetCnvStatus('${r.id}','qcnv-${id}')">Save CNV Status</button>
-    </div>` : '';
-  return `<tr class="tat-detail" id="tat-d-${id}"><td colspan="${cols}"><div class="tat-detail-inner">
-    ${chips.map(([l,v]) => `<span class="tat-chip"><span class="tc-label">${l}</span><span class="tc-val">${esc(v||'—')}</span></span>`).join('')}
-    ${releaseRow}
-    ${remarkRow}
-    ${clinRow}
-    ${cnvRow}
-  </div></td></tr>`;
-}
-
 function todayDDMMYYYY() {
   const d = new Date();
   return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
-}
-
-async function quickPatchReport(reportId, patch, okMsg, errLabel) {
-  const row = rows.find(r => r.id === reportId);
-  if (!row) { toast('Could not find that report — try refreshing', 'err'); return; }
-
-  const { id, last_updated_by, last_updated_at, ...payload } = { ...row, ...patch };
-
-  try {
-    const resp = await fetch(`api/reports/${reportId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) throw await apiError(resp);
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    toast(okMsg);
-  } catch (e) {
-    toast(`Failed to save ${errLabel}: ` + e.message, 'err');
-  }
-}
-
-async function quickSetReleaseDate(localId, reportId) {
-  const dateVal = (document.getElementById('qrd-' + localId)?.value || '').trim();
-  if (!dateVal) { toast('Enter a release date', 'warn'); return; }
-  await quickPatchReport(reportId, { report_release_date: toApiDate(dateVal) },
-    'Release date saved — moved to Released', 'release date');
-}
-
-async function quickSetRemark(reportId, inputId) {
-  const el = document.getElementById(inputId);
-  if (!el) return;
-  await quickPatchReport(reportId, { remarks: el.value.trim() }, 'Remark saved', 'remarks');
-}
-
-async function quickSetClinicalReviewer(reportId, selectId) {
-  const el = document.getElementById(selectId);
-  if (!el) return;
-  await quickPatchReport(reportId, { final: el.value },
-    el.value ? `Clinical reviewer set to ${el.value}` : 'Clinical reviewer cleared',
-    'clinical reviewer');
-}
-
-async function quickSetCnvStatus(reportId, selectId) {
-  const el = document.getElementById(selectId);
-  if (!el) return;
-  await quickPatchReport(reportId, { cnv_status: el.value },
-    el.value ? `CNV status set to ${el.value}` : 'CNV status cleared',
-    'CNV status');
-}
-
-function toggleTatDetail(id) {
-  const el = document.getElementById('tat-d-' + id);
-  if (!el) return;
-  document.querySelectorAll('.tat-detail.open').forEach(d => { if (d !== el) d.classList.remove('open'); });
-  el.classList.toggle('open');
 }
 
 let _tatSoonAll = [];
@@ -2623,27 +2564,29 @@ function renderTatSoonList(data) {
     const remaining = r.diff === 0 ? 'TODAY' : `${r.diff}d`;
     const st = getStatus(r);
     const pillCls = r.diff === 0 ? 'spill-today' : (st === 'Ongoing' ? 'spill-ong' : 'spill-yet');
-    return `<tr class="prow" onclick="toggleTatDetail('soon-${i}')">
+    return `<tr class="prow"${rowEditAttrs(r)}>
       <td class="cell-id" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-num">${remaining}</td>
       <td class="cell-right"><span class="spill ${pillCls}">${esc(st)}</span></td>
-    </tr>
-    ${tatDetailBlock('soon-'+i, r)}`;
+    </tr>`;
   }).join('') : emptyRow('No matches');
 }
 
 function filterTatSoon() {
+  const reviewerVal = document.getElementById('tat-soon-reviewer')?.value || '';
   const val = document.getElementById('tat-days-search').value.trim();
   if (val === '') {
-    renderTatSoonList(_tatSoonAll);
-    document.getElementById('tat-soon-count').textContent = _tatSoonAll.length;
+    const filtered = _tatSoonAll.filter(r => matchesReviewerFilter(r, reviewerVal));
+    renderTatSoonList(filtered);
+    document.getElementById('tat-soon-count').textContent = filtered.length;
     return;
   }
   const max = parseInt(val, 10);
   if (isNaN(max) || max < 0) {
-    renderTatSoonList(_tatSoonAll);
-    document.getElementById('tat-soon-count').textContent = _tatSoonAll.length;
+    const filtered = _tatSoonAll.filter(r => matchesReviewerFilter(r, reviewerVal));
+    renderTatSoonList(filtered);
+    document.getElementById('tat-soon-count').textContent = filtered.length;
     return;
   }
   const today = new Date(); today.setHours(0,0,0,0);
@@ -2655,9 +2598,9 @@ function filterTatSoon() {
     const diff = Math.round((td - today) / 86400000);
     if(diff === max) results.push({...r, tatDate:td, diff});
   });
-  results.sort((a,b) => a.diff - b.diff);
-  document.getElementById('tat-soon-count').textContent = results.length;
-  renderTatSoonList(results);
+  const filtered = results.filter(r => matchesReviewerFilter(r, reviewerVal)).sort((a,b) => a.diff - b.diff);
+  document.getElementById('tat-soon-count').textContent = filtered.length;
+  renderTatSoonList(filtered);
 }
 
 let _bulkReleaseSelected = new Set();
@@ -2688,63 +2631,80 @@ function toggleBulkReleasePanel() {
     document.getElementById('bulk-release-date').value = '';
     document.getElementById('bulk-remark-text').value = '';
     document.getElementById('bulk-release-search').value = '';
+    document.getElementById('bulk-release-reviewer-filter').value = '';
+    populateBulkReleaseClinicalReviewers();
+    document.getElementById('bulk-release-clin-reviewer').value = '';
+    populateBulkReleaseCnvStatuses();
+    document.getElementById('bulk-release-cnv-status').value = '';
     renderBulkReleaseList();
   }
 }
 
+function populateBulkReleaseClinicalReviewers() {
+  const el = document.getElementById('bulk-release-clin-reviewer');
+  if (!el) return;
+  const keep = el.value;
+  el.innerHTML = `<option value="">Clinical reviewer name</option>` +
+    CLINICAL_REVIEWERS.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  el.value = keep;
+}
+
+function populateBulkReleaseCnvStatuses() {
+  const el = document.getElementById('bulk-release-cnv-status');
+  if (!el) return;
+  const keep = el.value;
+  el.innerHTML = `<option value="">CNV status</option>` +
+    CNV_STATUSES.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  el.value = keep;
+}
+
 function renderBulkReleaseList() {
   const q = (document.getElementById('bulk-release-search')?.value || '').toLowerCase().trim();
+  const reviewerVal = document.getElementById('bulk-release-reviewer-filter')?.value || '';
   const all = getBulkReleaseCandidates();
-  let data = all;
+  let data = all.filter(r => matchesReviewerFilter(r, reviewerVal));
   if (q) data = data.filter(r =>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
     (r.gen_id||'').toLowerCase().includes(q) ||
     (r.and_id||'').toLowerCase().includes(q) ||
-    (r.client||'').toLowerCase().includes(q)
+    (r.client||'').toLowerCase().includes(q) ||
+    (r.run_text||'').toLowerCase().includes(q)
   );
 
   const el = document.getElementById('bulk-release-list');
-  el.innerHTML = data.length ? data.map(r => {
-    const label = r.diff < 0 ? `${Math.abs(r.diff)}d overdue` : (r.diff === 0 ? 'TODAY' : `${r.diff}d left`);
-    const cls = r.diff < 0 ? 'tat-over' : 'tat-soon';
-    const checked = _bulkReleaseSelected.has(r.id) ? 'checked' : '';
-    return `<div>
-      <div class="tat-item ${cls}" style="cursor:default">
-        <input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" style="flex-shrink:0;width:16px;height:16px;cursor:pointer" />
-        <span class="ti-name" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</span>
-        <span class="ti-date">${fmtDate(r.tat)}</span>
-        <span class="ti-days">${label}</span>
-        <button class="row-action-btn" title="Remarks" onclick="toggleBulkRemarkRow('${r.id}')" style="flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </button>
-      </div>
-      <div id="bulk-remark-${esc(r.id)}" style="display:none">
-        <div class="tat-release-row">
-          <input type="text" id="bulk-remark-input-${esc(r.id)}" placeholder="Add remark…" value="${esc(r.remarks||'')}" />
-          <button class="btn btn-pri btn-sm" onclick="quickSetRemark('${r.id}','bulk-remark-input-${r.id}')">Save Remark</button>
-        </div>
-        <div class="tat-release-row">
-          <select class="sel" id="bulk-clin-input-${esc(r.id)}" title="Clinical Reviewer" style="height:32px;flex:1">
-            ${clinicalReviewerOptions(r.final||'')}
-          </select>
-          <button class="btn btn-out btn-sm" onclick="quickSetClinicalReviewer('${r.id}','bulk-clin-input-${r.id}')">Save Clinical Reviewer</button>
-        </div>
-        <div class="tat-release-row">
-          <select class="sel" id="bulk-cnv-input-${esc(r.id)}" title="CNV Status" style="height:32px;flex:1">
-            ${cnvStatusOptions(r.cnv_status||'')}
-          </select>
-          <button class="btn btn-out btn-sm" onclick="quickSetCnvStatus('${r.id}','bulk-cnv-input-${r.id}')">Save CNV Status</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('') : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
+  el.innerHTML = data.length ? `<table class="ba-table">
+    <thead><tr>
+      <th class="ba-check"></th>
+      <th>Sample Name</th><th>Test</th><th>Gen. ID</th><th>And. ID</th>
+      <th>Client</th><th>Run</th><th>Reviewer</th><th>TAT</th><th>Overdue</th>
+    </tr></thead>
+    <tbody>${data.map(r => {
+      const label = r.diff < 0 ? `${Math.abs(r.diff)}d overdue` : (r.diff === 0 ? 'TODAY' : `${r.diff}d left`);
+      const pillCls = r.diff < 0 ? 'od-over' : 'od-soon';
+      const checked = _bulkReleaseSelected.has(r.id) ? 'checked' : '';
+      const reviewer = normalizeAnalystName(r.pri_rev);
+      const cell = (v, cls) => `<td class="${cls || ''}" title="${esc(v || '')}">${v ? esc(v) : '—'}</td>`;
+      return `<tr${rowEditAttrs(r)}>
+        <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" /></td>
+        ${cell(r.name, 'ba-name')}
+        ${cell(r.test, 'ba-test')}
+        <td class="ba-mono" title="${esc(r.gen_id || '')}">${r.gen_id ? esc(r.gen_id) : '—'}</td>
+        <td class="ba-mono" title="${esc(r.and_id || '')}">${r.and_id ? esc(r.and_id) : '—'}</td>
+        ${cell(r.client, 'ba-client')}
+        ${cell(r.run_text, 'ba-run')}
+        <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
+        <td class="ba-tat">${fmtDate(r.tat)}</td>
+        <td><span class="od-pill ${pillCls}">${label}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`
+    : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
 
   const caption = document.getElementById('bulk-release-caption');
   if (caption) {
     const overdue = all.filter(r => r.diff < 0).length;
-    caption.textContent = q
-      ? `${data.length} of ${all.length} awaiting a release date match this search`
+    caption.textContent = (q || reviewerVal)
+      ? `${data.length} of ${all.length} awaiting a release date match this filter`
       : `${all.length} awaiting a release date — ${overdue} overdue, the rest due within ${BULK_RELEASE_DUE_DAYS} days`;
   }
 
@@ -2762,7 +2722,7 @@ function onBulkReleaseCheck(checkbox) {
 function toggleBulkRemarkRow(id) {
   const el = document.getElementById('bulk-remark-' + id);
   if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 }
 
 function updateBulkReleaseCount() {
@@ -2770,54 +2730,44 @@ function updateBulkReleaseCount() {
   if (label) label.textContent = `${_bulkReleaseSelected.size} selected`;
 }
 
-async function submitBulkRelease() {
+async function submitBulkApply() {
+  if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
+
   const dateVal = document.getElementById('bulk-release-date').value.trim();
-  if (!dateVal) { toast('Enter a release date', 'warn'); return; }
-  if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
-
-  try {
-    const resp = await fetch('api/reports/bulk-release', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ id: [..._bulkReleaseSelected], report_release_date: toApiDate(dateVal) }),
-    });
-    const result = await resp.json();
-    if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
-
-    _bulkReleaseSelected = new Set();
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    renderBulkReleaseList();
-    toast(`Marked ${result.count} report${result.count !== 1 ? 's' : ''} as Released`);
-  } catch (e) {
-    toast('Failed to mark as released: ' + e.message, 'err');
-  }
-}
-
-async function submitBulkRemark() {
   const remarkVal = document.getElementById('bulk-remark-text').value.trim();
-  if (!remarkVal) { toast('Enter a remark', 'warn'); return; }
-  if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
+  const clinReviewerVal = document.getElementById('bulk-release-clin-reviewer').value.trim();
+  const cnvVal = document.getElementById('bulk-release-cnv-status').value.trim();
+  if (!dateVal && !remarkVal && !clinReviewerVal && !cnvVal) {
+    toast('Fill in at least one field to apply', 'warn'); return;
+  }
+
+  const payload = { id: [..._bulkReleaseSelected] };
+  if (dateVal) payload.report_release_date = toApiDate(dateVal);
+  if (remarkVal) payload.remarks = remarkVal;
+  if (clinReviewerVal) payload.final = clinReviewerVal;
+  if (cnvVal) payload.cnv_status = cnvVal;
 
   try {
-    const resp = await fetch('api/reports/bulk-remarks', {
+    const resp = await fetch('api/reports/bulk-apply', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ id: [..._bulkReleaseSelected], remarks: remarkVal }),
+      body: JSON.stringify(payload),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
 
     _bulkReleaseSelected = new Set();
+    document.getElementById('bulk-release-date').value = '';
     document.getElementById('bulk-remark-text').value = '';
+    document.getElementById('bulk-release-clin-reviewer').value = '';
+    document.getElementById('bulk-release-cnv-status').value = '';
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
     renderBulkReleaseList();
-    toast(`Remark applied to ${result.count} report${result.count !== 1 ? 's' : ''}`);
+    toast(`Applied to ${result.count} report${result.count !== 1 ? 's' : ''}`);
   } catch (e) {
-    toast('Failed to apply remark: ' + e.message, 'err');
+    toast('Failed to apply: ' + e.message, 'err');
   }
 }
 
@@ -5486,6 +5436,7 @@ function anExportPNG() {
 
 (async function boot() {
   readCurrentUser();
+  populateTatReviewerFilters();
 
   const saved = loadFromStorage();
   if (saved && saved.length) {

@@ -453,13 +453,9 @@ def _patch_many(id: list[str], changes: dict) -> int:
     return count
 
 
-def bulk_release(id: list[str], report_release_date: str, who: str) -> int:
-    return _patch_many(id, {"report_release_date": report_release_date, "last_updated_by": who})
-
-
-def bulk_remarks(id: list[str], remarks: str, who: str) -> int:
-    return _patch_many(id, {"remarks": remarks, "last_updated_by": who})
-
-
 def bulk_reviewer(id: list[str], pri_rev: str, who: str) -> int:
     return _patch_many(id, {"pri_rev": pri_rev, "last_updated_by": who})
+
+
+def bulk_apply(id: list[str], changes: dict, who: str) -> int:
+    return _patch_many(id, {**changes, "last_updated_by": who})
