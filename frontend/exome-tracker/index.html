@@ -1139,28 +1139,33 @@
     .panel-tools select:focus{outline:none;border-color:var(--ink-3)}
     .panel-body{max-height:392px;overflow-y:auto}
 
-    .ptable{width:100%;border-collapse:collapse;font-size:13px}
+    .ptable{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
     .ptable thead th{
       position:sticky;top:0;z-index:1;background:#fafbfc;
       text-align:left;padding:10px 20px;font-size:11.5px;font-weight:600;
       color:var(--ink-3);border-bottom:1px solid var(--line);white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;
     }
     .ptable thead th.num{text-align:right}
-    .ptable tbody td{padding:13px 20px;border-bottom:1px solid #f1f2f4;vertical-align:middle}
+    .ptable tbody td{
+      padding:13px 20px;border-bottom:1px solid #f1f2f4;vertical-align:middle;
+      overflow:hidden;text-overflow:ellipsis;
+    }
     .ptable tbody tr.prow{cursor:pointer;transition:background .15s ease}
     .ptable tbody tr.prow:hover{background:#fafbfc}
     .ptable .cell-id{font-weight:700;white-space:nowrap}
     .panel-over .ptable .cell-id{color:var(--ink)}
     .panel-soon .ptable .cell-id{color:var(--ink)}
-    .ptable .cell-type{color:var(--ink-2)}
+    .ptable .cell-type{color:var(--ink-2);white-space:nowrap}
     .ptable .cell-num{text-align:right;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
     .panel-over .ptable .cell-num{color:#b91c1c}
     .ptable thead th.ctr{text-align:center}
     .ptable .cell-date{text-align:center;white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums}
     .panel-over .ptable .cell-date{color:#b91c1c}
     .panel-soon .ptable .cell-num{color:#b45309}
-    .ptable .cell-right{text-align:right;color:var(--ink-2);white-space:nowrap}
+    .ptable .cell-right{text-align:right;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ptable .cell-mute{color:var(--ink-3)}
+    .ptable .cell-remark{color:var(--ink-2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .spill{
       display:inline-block;padding:4px 9px;border-radius:6px;
       font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;
@@ -1544,7 +1549,10 @@
           </div>
           <div class="panel-body">
             <table class="ptable">
-              <thead><tr><th>Sample</th><th>Test</th><th class="ctr">TAT</th><th class="num">Delay</th><th class="num">Reviewer</th></tr></thead>
+              <thead><tr>
+                <th style="width:26%">Sample</th><th style="width:22%">Test</th><th class="ctr" style="width:13%">TAT</th>
+                <th class="num" style="width:10%">Delay</th><th class="num" style="width:12%">Reviewer</th><th style="width:17%">Remark</th>
+              </tr></thead>
               <tbody id="tat-over-list"></tbody>
             </table>
           </div>
@@ -1565,7 +1573,11 @@
           </div>
           <div class="panel-body">
             <table class="ptable">
-              <thead><tr><th>Sample</th><th>Test</th><th class="num">Remaining</th><th class="num">Status</th></tr></thead>
+              <thead><tr>
+                <th style="width:24%">Sample</th><th style="width:20%">Test</th>
+                <th class="num" style="width:10%">Remaining</th><th class="num" style="width:12%">Status</th>
+                <th class="num" style="width:14%">Reviewer</th><th style="width:20%">Remark</th>
+              </tr></thead>
               <tbody id="tat-soon-list"></tbody>
             </table>
           </div>
@@ -1593,7 +1605,7 @@
           </div>
           <div class="rrp-list" id="rrp-rail-list"></div>
           <div class="prail-foot">
-            <button onclick="openAllSamplesModal('Released')">View All Released &rarr;</button>
+            <button onclick="switchTab('released', document.getElementById('t-rel'))">View All Released &rarr;</button>
           </div>
         </aside>
 
@@ -2269,8 +2281,34 @@ function isSentToSiva(r) {
 // of the Released count too (the repeat row supplies that).
 const REPEAT_SAMPLE_REMARK = /repeat\s*sample/i;
 
+// Same patient, same Anderson ID, redrawn: IT reuses the gen id with an "A"
+// appended for the sample that actually goes forward. The earlier row (no
+// trailing "A") is spent, so it's a Repeat Sample even with no remark typed —
+// recomputeAutoRepeatIds() finds these pairs whenever `rows` is (re)loaded.
+let _autoRepeatIds = new Set();
+
+function recomputeAutoRepeatIds() {
+  const byAndId = new Map();
+  rows.forEach(r => {
+    const and = String(r.and_id || '').trim();
+    if (!and) return;
+    if (!byAndId.has(and)) byAndId.set(and, []);
+    byAndId.get(and).push(r);
+  });
+  const ids = new Set();
+  byAndId.forEach(group => {
+    if (group.length < 2) return;
+    const genIds = new Set(group.map(r => String(r.gen_id || '').trim()).filter(Boolean));
+    group.forEach(r => {
+      const gid = String(r.gen_id || '').trim();
+      if (gid && genIds.has(gid + 'A')) ids.add(r.id);
+    });
+  });
+  _autoRepeatIds = ids;
+}
+
 function isRepeatSample(r) {
-  return REPEAT_SAMPLE_REMARK.test(r.remarks || '');
+  return REPEAT_SAMPLE_REMARK.test(r.remarks || '') || _autoRepeatIds.has(r.id);
 }
 
 function getStatus(r) {
@@ -2486,8 +2524,9 @@ function renderTatAlerts() {
       <td class="cell-date">${fmtDate(r.tat)}</td>
       <td class="cell-num">+${days}d</td>
       <td class="cell-right">${esc(normalizeAnalystName(r.pri_rev) || '—')}</td>
+      <td class="cell-remark" title="${esc(r.remarks||'')}">${r.remarks ? esc(r.remarks) : '—'}</td>
     </tr>`;
-  }).join('') : emptyRow(`All good! ${IC.check}`, 5);
+  }).join('') : emptyRow(`All good! ${IC.check}`, 6);
 
 }
 
@@ -2569,8 +2608,10 @@ function renderTatSoonList(data) {
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-num">${remaining}</td>
       <td class="cell-right"><span class="spill ${pillCls}">${esc(st)}</span></td>
+      <td class="cell-right">${esc(normalizeAnalystName(r.pri_rev) || '—')}</td>
+      <td class="cell-remark" title="${esc(r.remarks||'')}">${r.remarks ? esc(r.remarks) : '—'}</td>
     </tr>`;
-  }).join('') : emptyRow('No matches');
+  }).join('') : emptyRow('No matches', 6);
 }
 
 function filterTatSoon() {
@@ -2675,9 +2716,9 @@ function renderBulkReleaseList() {
   const el = document.getElementById('bulk-release-list');
   el.innerHTML = data.length ? `<table class="ba-table">
     <thead><tr>
-      <th class="ba-check"></th>
+      <th class="ba-check"><input type="checkbox" id="bulk-release-select-all" onchange="toggleBulkReleaseSelectAll(this)" title="Select all shown" /></th>
       <th>Sample Name</th><th>Test</th><th>Gen. ID</th><th>And. ID</th>
-      <th>Client</th><th>Run</th><th>Reviewer</th><th>TAT</th><th>Overdue</th>
+      <th>Client</th><th>Run</th><th>Reviewer</th><th>TAT</th><th>Overdue</th><th>Remark</th>
     </tr></thead>
     <tbody>${data.map(r => {
       const label = r.diff < 0 ? `${Math.abs(r.diff)}d overdue` : (r.diff === 0 ? 'TODAY' : `${r.diff}d left`);
@@ -2696,6 +2737,7 @@ function renderBulkReleaseList() {
         <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
         <td class="ba-tat">${fmtDate(r.tat)}</td>
         <td><span class="od-pill ${pillCls}">${label}</span></td>
+        ${cell(r.remarks, '')}
       </tr>`;
     }).join('')}</tbody></table>`
     : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
@@ -2709,6 +2751,7 @@ function renderBulkReleaseList() {
   }
 
   upgradeDateFields();
+  syncBulkReleaseSelectAll();
   updateBulkReleaseCount();
 }
 
@@ -2716,13 +2759,25 @@ function onBulkReleaseCheck(checkbox) {
   const id = checkbox.dataset.id;
   if (checkbox.checked) _bulkReleaseSelected.add(id);
   else _bulkReleaseSelected.delete(id);
+  syncBulkReleaseSelectAll();
   updateBulkReleaseCount();
 }
 
-function toggleBulkRemarkRow(id) {
-  const el = document.getElementById('bulk-remark-' + id);
-  if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+function toggleBulkReleaseSelectAll(box) {
+  const shown = [...document.querySelectorAll('#bulk-release-list input[type="checkbox"][data-id]')];
+  shown.forEach(cb => {
+    cb.checked = box.checked;
+    if (box.checked) _bulkReleaseSelected.add(cb.dataset.id);
+    else _bulkReleaseSelected.delete(cb.dataset.id);
+  });
+  updateBulkReleaseCount();
+}
+
+function syncBulkReleaseSelectAll() {
+  const box = document.getElementById('bulk-release-select-all');
+  if (!box) return;
+  const shown = [...document.querySelectorAll('#bulk-release-list input[type="checkbox"][data-id]')];
+  box.checked = shown.length > 0 && shown.every(cb => cb.checked);
 }
 
 function updateBulkReleaseCount() {
@@ -3462,6 +3517,7 @@ function updateStatsByYear() {
 }
 
 function refreshAll() {
+  recomputeAutoRepeatIds();
   const ong = rows.filter(r=>getStatus(r)==='Ongoing');
 
   updateStatsByYear();
@@ -4144,6 +4200,9 @@ function exitTableMaximize() {
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') exitTableMaximize(); });
 
+let _empModalAll = [];
+let _empModalName = '';
+
 function openEmpModal(empName) {
   let empRows = rows.filter(r =>
     getStatus(r) === 'Ongoing' &&
@@ -4153,7 +4212,75 @@ function openEmpModal(empName) {
     const da = parseDate(a.tat), db = parseDate(b.tat);
     return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
   });
-  openQModal(`${empName}'s Reviews`, empRows, MODAL_COLS.assigned);
+  _empModalAll = empRows;
+  _empModalName = empName;
+
+  document.getElementById('qmodal-title').textContent = `${empName}'s Reviews`;
+  document.getElementById('qmodal-count').textContent = ` · ${empRows.length} record${empRows.length!==1?'s':''}`;
+
+  const runs = [...new Set(empRows.map(r => r.run_text).filter(Boolean))]
+    .sort((a,b) => (extractRunNumber(b)||0) - (extractRunNumber(a)||0));
+  const filterHtml = `
+    <div style="padding:12px 22px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="emp-modal-run" class="sel" style="height:34px;max-width:220px" onchange="filterEmpModal()" title="One run at a time — keeps a repeat sample's earlier entry from being counted twice">
+        <option value="">All Runs</option>
+        ${runs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+      </select>
+      <button class="btn btn-sm btn-pri" onclick="downloadEmpModalExcel()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Excel
+      </button>
+      <span id="emp-modal-count" style="font-size:12px;color:var(--pri);font-weight:700">${empRows.length} samples</span>
+    </div>`;
+
+  document.getElementById('qmodal-body').innerHTML =
+    '<div class="modal-filters-wrap">' + filterHtml + '</div>' +
+    '<div class="modal-table-wrap" id="emp-modal-table-wrap">' + buildModalTable(empRows, MODAL_COLS.assigned) + '</div>';
+  document.getElementById('qmodal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function filterEmpModal() {
+  const run = document.getElementById('emp-modal-run')?.value || '';
+  const data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+  document.getElementById('qmodal-count').textContent = ` · ${data.length} record${data.length!==1?'s':''}`;
+  document.getElementById('emp-modal-table-wrap').innerHTML = buildModalTable(data, MODAL_COLS.assigned);
+  const countEl = document.getElementById('emp-modal-count');
+  if (countEl) countEl.textContent = `${data.length} samples`;
+}
+
+function downloadEmpModalExcel() {
+  try {
+    const run = document.getElementById('emp-modal-run')?.value || '';
+    const data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+    if (!data.length) { toast('No samples to download', 'warn'); return; }
+    const cols = MODAL_COLS.assigned;
+
+    const excelData = [];
+    excelData.push([`${_empModalName} - Allocated Samples${run ? ' (' + run + ')' : ''}`]);
+    excelData.push(['']);
+    excelData.push(cols.map(c => COL_LABELS[c] || c));
+    data.forEach(r => excelData.push(cols.map(c => cellExportValue(r, c))));
+    excelData.push(['']);
+    excelData.push(['Summary']);
+    excelData.push(['Total Allocated Samples', data.length]);
+    excelData.push(['Export Date', ddmmyyyy(new Date())]);
+
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    ws['!cols'] = cols.map((c,i) => {
+      let max = (COL_LABELS[c]||c).length;
+      excelData.forEach(row => { if (row[i] && String(row[i]).length > max) max = String(row[i]).length; });
+      return { wch: Math.min(max + 2, 40) };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, _empModalName.replace(/[\\/?*[\]:]/g, '_').slice(0, 31));
+
+    const filename = `${_empModalName.replace(/[^a-zA-Z0-9]/g, '_')}-allocated-${todayDDMMYYYY()}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast(`Downloaded: ${filename}`, 'info');
+  } catch(e) {
+    toast('Download failed: ' + e.message, 'err');
+    console.error('[downloadEmpModalExcel]', e);
+  }
 }
 
 function renderQuickCards(containerId, data, status) {
