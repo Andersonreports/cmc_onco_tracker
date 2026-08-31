@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>Genetics Exome Sample Tracker</title>
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="xlsx.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -329,6 +333,14 @@
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
       color:var(--ink-2);max-width:170px;
     }
+    #hover-tip{
+      position:fixed;z-index:9999;pointer-events:none;
+      background:#1e293b;color:#fff;font-size:12px;font-weight:500;
+      padding:6px 10px;border-radius:7px;box-shadow:0 8px 20px rgba(0,0,0,.25);
+      max-width:360px;white-space:normal;word-break:break-word;line-height:1.35;
+      opacity:0;transform:translateY(4px);transition:opacity .1s ease,transform .1s ease;
+    }
+    #hover-tip.show{opacity:1;transform:translateY(0)}
     .ti-owner{
       display:inline-block;max-width:120px;text-align:center;font-size:10.5px;font-weight:700;
       padding:2px 8px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -338,6 +350,10 @@
     .od-pill{display:inline-block;min-width:74px;text-align:center;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
     .od-pill.od-over{background:rgba(239,68,68,.15);color:#b91c1c}
     .od-pill.od-soon{background:rgba(245,158,11,.15);color:#92400e}
+    .couple-gender{display:inline-flex;vertical-align:middle}
+    .couple-gender-m{color:#2563eb}
+    .couple-gender-f{color:#db2777}
+    .pri-icon{display:inline-flex;vertical-align:middle;color:#1e293b}
     .tat-item{cursor:pointer;transition:var(--tr)}
     .tat-item:hover{background:rgba(0,0,0,.06)}
     .tat-detail{
@@ -382,6 +398,13 @@
     .emp-team-title{font-size:16px;font-weight:800;color:var(--text)}
     .emp-team-sub{font-size:12px;font-weight:500;color:var(--muted)}
     .emp-count{font-size:12px;font-weight:700;color:var(--team-c-dark, var(--ong))}
+    .emp-type-counts{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap}
+    .etc-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap}
+    .etc-af{background:rgba(59,130,246,.14);color:#1d4ed8}
+    .etc-single{background:rgba(100,116,139,.14);color:#475569}
+    .etc-couple{background:rgba(219,39,119,.13);color:#be185d}
+    .emp-type-counts-lg{gap:10px}
+    .emp-type-counts-lg .etc-pill{font-size:14px;font-weight:700;padding:6px 14px;border-radius:10px}
     .emp-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
     .emp-pill{
       font-size:10.5px;padding:2px 8px;border-radius:10px;
@@ -1315,6 +1338,17 @@
       box-shadow:0 30px 80px rgba(0,0,0,.4);
     }
 
+    #bulk-assign-panel.tbl-maximized{
+      position:fixed !important;top:24px;left:24px;right:24px;bottom:24px;margin-top:0 !important;
+      z-index:500;width:auto !important;max-width:none !important;max-height:none !important;
+      box-shadow:0 30px 80px rgba(0,0,0,.4);display:flex !important;flex-direction:column;overflow:hidden;
+    }
+    /* Base cap lives in CSS (not inline) so the maximized override below can
+       actually win — an inline max-height on the element would always beat it
+       regardless of specificity, leaving a blank gap under a "maximized" list. */
+    #bulk-assign-list{max-height:440px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)}
+    #bulk-assign-panel.tbl-maximized #bulk-assign-list{flex:1;max-height:none}
+
     #qmodal-body th{background:var(--fz-head-bg,#f0f0fb) !important;background-image:none !important}
 
     #sort-btn-allSamples svg, [id^="sort-btn-"] svg, [id^="freeze-btn-"] svg{flex-shrink:0}
@@ -1401,6 +1435,7 @@
         </div>
         <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-report_release_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
         <div class="rf-item"><label>Run Number</label><input type="text" id="rf-run_text" placeholder="e.g. SURFseq- Run-102" /></div>
+        <div class="rf-item"><label>Couple ID</label><input type="text" id="rf-couple_id" placeholder="Same tag on both samples, e.g. Couple 1" /></div>
         <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remarks"></textarea></div>
         <div class="rf-item rf-wide"><label>History</label><textarea id="rf-history"></textarea></div>
         <div class="rf-item rf-wide">
@@ -1445,6 +1480,10 @@
     </button>
     <button class="btn btn-ink" id="add-report-btn" onclick="openReportModal()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Report
+    </button>
+    <input type="file" id="bulk-edit-excel-file" accept=".xlsx,.xls" style="display:none" onchange="handleBulkEditExcelUpload(event)" />
+    <button class="btn btn-out" id="bulk-edit-btn" onclick="document.getElementById('bulk-edit-excel-file').click()" title="Update existing samples by Gen ID / Anderson ID — fill in only Repeat Expansion and/or TAT Date">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Update via Excel
     </button>
   </div>
   <div id="global-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:8px;background:white;border:1px solid var(--pb);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden" onclick="event.stopPropagation()">
@@ -1519,11 +1558,20 @@
             <input type="checkbox" id="bulk-assign-include-assigned" onchange="renderBulkAssignList()" style="width:15px;height:15px;cursor:pointer" />
             Include samples that already have a reviewer
           </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">
+            <input type="checkbox" id="bulk-assign-couples-only" onchange="renderBulkAssignList()" style="width:15px;height:15px;cursor:pointer" />
+            Couple cases only
+          </label>
 
           <span id="bulk-assign-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
+
+          <button id="bulk-assign-max-btn" class="rel-filter-toggle" onclick="toggleTableMaximize('bulk-assign-panel','bulk-assign-max-btn')" title="Maximize" style="flex-shrink:0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <span class="tbl-max-label">Maximize</span>
+          </button>
         </div>
         <div id="bulk-assign-caption" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
-        <div id="bulk-assign-list" style="max-height:440px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
+        <div id="bulk-assign-list"></div>
       </div>
     </div>
 
@@ -2013,12 +2061,21 @@ const SORT_LABELS = {
 };
 const SORT_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4"/><path d="M16 15l-4 4-4-4"/></svg>';
 
-function sortRowsByDate(list, dateGetter, dir) {
-  return list.slice().sort((a,b) => {
-    const da = dateGetter(a), db = dateGetter(b);
-    const ta = da ? da.getTime() : (dir === 'asc' ? Infinity : -Infinity);
-    const tb = db ? db.getTime() : (dir === 'asc' ? Infinity : -Infinity);
-    return dir === 'asc' ? ta - tb : tb - ta;
+// The trailing number in a Gen ID (e.g. 5459 in "GEN_T_2.0.spik_5459") tracks
+// upload order reliably, since samples are always uploaded in ascending Gen ID
+// order — unlike TAT/assign/release dates, which can jumble samples from
+// different runs and clients out of the order they actually came in.
+// A trailing letter (e.g. "5178A" for a repeat/re-draw) is a tiebreaker.
+function genIdSortKey(gid) {
+  const m = String(gid || '').match(/(\d+)([A-Za-z]*)\s*$/);
+  return m ? { num: parseInt(m[1], 10), suffix: m[2] || '' } : { num: -1, suffix: '' };
+}
+
+function sortRowsByGenId(list, dir) {
+  return list.slice().sort((a, b) => {
+    const ka = genIdSortKey(a.gen_id), kb = genIdSortKey(b.gen_id);
+    const cmp = ka.num !== kb.num ? ka.num - kb.num : ka.suffix.localeCompare(kb.suffix);
+    return dir === 'asc' ? cmp : -cmp;
   });
 }
 
@@ -2153,6 +2210,7 @@ const IC = {
   x:       '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
 };
 
+
 const COL_MAP = {
   sno:       ['s.no','sno','serial','#'],
   name:      ['sample_name','sample name','samplename','name'],
@@ -2174,6 +2232,7 @@ const COL_MAP = {
   remarks:    ['remark','remarks','note','notes'],
   report_release_date:  ['report release date','release date','released on','report_release_date'],
   history:   ['history writeup','history','writeup'],
+  couple_id: ['couple id','couple_id','couple no','couple number','couple tag'],
 };
 
 function extractRunNumber(text) {
@@ -2242,6 +2301,7 @@ function mapRow(raw) {
     report_release_date:     fmtDate(get(COL_MAP.report_release_date)),
     history:      get(COL_MAP.history),
     bioinfo_time: get(COL_MAP.bioinfo_time),
+    couple_id:    get(COL_MAP.couple_id),
     is_reanalysis: yes(get(COL_MAP.reanalysis)),
     run_number:   extractRunNumber(runTxt) || raw._run_num || DEFAULT_RUN_NUMBER,
     run_text:     runTxt,
@@ -2252,19 +2312,41 @@ function mapRow(raw) {
   return row;
 }
 
+// Day-2 pass: the primary team's follow-up sheet only carries the sample IDs
+// plus whichever of Repeat Expansion / TAT came back — a blank cell must stay
+// "" (not fmtDate's "—" placeholder) so the backend knows to leave it alone.
+function mapEditRow(raw) {
+  const keys = Object.keys(raw).map(k => k.toLowerCase().trim());
+  function get(aliases) {
+    for (const a of aliases) {
+      const i = keys.indexOf(a);
+      if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
+    }
+    for (const a of aliases) {
+      const i = keys.findIndex(k => k.includes(a));
+      if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
+    }
+    return '';
+  }
+  const tatRaw = get(COL_MAP.tat);
+  return {
+    gen_id:  get(COL_MAP.gen_id),
+    and_id:  get(COL_MAP.and_id),
+    rep_exp: get(COL_MAP.rep_exp),
+    tat:     tatRaw ? fmtDate(tatRaw) : '',
+  };
+}
+
 // Runs before 54 predate release-date capture, so they count as released.
 const FIRST_RUN_WITH_RELEASE_DATES = 54;
 
-// A sample called off leaves every count, whatever its release date says. Any
-// remark saying it was cancelled counts, with or without who asked for it, so
-// this reads the same samples as IT's own remarks filter. Older runs keep
-// counting as they always did, so no month already reported on moves.
-const FIRST_RUN_WITH_CANCELLATIONS = 107;
+// A sample called off leaves every count, whatever its release date says or
+// however old the run is — any remark saying it was cancelled takes it out
+// of Yet to Start, Overdue, Due Soon and the Released/Cancelled stats alike.
 const CANCELLED_REMARK = /\bcancell?ed\b/i;
 
 function isCancelled(r) {
-  return parseInt(r.run_number || 0, 10) >= FIRST_RUN_WITH_CANCELLATIONS &&
-         CANCELLED_REMARK.test(r.remarks || '');
+  return CANCELLED_REMARK.test(r.remarks || '');
 }
 
 // Handed off to Siva sir's team — still unreleased, but no longer this
@@ -2329,15 +2411,8 @@ function getStatus(r) {
 // about. Cancelled, on-hold, repeat-sample and re-analysis rows are owed
 // nothing here — re-analysis has no TAT/release date of its own and lives on
 // its own tab — so they sit outside it.
-//
-// The run-107 cutoff on isCancelled() exists only to keep already-reported
-// months' Cancelled/Released counts from shifting. It doesn't apply here:
-// a live work queue (Overdue, Due Soon, awaiting release date, allocation)
-// isn't an archived report, so a remark saying "cancelled" pulls a sample
-// out of it regardless of run number.
 function isPending(r) {
   const st = getStatus(r);
-  if (st !== 'Cancelled' && CANCELLED_REMARK.test(r.remarks || '')) return false;
   return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Repeat Sample' && st !== 'Re-analysis';
 }
 
@@ -2712,6 +2787,7 @@ function renderBulkReleaseList() {
     (r.client||'').toLowerCase().includes(q) ||
     (r.run_text||'').toLowerCase().includes(q)
   );
+  data = sortByCoupleAdjacency(data);
 
   const el = document.getElementById('bulk-release-list');
   el.innerHTML = data.length ? `<table class="ba-table">
@@ -2725,13 +2801,13 @@ function renderBulkReleaseList() {
       const pillCls = r.diff < 0 ? 'od-over' : 'od-soon';
       const checked = _bulkReleaseSelected.has(r.id) ? 'checked' : '';
       const reviewer = normalizeAnalystName(r.pri_rev);
-      const cell = (v, cls) => `<td class="${cls || ''}" title="${esc(v || '')}">${v ? esc(v) : '—'}</td>`;
+      const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
       return `<tr${rowEditAttrs(r)}>
         <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" /></td>
-        ${cell(r.name, 'ba-name')}
+        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${coupleGenderIcon(r)}${r.name ? esc(r.name) : '—'}</td>
         ${cell(r.test, 'ba-test')}
-        <td class="ba-mono" title="${esc(r.gen_id || '')}">${r.gen_id ? esc(r.gen_id) : '—'}</td>
-        <td class="ba-mono" title="${esc(r.and_id || '')}">${r.and_id ? esc(r.and_id) : '—'}</td>
+        <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
+        <td class="ba-mono"${r.and_id ? ` data-tip="${esc(r.and_id)}"` : ''}>${r.and_id ? esc(r.and_id) : '—'}</td>
         ${cell(r.client, 'ba-client')}
         ${cell(r.run_text, 'ba-run')}
         <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
@@ -2882,15 +2958,19 @@ function toggleBulkAssignPanel() {
 
 function renderBulkAssignList() {
   const q = (document.getElementById('bulk-assign-search')?.value || '').toLowerCase().trim();
+  const couplesOnly = !!document.getElementById('bulk-assign-couples-only')?.checked;
   const all = getBulkAssignCandidates();
-  const data = !q ? all : all.filter(r =>
+  let data = !q ? all : all.filter(r =>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
     (r.gen_id||'').toLowerCase().includes(q) ||
     (r.and_id||'').toLowerCase().includes(q) ||
     (r.client||'').toLowerCase().includes(q) ||
-    (r.run_text||'').toLowerCase().includes(q)
+    (r.run_text||'').toLowerCase().includes(q) ||
+    coupleTag(r.couple_id).toLowerCase().includes(q)
   );
+  if (couplesOnly) data = data.filter(r => !!coupleTag(r.couple_id));
+  data = sortByCoupleAdjacency(data);
 
   const el = document.getElementById('bulk-assign-list');
   el.innerHTML = data.length ? `<table class="ba-table">
@@ -2902,13 +2982,13 @@ function renderBulkAssignList() {
     <tbody>${data.map(r => {
       const reviewer = normalizeAnalystName(r.pri_rev);
       const checked = _bulkAssignSelected.has(r.id) ? 'checked' : '';
-      const cell = (v, cls) => `<td class="${cls || ''}" title="${esc(v || '')}">${v ? esc(v) : '—'}</td>`;
-      return `<tr>
-        <td class="ba-check"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
-        ${cell(r.name, 'ba-name')}
+      const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
+      return `<tr${rowEditAttrs(r)}>
+        <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
+        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${r.is_priority ? `<span class="pri-icon" title="Priority sample">${IC.alert}</span> ` : ''}${coupleGenderIcon(r)}${r.name ? esc(r.name) : '—'}</td>
         ${cell(r.test, 'ba-test')}
-        <td class="ba-mono" title="${esc(r.gen_id || '')}">${r.gen_id ? esc(r.gen_id) : '—'}</td>
-        <td class="ba-mono" title="${esc(r.and_id || '')}">${r.and_id ? esc(r.and_id) : '—'}</td>
+        <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
+        <td class="ba-mono"${r.and_id ? ` data-tip="${esc(r.and_id)}"` : ''}>${r.and_id ? esc(r.and_id) : '—'}</td>
         ${cell(r.client, 'ba-client')}
         ${cell(r.run_text, 'ba-run')}
         <td class="ba-tat">${fmtDate(r.tat)}</td>
@@ -2920,8 +3000,8 @@ function renderBulkAssignList() {
   const caption = document.getElementById('bulk-assign-caption');
   if (caption) {
     const unassigned = all.filter(r => !normalizeAnalystName(r.pri_rev)).length;
-    caption.textContent = q
-      ? `${data.length} of ${all.length} shown match this search`
+    caption.textContent = (q || couplesOnly)
+      ? `${data.length} of ${all.length} shown match this filter`
       : `${all.length} unreleased sample${all.length === 1 ? '' : 's'} — ${unassigned} with no reviewer yet`;
   }
   syncBulkAssignSelectAll(data);
@@ -2995,6 +3075,77 @@ function badgeHtml(status) {
   return `<span class="badge ${cls}">${icon} ${esc(status)}</span>`;
 }
 
+function coupleTag(v) {
+  return String(v || '').trim();
+}
+
+// Sample names already carry the patient's sex (e.g. "MRS.X (29Y/F)",
+// "MR.Y (33Y/M)") — that's reused here rather than asking for it again.
+function genderFromName(name) {
+  const m = String(name || '').match(/\d+\s*Y\s*\/\s*([MF])\)?\s*$/i);
+  return m ? m[1].toUpperCase() : '';
+}
+
+// A pale whole-row tint, keyed by gender when the name carries one — falls
+// back to a neutral tint so a couple tag still shows up even when the name
+// string doesn't parse to M/F. Applied to the <tr> (via rowEditAttrs) rather
+// than the name cell, so it's unaffected by the name text's own truncation.
+function coupleRowBg(r) {
+  const tag = coupleTag(r.couple_id);
+  if (!tag) return '';
+  const g = genderFromName(r.name);
+  if (g === 'M') return 'rgba(37,99,235,.09)';
+  if (g === 'F') return 'rgba(219,39,119,.09)';
+  return 'rgba(124,58,237,.09)';
+}
+
+// Priority wins over the couple tint when a row is both — it's the more
+// time-critical flag. The couple pairing is still visible via the name's
+// gender icon even when its row tint is overridden this way.
+function rowHighlightBg(r) {
+  if (r.is_priority) return 'rgba(255,235,59,.25)';
+  return coupleRowBg(r);
+}
+
+function coupleTitleSuffix(r) {
+  const tag = coupleTag(r.couple_id);
+  return tag ? ` · Couple case: ${tag}` : '';
+}
+
+const GENDER_ICON = {
+  M: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="15" r="6"/><line x1="13.5" y1="10.5" x2="20" y2="4"/><polyline points="14 4 20 4 20 10"/></svg>',
+  F: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>',
+};
+
+// Placed BEFORE the name text (not after) so text-overflow:ellipsis truncates
+// the tail of a long name, never this icon — unlike the row tint, this needs
+// a parsed gender, so it silently omits itself when the name doesn't carry one.
+function coupleGenderIcon(r) {
+  const tag = coupleTag(r.couple_id);
+  if (!tag) return '';
+  const g = genderFromName(r.name);
+  if (!g) return '';
+  return `<span class="couple-gender couple-gender-${g.toLowerCase()}" title="Couple case: ${esc(tag)}">${GENDER_ICON[g]}</span> `;
+}
+
+// Stable-sorts so every row sharing a couple tag lands right after that tag's
+// first occurrence — the primary team can then eyeball adjacent rows as a pair
+// without hunting across the whole (independently sorted) list for the match.
+function sortByCoupleAdjacency(data) {
+  const firstIndex = new Map();
+  data.forEach((r, i) => {
+    const tag = coupleTag(r.couple_id).toLowerCase();
+    if (tag && !firstIndex.has(tag)) firstIndex.set(tag, i);
+  });
+  return data
+    .map((r, i) => {
+      const tag = coupleTag(r.couple_id).toLowerCase();
+      return { r, i, key: tag ? firstIndex.get(tag) : i };
+    })
+    .sort((a, b) => a.key - b.key || a.i - b.i)
+    .map(x => x.r);
+}
+
 const HEADER_KEYS = new Set(Object.values(COL_MAP).flat().map(h => h.replace(/[\s._]/g, '')));
 
 function headerKey(text) {
@@ -3009,7 +3160,8 @@ function isBlankMark(v) {
   return !s || BLANK_MARK.test(s);
 }
 
-function parseBinary(data) {
+function parseBinary(data, mapper) {
+  mapper = mapper || mapRow;
   const wb = XLSX.read(data, { type:'array' });
 
   const targetName = wb.SheetNames.find(n => n.toLowerCase().replace(/\s+/g,'') === 'sheet1');
@@ -3089,7 +3241,7 @@ function parseBinary(data) {
     allRows.push(obj);
   }
 
-  return allRows.map(mapRow).filter(r => r.name || r.gen_id || r.and_id || r.client || r.test);
+  return allRows.map(mapper).filter(r => r.name || r.gen_id || r.and_id || r.client || r.test);
 }
 
 async function apiError(resp) {
@@ -3193,7 +3345,7 @@ function getFilteredReanalysisRows() {
     const q = raSearch.toLowerCase();
     data = data.filter(r => REANALYSIS_COLS.some(c => String(r[c] || '').toLowerCase().includes(q)));
   }
-  return data;
+  return sortRowsByGenId(data, 'desc');
 }
 
 function downloadReanalysisExcel() {
@@ -3305,10 +3457,12 @@ function applyRolePermissions() {
   const canEdit = canEditReports();
 
   const addBtn = document.getElementById('add-report-btn');
+  const bulkEditBtn = document.getElementById('bulk-edit-btn');
   const bulkReleaseBtn = document.getElementById('bulk-release-toggle-btn');
   const bulkAssignBtn = document.getElementById('bulk-assign-toggle-btn');
   // Adding samples belongs to the Primary team, allocation and release to the lead.
   if (addBtn) addBtn.style.display = canUploadReports() ? '' : 'none';
+  if (bulkEditBtn) bulkEditBtn.style.display = canUploadReports() ? '' : 'none';
   if (bulkReleaseBtn) bulkReleaseBtn.style.display = canEdit ? '' : 'none';
   if (bulkAssignBtn) bulkAssignBtn.style.display = canEdit ? '' : 'none';
 
@@ -3318,13 +3472,14 @@ function applyRolePermissions() {
 
 const REPORT_FORM_FIELDS = [
   'name','test','gen_id','and_id','client','tat','rep_exp','cnv_status','analyst_raw',
-  'ana_date','pri_rev','final','report_release_date','run_text','remarks','history',
+  'ana_date','pri_rev','final','couple_id','report_release_date','run_text','remarks','history',
 ];
 // run_number is parsed from the run label for sorting; a run with no number sorts last.
 const DEFAULT_RUN_NUMBER = 9999;
-const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram'];
+const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram', 'Priya', 'Raghavi'];
 const CLINICAL_REVIEWERS = ['Dr.Sarath', 'Dr.Robert'];
 const CNV_STATUSES = ['No CNV', 'CNV - Suspected', 'CNV - Reported'];
+const SAMPLE_TYPES = ['AF', 'Single', 'Couple'];
 
 // Keeps an off-list value selectable so opening a legacy row never wipes it.
 function selectOptions(choices, current) {
@@ -3337,6 +3492,8 @@ function clinicalReviewerOptions(current) { return selectOptions(CLINICAL_REVIEW
 function cnvStatusOptions(current)        { return selectOptions(CNV_STATUSES, current); }
 
 function openReportModal(row) {
+  const gsr = document.getElementById('global-search-results');
+  if (gsr) gsr.style.display = 'none';
   document.getElementById('report-modal-title').textContent = row ? 'Edit Report' : 'Add Report';
   document.getElementById('rf-id').value = row?.id || '';
   document.getElementById('rf-is_priority').checked = !!row?.is_priority;
@@ -3448,9 +3605,54 @@ async function handleReportExcelUpload(event) {
 
     const blank = parsedRows.filter(r => isBlankMark(r.tat)).length;
     const flagged = parsedRows.filter(r => r.priority_reason).length;
+    // Samples are always uploaded in ascending Gen ID order, so a batch whose
+    // lowest Gen ID doesn't land past the highest one already on file is a
+    // sign the wrong sheet (or an out-of-order one) just got uploaded.
+    const existingMax = rows.reduce((max, r) => Math.max(max, genIdSortKey(r.gen_id).num), -1);
+    const newGenNums = parsedRows.map(r => genIdSortKey(r.gen_id).num).filter(n => n >= 0);
+    const newMin = newGenNums.length ? Math.min(...newGenNums) : null;
+    const outOfSequence = newMin !== null && existingMax >= 0 && newMin <= existingMax;
     const note = (flagged ? ` · ${flagged} marked priority` : '') +
-                 (blank ? ` · ${blank} without a TAT date in the sheet` : '');
-    toast(`Added ${result.count} report${result.count !== 1 ? 's' : ''} from Excel${note}`);
+                 (blank ? ` · ${blank} without a TAT date in the sheet` : '') +
+                 (outOfSequence ? ` · Gen IDs in this file don't continue after the last existing sample — check the file` : '');
+    toast(`Added ${result.count} report${result.count !== 1 ? 's' : ''} from Excel${note}`,
+          outOfSequence ? 'warn' : undefined);
+  } catch (e) {
+    toast('Failed to import Excel: ' + e.message, 'err');
+  } finally {
+    event.target.value = '';
+  }
+}
+
+async function handleBulkEditExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const parsedRows = parseBinary(new Uint8Array(await file.arrayBuffer()), mapEditRow);
+    if (!parsedRows.length) {
+      toast('No samples found in that file', 'warn');
+      return;
+    }
+
+    const resp = await fetch('api/reports/bulk-edit', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(parsedRows),
+    });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
+
+    await fetchReports(true);
+    refreshAllSamplesModalIfOpen();
+
+    const unmatched = result.unmatched || [];
+    const note = unmatched.length
+      ? ` · ${unmatched.length} sample${unmatched.length !== 1 ? 's' : ''} not found (` +
+        unmatched.map(u => u.gen_id || u.and_id || '?').join(', ') + ')'
+      : '';
+    toast(`Updated ${result.count} sample${result.count !== 1 ? 's' : ''} from Excel${note}`,
+          unmatched.length ? 'warn' : undefined);
   } catch (e) {
     toast('Failed to import Excel: ' + e.message, 'err');
   } finally {
@@ -3459,7 +3661,7 @@ async function handleReportExcelUpload(event) {
 }
 
 function sortAllSamplesData() {
-  _allModalData = sortRowsByDate(_allModalData, r => parseDate(r.tat), _sortDir.allSamples);
+  _allModalData = sortRowsByGenId(_allModalData, _sortDir.allSamples);
 }
 
 function refreshAllSamplesModalIfOpen() {
@@ -3471,9 +3673,21 @@ function refreshAllSamplesModalIfOpen() {
   filterAllSamples();
 }
 
+// Every row template funnels through here for its onclick, so the couple
+// background rides along on the same style attribute instead of a second one
+// the browser would just ignore — and it needs !important to win against the
+// page-scoped nth-child/hover background rules that already carry it.
 function rowEditAttrs(r) {
-  if (!canEditReports()) return '';
-  return ` onclick='openReportModal(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="cursor:pointer"`;
+  const canEdit = canEditReports();
+  const styles = [];
+  if (canEdit) styles.push('cursor:pointer');
+  const bg = rowHighlightBg(r);
+  if (bg) styles.push(`background:${bg} !important`);
+  const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
+  const onclickAttr = canEdit
+    ? ` onclick='openReportModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'`
+    : '';
+  return `${onclickAttr}${styleAttr}`;
 }
 
 const PAGE_MAP = { dashboard:'page-dashboard', assigned:'page-assigned', released:'page-released', overdue:'page-overdue', analytics:'page-analytics', reanalysis:'page-reanalysis' };
@@ -3555,7 +3769,8 @@ function refreshAll() {
     empNames.length ? empNames.slice(0,3).join(', ') + (empNames.length>3?` +${empNames.length-3} more`:'') : 'Assigned to reviewers';
 
   if (document.getElementById('qmodal-backdrop')?.classList.contains('open') && document.getElementById('qmodal-title')?.textContent === 'Team Workload') {
-    renderTeamWorkload('q-active', ong);
+    _teamWorkloadFull = ong;
+    filterTeamWorkload();
   }
   renderTatAlerts();
   renderPrioritySamples();
@@ -3789,7 +4004,9 @@ const TEAM_MAP = {
   'Diwakar':   'Team 4',
   'Gayathri':  'Team 5',
   'Vamshi':    'Team 6',
-  'Nikhil':    'Team 7'
+  'Nikhil':    'Team 7',
+  'Priya':     'Team 8',
+  'Raghavi':   'Team 9'
 };
 
 const TEAM_LEADER_MAP = Object.fromEntries(
@@ -3824,21 +4041,60 @@ function teamTint(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// Team Workload's full (unfiltered) ongoing set — the per-team AF/Single/Couple
+// breakdown always reads from this, independent of the sample-type filter, so
+// the counts stay a constant reference no matter which slice is on screen.
+let _teamWorkloadFull = [];
+
+// AF samples carry an "AF" suffix on their Gen ID; couple samples are the ones
+// tagged with a couple_id; everything else — no suffix, no couple tag — is Single.
+const AF_GEN_ID_SUFFIX = /af$/i;
+
+function sampleTypeOf(r) {
+  if (AF_GEN_ID_SUFFIX.test(String(r.gen_id || '').trim())) return 'AF';
+  if (coupleTag(r.couple_id)) return 'Couple';
+  return 'Single';
+}
+
+// "Couple" counts pairs, not samples — 2 samples sharing a couple_id is 1
+// couple case, so it's the number of distinct tags, not a per-row tally.
+function teamWorkloadBreakdown(reports) {
+  const counts = { AF: 0, Single: 0, Couple: 0 };
+  const coupleTags = new Set();
+  reports.forEach(r => {
+    const t = sampleTypeOf(r);
+    if (t === 'Couple') coupleTags.add(coupleTag(r.couple_id).toLowerCase());
+    else if (t in counts) counts[t]++;
+  });
+  counts.Couple = coupleTags.size;
+  return counts;
+}
+
+function filterTeamWorkload() {
+  const type = document.getElementById('team-workload-type-filter')?.value || '';
+  const data = type ? _teamWorkloadFull.filter(r => sampleTypeOf(r) === type) : _teamWorkloadFull;
+  document.getElementById('qmodal-count').textContent = ` · ${data.length} report${data.length !== 1 ? 's' : ''} in review`;
+  renderTeamWorkload('q-active', data);
+}
+
 function renderTeamWorkload(containerId, data) {
   const el = document.getElementById(containerId);
   if (!data.length) {
     el.innerHTML=`<div class="empty" style="padding:30px 0;grid-column:1/-1"><div class="ei">${IC.party}</div><p>No reports in progress</p></div>`;
     return;
   }
-  const sorted = data.slice().sort((a,b) => {
-    const da = parseDate(a.tat), db = parseDate(b.tat);
-    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-  });
+  const sorted = sortRowsByGenId(data, 'desc');
   const byEmp = {};
   sorted.forEach(r => {
     const emp = normalizeAnalystName(r.pri_rev) || 'Unassigned';
     if (!byEmp[emp]) byEmp[emp] = [];
     byEmp[emp].push(r);
+  });
+  const byEmpFull = {};
+  _teamWorkloadFull.forEach(r => {
+    const emp = normalizeAnalystName(r.pri_rev) || 'Unassigned';
+    if (!byEmpFull[emp]) byEmpFull[emp] = [];
+    byEmpFull[emp].push(r);
   });
   const entries = Object.entries(byEmp).sort((a,b) => teamOrder(teamFor(a[0])) - teamOrder(teamFor(b[0])));
 
@@ -3849,6 +4105,7 @@ function renderTeamWorkload(containerId, data) {
     const colorDark = shadeColor(color, -40);
     const cardVars = `--team-c:${color};--team-c-dark:${colorDark};`
       + `--team-tint-strong:${teamTint(color,.13)};--team-tint-border:${teamTint(color,.28)}`;
+    const counts = teamWorkloadBreakdown(byEmpFull[emp] || reports);
     return `
     <div class="emp-card glass" style="${cardVars}" onclick="openEmpModal('${emp.replace(/'/g,"\\'")}')">
       <div class="emp-card-hdr">
@@ -3857,6 +4114,11 @@ function renderTeamWorkload(containerId, data) {
           <span class="emp-team-title">${esc(teamTitle)}</span>
           <span class="emp-team-sub">${esc(emp)}</span>
         </div>
+      </div>
+      <div class="emp-type-counts">
+        <span class="etc-pill etc-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
       </div>
       <div class="emp-count">${reports.length} report${reports.length!==1?'s':''} in review</div>
       <div class="emp-pills">
@@ -3868,14 +4130,21 @@ function renderTeamWorkload(containerId, data) {
 }
 
 function openTeamWorkloadModal() {
-  const ong = rows.filter(r => getStatus(r) === 'Ongoing');
+  _teamWorkloadFull = rows.filter(r => getStatus(r) === 'Ongoing');
   document.getElementById('qmodal-title').textContent = 'Team Workload';
-  document.getElementById('qmodal-count').textContent = ` · ${ong.length} report${ong.length !== 1 ? 's' : ''} in review`;
-  document.getElementById('qmodal-body').innerHTML = '<div class="emp-grid" id="q-active" style="padding:24px"></div>';
+  document.getElementById('qmodal-count').textContent = ` · ${_teamWorkloadFull.length} report${_teamWorkloadFull.length !== 1 ? 's' : ''} in review`;
+  document.getElementById('qmodal-body').innerHTML =
+    `<div style="padding:16px 24px 0;display:flex;align-items:center;gap:10px">
+      <select id="team-workload-type-filter" onchange="filterTeamWorkload()" title="Filter by sample type" style="height:36px;padding:0 10px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--ib);color:var(--text);font-family:inherit;font-size:12px">
+        <option value="">All Sample Types</option>
+        ${SAMPLE_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="emp-grid" id="q-active" style="padding:24px"></div>`;
   document.getElementById('qmodal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
   setQModalMaximized(true);
-  renderTeamWorkload('q-active', ong);
+  renderTeamWorkload('q-active', _teamWorkloadFull);
 }
 
 const MODAL_COLS = {
@@ -3921,7 +4190,7 @@ function buildModalTable(data, cols, applyStatusColors = false) {
     const v = r[c]||'';
     const cls = getColClass(c);
     if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(v):'—'}</td>`;
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
@@ -4049,6 +4318,7 @@ function filterAllSamples() {
     (r.run_text||'').toLowerCase().includes(q)||(r.cnv_status||'').toLowerCase().includes(q)
   );
 
+  data = sortByCoupleAdjacency(data);
   _allModalFiltered = data;
   document.getElementById('qmodal-count').textContent = ` · ${data.length} records`;
   document.getElementById('all-count-label').textContent = `${data.length} samples`;
@@ -4084,7 +4354,7 @@ function clearAllSamplesFilters() {
   filterAllSamples();
 }
 
-const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','_status','report_release_date'];
+const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','pri_rev','_status','report_release_date'];
 function performGlobalSearch() {
   const input = document.getElementById('global-search');
   const resultsEl = document.getElementById('global-search-results');
@@ -4106,18 +4376,16 @@ function performGlobalSearch() {
     getStatus(r).toLowerCase().includes(q)
   );
 
-  data = data.slice().sort((a,b) => {
-    const da = parseDate(a.tat), db = parseDate(b.tat);
-    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-  }).slice(0, 50);
+  data = sortRowsByGenId(data, 'desc').slice(0, 50);
+  data = sortByCoupleAdjacency(data);
 
   if (data.length) {
     const visibleCols = GLOBAL_SEARCH_COLS.filter(c=>COL_LABELS[c]&&COL_LABELS[c].trim());
     const ths = visibleCols.map(c=>`<th class="${getColClass(c)}" style="background:rgba(79,70,229,.04);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1.5px solid var(--pb);text-align:left;white-space:nowrap;border-right:1px solid var(--pb)">${COL_LABELS[c]}</th>`).join('');
-    const trs = data.map(r=>`<tr>${visibleCols.map(c=>{
+    const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
       const v = r[c]||'';
       const cls = getColClass(c);
-      if (c==='name') return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+      if (c==='name') return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
       if (c==='test'||c==='client') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
       if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(v):'—'}</td>`;
       if (c==='gen_id'||c==='and_id') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
@@ -4200,6 +4468,43 @@ function exitTableMaximize() {
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') exitTableMaximize(); });
 
+// Custom floating tooltip for truncated table cells (data-tip attr) — instant,
+// and not clipped by the scrolling table containers the way native title would be.
+(function() {
+  const tip = document.createElement('div');
+  tip.id = 'hover-tip';
+  document.body.appendChild(tip);
+  let activeEl = null;
+
+  function place(e) {
+    const pad = 14;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    const r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - pad;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - pad;
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top = Math.max(8, y) + 'px';
+  }
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-tip]');
+    if (!el || el === activeEl) return;
+    activeEl = el;
+    tip.textContent = el.getAttribute('data-tip');
+    tip.classList.add('show');
+    place(e);
+  });
+  document.addEventListener('mousemove', e => {
+    if (activeEl) place(e);
+  });
+  document.addEventListener('mouseout', e => {
+    if (activeEl && (!e.relatedTarget || !activeEl.contains(e.relatedTarget))) {
+      activeEl = null;
+      tip.classList.remove('show');
+    }
+  });
+})();
+
 let _empModalAll = [];
 let _empModalName = '';
 
@@ -4208,10 +4513,8 @@ function openEmpModal(empName) {
     getStatus(r) === 'Ongoing' &&
     normalizeAnalystName(r.pri_rev) === empName
   );
-  empRows = empRows.slice().sort((a,b) => {
-    const da = parseDate(a.tat), db = parseDate(b.tat);
-    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-  });
+  empRows = sortRowsByGenId(empRows, 'desc');
+  empRows = sortByCoupleAdjacency(empRows);
   _empModalAll = empRows;
   _empModalName = empName;
 
@@ -4220,16 +4523,26 @@ function openEmpModal(empName) {
 
   const runs = [...new Set(empRows.map(r => r.run_text).filter(Boolean))]
     .sort((a,b) => (extractRunNumber(b)||0) - (extractRunNumber(a)||0));
+  const counts = teamWorkloadBreakdown(empRows);
   const filterHtml = `
     <div style="padding:12px 22px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="emp-modal-run" class="sel" style="height:34px;max-width:220px" onchange="filterEmpModal()" title="One run at a time — keeps a repeat sample's earlier entry from being counted twice">
         <option value="">All Runs</option>
         ${runs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
       </select>
+      <select id="emp-modal-type" class="sel" style="height:34px;max-width:180px" onchange="filterEmpModal()" title="Filter by sample type">
+        <option value="">All Sample Types</option>
+        ${SAMPLE_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      </select>
       <button class="btn btn-sm btn-pri" onclick="downloadEmpModalExcel()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Excel
       </button>
       <span id="emp-modal-count" style="font-size:12px;color:var(--pri);font-weight:700">${empRows.length} samples</span>
+      <div class="emp-type-counts emp-type-counts-lg" style="margin:0">
+        <span class="etc-pill etc-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
+      </div>
     </div>`;
 
   document.getElementById('qmodal-body').innerHTML =
@@ -4241,7 +4554,10 @@ function openEmpModal(empName) {
 
 function filterEmpModal() {
   const run = document.getElementById('emp-modal-run')?.value || '';
-  const data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+  const type = document.getElementById('emp-modal-type')?.value || '';
+  let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+  if (type) data = data.filter(r => sampleTypeOf(r) === type);
+  data = sortByCoupleAdjacency(data);
   document.getElementById('qmodal-count').textContent = ` · ${data.length} record${data.length!==1?'s':''}`;
   document.getElementById('emp-modal-table-wrap').innerHTML = buildModalTable(data, MODAL_COLS.assigned);
   const countEl = document.getElementById('emp-modal-count');
@@ -4251,7 +4567,9 @@ function filterEmpModal() {
 function downloadEmpModalExcel() {
   try {
     const run = document.getElementById('emp-modal-run')?.value || '';
-    const data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+    const type = document.getElementById('emp-modal-type')?.value || '';
+    let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+    if (type) data = data.filter(r => sampleTypeOf(r) === type);
     if (!data.length) { toast('No samples to download', 'warn'); return; }
     const cols = MODAL_COLS.assigned;
 
@@ -4365,10 +4683,10 @@ function getFilteredTableData(key) {
     (r.cnv_status||'').toLowerCase().includes(q)
   );
 
-  if (key === 'assigned')  data = sortRowsByDate(data, r => parseDate(r.assign_date), _sortDir.assigned);
-  if (key === 'released')  data = sortRowsByDate(data, r => parseDate(fmtRelDate(r.report_release_date, r)), _sortDir.released);
+  if (key === 'assigned')  data = sortRowsByGenId(data, _sortDir.assigned);
+  if (key === 'released')  data = sortRowsByGenId(data, _sortDir.released);
 
-  return data;
+  return sortByCoupleAdjacency(data);
 }
 
 function renderTable(key) {
@@ -4391,7 +4709,7 @@ function renderTable(key) {
     const v = r[c]||'';
     const cls = getColClass(c);
     if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='analyst_raw') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
@@ -4485,7 +4803,7 @@ function getFilteredOverdue() {
     (r.client||'').toLowerCase().includes(q)||(r.pri_rev||'').toLowerCase().includes(q)||
     (r.run_text||'').toLowerCase().includes(q)||(r.cnv_status||'').toLowerCase().includes(q)
   );
-  return data;
+  return sortByCoupleAdjacency(data);
 }
 
 function renderOverdue() {
@@ -4520,7 +4838,7 @@ function renderOverdue() {
   const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${OVERDUE_COLS.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='tat')     return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
@@ -4839,6 +5157,8 @@ const TEAM_MEMBERS = [
   { key: 'gayathri', label: 'Gayathri',  color: '#ec4899' },
   { key: 'vamshi',   label: 'Vamshi',    color: '#f97316' },
   { key: 'nikhil',   label: 'Nikhil',    color: '#8b5cf6' },
+  { key: 'priya',    label: 'Priya',     color: '#14b8a6' },
+  { key: 'raghavi',  label: 'Raghavi',   color: '#eab308' },
 ];
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 

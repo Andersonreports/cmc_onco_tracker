@@ -166,7 +166,7 @@ BOOL_MAP = {
     "is_reanalysis": "is_re_analysis",
 }
 
-_LOCAL_FIELDS = ("final",)
+_LOCAL_FIELDS = ("final", "couple_id")
 _ATTRIBUTION_FIELDS = ("last_updated_by", "last_updated_at")
 _OVERLAY_FIELDS = _LOCAL_FIELDS + _ATTRIBUTION_FIELDS
 
@@ -428,6 +428,53 @@ def bulk_add(reports: list[dict]) -> int:
         except ReportsAPIError as e:
             print(f"[reports_client] bulk_add: clinical reviewers not stored: {e}")
     return len(reports)
+
+
+_EDIT_FIELDS = ("rep_exp", "tat")
+
+
+def bulk_edit(rows: list[dict], who: str) -> dict:
+    """Day-2 pass: match each row to an already-created sample by Gen ID (or
+    Anderson ID when Gen ID doesn't match), updating only the edit fields the
+    row actually carries. Rows with no match are reported back, not silently
+    dropped, since the sheet may have a typo'd or not-yet-created id.
+    """
+    if not rows:
+        return {"count": 0, "unmatched": []}
+
+    existing = list_reports()
+    by_gen_id = {str(r.get("gen_id") or "").strip(): r
+                 for r in existing if str(r.get("gen_id") or "").strip()}
+    by_and_id: dict[str, list[dict]] = {}
+    for r in existing:
+        aid = str(r.get("and_id") or "").strip()
+        if aid:
+            by_and_id.setdefault(aid, []).append(r)
+
+    count = 0
+    unmatched = []
+    for row in rows:
+        gen_id = str(row.get("gen_id") or "").strip()
+        and_id = str(row.get("and_id") or "").strip()
+
+        match = by_gen_id.get(gen_id) if gen_id else None
+        if match is None and and_id:
+            candidates = by_and_id.get(and_id) or []
+            match = candidates[0] if len(candidates) == 1 else None
+
+        if match is None:
+            unmatched.append({"gen_id": gen_id, "and_id": and_id})
+            continue
+
+        changes = {f: str(row.get(f) or "").strip()
+                   for f in _EDIT_FIELDS if str(row.get(f) or "").strip()}
+        if not changes:
+            continue
+
+        update_report(match["id"], {**match, **changes, "last_updated_by": who})
+        count += 1
+
+    return {"count": count, "unmatched": unmatched}
 
 
 def _patch_many(id: list[str], changes: dict) -> int:
