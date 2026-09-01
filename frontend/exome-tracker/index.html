@@ -1440,7 +1440,12 @@
         </div>
         <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-report_release_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
         <div class="rf-item"><label>Run Number</label><input type="text" id="rf-run_text" placeholder="e.g. SURFseq- Run-102" /></div>
-        <div class="rf-item"><label>Couple ID</label><input type="text" id="rf-couple_id" placeholder="Same tag on both samples, e.g. Couple 1" /></div>
+        <div class="rf-item"><label>Couple ID</label>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="rf-couple_id" placeholder="Same tag on both samples, e.g. Couple 1" style="flex:1" />
+            <button type="button" class="btn btn-out btn-sm" onclick="fillNextCoupleId()" title="Fill in the next unused couple number" style="flex-shrink:0;white-space:nowrap">Next #</button>
+          </div>
+        </div>
         <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remarks"></textarea></div>
         <div class="rf-item rf-wide"><label>History</label><textarea id="rf-history"></textarea></div>
         <div class="rf-item rf-wide">
@@ -2240,7 +2245,7 @@ const COL_MAP = {
   remarks:    ['remark','remarks','note','notes'],
   report_release_date:  ['report release date','release date','released on','report_release_date'],
   history:   ['history writeup','history','writeup'],
-  couple_id: ['couple id','couple_id','couple no','couple number','couple tag'],
+  couple_id: ['couple id','couple_id','couple no','couple number','couple tag','couple'],
 };
 
 function extractRunNumber(text) {
@@ -2270,13 +2275,17 @@ function priorityReason(row) {
 }
 
 function mapRow(raw) {
-  const keys = Object.keys(raw).map(k => k.toLowerCase().trim());
+  // Headers vary in punctuation across sheets ("Couple ID", "Couple_ID",
+  // "Couple-ID", "COUPLEID" all mean the same column) — headerKey() strips
+  // spaces/dots/underscores/hyphens so aliases match regardless of style.
+  const keys = Object.keys(raw).map(k => headerKey(k));
   function get(aliases) {
-    for (const a of aliases) {
+    const wanted = aliases.map(headerKey);
+    for (const a of wanted) {
       const i = keys.indexOf(a);
       if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
     }
-    for (const a of aliases) {
+    for (const a of wanted) {
       const i = keys.findIndex(k => k.includes(a));
       if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
     }
@@ -2977,7 +2986,8 @@ function toggleBulkAssignPanel() {
 function renderBulkAssignTeamSummary() {
   const el = document.getElementById('bulk-assign-team-summary');
   if (!el) return;
-  const ongoing = applySelfFilter(rows).filter(r => getStatus(r) === 'Ongoing');
+  const run = document.getElementById('bulk-assign-run')?.value || '';
+  const ongoing = applySelfFilter(rows).filter(r => getStatus(r) === 'Ongoing' && (!run || r.run_text === run));
   const byTeam = {};
   ongoing.forEach(r => {
     const team = teamFor(normalizeAnalystName(r.pri_rev));
@@ -3126,6 +3136,22 @@ function coupleTag(v) {
   return String(v || '').trim();
 }
 
+// Scans every couple_id in use for the highest "Couple N" number so staff
+// don't have to remember or hunt down the last one assigned.
+function nextCoupleNumber() {
+  let max = 0;
+  rows.forEach(r => {
+    const m = coupleTag(r.couple_id).match(/couple\s*[-_ ]?\s*(\d+)/i);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return max + 1;
+}
+
+function fillNextCoupleId() {
+  const el = document.getElementById('rf-couple_id');
+  if (el) el.value = 'Couple ' + nextCoupleNumber();
+}
+
 // Sample names already carry the patient's sex (e.g. "MRS.X (29Y/F)",
 // "MR.Y (33Y/M)") — that's reused here rather than asking for it again.
 function genderFromName(name) {
@@ -3198,7 +3224,7 @@ function sortByCoupleAdjacency(data) {
 const HEADER_KEYS = new Set(Object.values(COL_MAP).flat().map(h => h.replace(/[\s._]/g, '')));
 
 function headerKey(text) {
-  return String(text == null ? '' : text).trim().toLowerCase().replace(/[\s._]/g, '');
+  return String(text == null ? '' : text).trim().toLowerCase().replace(/[\s._-]/g, '');
 }
 
 // Sheets write "absent" as a dash, so those cells count as empty.
