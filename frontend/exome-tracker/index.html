@@ -2678,7 +2678,7 @@ function renderPrioritySamples() {
       : daysLeft === 0 ? `${st} · due today`
       : overdue ? `${st} · ${Math.abs(daysLeft)}d overdue`
       : `${st} · ${daysLeft}d left`;
-    return `<div class="pcard"${clickable ? ` onclick="openReportModal(_prailRows[${i}])" title="Open this sample"` : ' style="cursor:default"'}>
+    return `<div class="pcard"${clickable ? ` onclick='openReportModalById(${JSON.stringify(r.id)})' title="Open this sample"` : ' style="cursor:default"'}>
       <div class="pcard-top">
         <span class="pcard-id" style="color:${color}">${esc(r.gen_id || r.and_id || r.sno || '—')}${overdue ? '<span class="pcard-flag">overdue</span>' : ''}</span>
         <span class="pcard-ic" style="color:${color}">${urgent ? IC.alert : IC.flask}</span>
@@ -3566,6 +3566,19 @@ function reviewerOptions(current)         { return selectOptions(REVIEWERS, curr
 function clinicalReviewerOptions(current) { return selectOptions(CLINICAL_REVIEWERS, current); }
 function cnvStatusOptions(current)        { return selectOptions(CNV_STATUSES, current); }
 
+// Row templates render once and their onclick can sit in the DOM long after
+// rows[] moves on (a search result left open, a background tab), so this
+// looks the row up fresh at click time instead of trusting whatever was
+// baked in when the HTML was built.
+function openReportModalById(id) {
+  const row = rows.find(r => String(r.id) === String(id));
+  if (!row) {
+    toast('That sample was replaced by a re-import, so this row is out of date. Refresh and try again.', 'err');
+    return;
+  }
+  openReportModal(row);
+}
+
 function openReportModal(row) {
   const gsr = document.getElementById('global-search-results');
   if (gsr) gsr.style.display = 'none';
@@ -3760,7 +3773,7 @@ function rowEditAttrs(r) {
   if (bg) styles.push(`background:${bg} !important`);
   const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
   const onclickAttr = canEdit
-    ? ` onclick='openReportModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'`
+    ? ` onclick='openReportModalById(${JSON.stringify(r.id)})'`
     : '';
   return `${onclickAttr}${styleAttr}`;
 }

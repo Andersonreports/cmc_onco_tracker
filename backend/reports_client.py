@@ -301,15 +301,24 @@ _OVERLAY_PATH = Path(_env_path(
     "REPORTS_OVERLAY_PATH", str(Path(__file__).parent / "tracker_local_fields.json")))
 _overlay_lock = threading.Lock()
 _overlay_cache: dict | None = None
+_overlay_mtime: float | None = None
 
 
 def _overlay_all() -> dict:
-    global _overlay_cache
-    if _overlay_cache is None:
+    """Reload whenever the file has changed since this process last read it, so a
+    write from another gunicorn worker is picked up instead of staying invisible
+    to this one for the life of the process."""
+    global _overlay_cache, _overlay_mtime
+    try:
+        mtime = _OVERLAY_PATH.stat().st_mtime
+    except OSError:
+        mtime = None
+    if _overlay_cache is None or mtime != _overlay_mtime:
         try:
             _overlay_cache = json.loads(_OVERLAY_PATH.read_text() or "{}")
         except Exception:
             _overlay_cache = {}
+        _overlay_mtime = mtime
     return _overlay_cache
 
 
@@ -322,6 +331,7 @@ def _overlay_get(key: str) -> dict:
 
 def _overlay_set(key: str, row: dict) -> None:
     """Persist the overlay fields for one record, dropping empty entries."""
+    global _overlay_mtime
     if not key:
         return
     entry = {f: str(row.get(f) or "").strip() for f in _OVERLAY_FIELDS}
@@ -335,6 +345,7 @@ def _overlay_set(key: str, row: dict) -> None:
             tmp = _OVERLAY_PATH.with_suffix(".tmp")
             tmp.write_text(json.dumps(data, indent=2))
             tmp.replace(_OVERLAY_PATH)
+            _overlay_mtime = _OVERLAY_PATH.stat().st_mtime
         except Exception as e:
             print(f"[reports_client] could not write overlay {_OVERLAY_PATH}: {e}")
 
@@ -401,7 +412,8 @@ def update_report(report_id_: str, payload: dict) -> dict | None:
     rec = _to_it(payload, record_id=report_id_)
     if not rec.get("id"):
         return None
-    _post(PATH_UPDATE, {"sample_data": rec})
+    resp = _post(PATH_UPDATE, {"sample_data": rec})
+    print(f"[reports_client] {PATH_UPDATE} response for id={report_id_}: {resp}")
     payload["last_updated_at"] = rec["last_updated_at"]
     _overlay_set(report_id_, payload)
     row = dict(payload)
