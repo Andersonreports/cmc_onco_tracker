@@ -403,6 +403,12 @@
     .etc-couple{background:rgba(219,39,119,.13);color:#be185d}
     .emp-type-counts-lg{gap:10px}
     .emp-type-counts-lg .etc-pill{font-size:14px;font-weight:700;padding:6px 14px;border-radius:10px}
+    .ba-team-grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px}
+    .ba-team-tile{padding:6px 8px;border-radius:8px;border:1px solid var(--pb);background:var(--panel);min-width:0}
+    .ba-team-leader{font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ba-team-total{font-size:15px;font-weight:800;color:var(--pri);line-height:1.2}
+    .ba-team-breakdown{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+    .ba-team-breakdown .etc-pill{font-size:10px;padding:2px 6px;white-space:nowrap}
     .emp-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
     .emp-pill{
       font-size:10.5px;padding:2px 8px;border-radius:10px;
@@ -608,6 +614,7 @@
       .tat-grid{grid-template-columns:1fr}
       .emp-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
       #qmodal{max-width:95vw;margin:10px}
+      .ba-team-grid{grid-template-columns:repeat(9,minmax(110px,1fr));overflow-x:auto;padding-bottom:4px}
     }
 
     @media(max-width:640px){
@@ -1568,6 +1575,7 @@
             <span class="tbl-max-label">Maximize</span>
           </button>
         </div>
+        <div id="bulk-assign-team-summary" class="ba-team-grid" style="margin-bottom:12px"></div>
         <div id="bulk-assign-caption" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
         <div id="bulk-assign-list"></div>
       </div>
@@ -2050,12 +2058,13 @@
 <script>
 let rows   = [];
 
-const _sortDir = { allSamples:'desc', assigned:'desc', released:'desc', overdue:'asc' };
+const _sortDir = { allSamples:'desc', assigned:'desc', released:'desc', overdue:'asc', empModal:'desc' };
 const SORT_LABELS = {
   allSamples: { desc:'Newest first', asc:'Oldest first' },
   assigned:   { desc:'Newest first', asc:'Oldest first' },
   released:   { desc:'Newest first', asc:'Oldest first' },
   overdue:    { asc:'Most overdue first', desc:'Least overdue first' },
+  empModal:   { desc:'Newest first', asc:'Oldest first' },
 };
 const SORT_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4"/><path d="M16 15l-4 4-4-4"/></svg>';
 
@@ -2089,6 +2098,7 @@ function toggleSortDir(key) {
   updateSortToggleBtn(key);
   if (key === 'allSamples') { sortAllSamplesData(); filterAllSamples(); }
   else if (key === 'overdue') renderOverdue();
+  else if (key === 'empModal') filterEmpModal();
   else render(key);
 }
 
@@ -2391,6 +2401,14 @@ function isRepeatSample(r) {
   return REPEAT_SAMPLE_REMARK.test(r.remarks || '') || _autoRepeatIds.has(r.id);
 }
 
+// A contaminated sample won't proceed to analysis until it's redrawn, so like
+// a Siva hand-off it shouldn't sit in Yet to Start or Overdue while it waits.
+const CONTAMINATED_REMARK = /contaminat/i;
+
+function isContaminated(r) {
+  return CONTAMINATED_REMARK.test(r.remarks || '');
+}
+
 function getStatus(r) {
   const run = parseInt(r.run_number || 0, 10);
   const hasRelDate = r.report_release_date && r.report_release_date !== '—' && r.report_release_date !== '-' &&
@@ -2401,17 +2419,19 @@ function getStatus(r) {
   if (run < FIRST_RUN_WITH_RELEASE_DATES || hasRelDate) return 'Released';
   if (isRepeatSample(r)) return 'Repeat Sample';
   if (isSentToSiva(r)) return 'On Hold';
+  if (isContaminated(r)) return 'Contaminated';
   if (r.pri_rev) return 'Ongoing';
   return 'Yet to Start';
 }
 
 // Work still owed: everything a reviewer, a TAT alert or an allocation cares
-// about. Cancelled, on-hold, repeat-sample and re-analysis rows are owed
-// nothing here — re-analysis has no TAT/release date of its own and lives on
-// its own tab — so they sit outside it.
+// about. Cancelled, on-hold, contaminated, repeat-sample and re-analysis rows
+// are owed nothing here — re-analysis has no TAT/release date of its own and
+// lives on its own tab — so they sit outside it.
 function isPending(r) {
   const st = getStatus(r);
-  return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Repeat Sample' && st !== 'Re-analysis';
+  return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Contaminated' &&
+         st !== 'Repeat Sample' && st !== 'Re-analysis';
 }
 
 function parseDate(v) {
@@ -2954,6 +2974,34 @@ function toggleBulkAssignPanel() {
   }
 }
 
+function renderBulkAssignTeamSummary() {
+  const el = document.getElementById('bulk-assign-team-summary');
+  if (!el) return;
+  const ongoing = applySelfFilter(rows).filter(r => getStatus(r) === 'Ongoing');
+  const byTeam = {};
+  ongoing.forEach(r => {
+    const team = teamFor(normalizeAnalystName(r.pri_rev));
+    (byTeam[team] || (byTeam[team] = [])).push(r);
+  });
+  // Every team not already carrying a load still needs a tile — an empty team
+  // is exactly the one allocation should prefer, so it can't be left off.
+  const allTeams = [...new Set(Object.values(TEAM_MAP))].sort((a, b) => teamOrder(a) - teamOrder(b));
+  el.innerHTML = allTeams.map(team => {
+    const teamRows = byTeam[team] || [];
+    const counts = teamWorkloadBreakdown(teamRows);
+    const leader = TEAM_LEADER_MAP[team] || '—';
+    return `<div class="ba-team-tile">
+      <div class="ba-team-leader">${esc(leader)}</div>
+      <div class="ba-team-total">${teamRows.length}</div>
+      <div class="ba-team-breakdown">
+        <span class="etc-pill etc-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderBulkAssignList() {
   const q = (document.getElementById('bulk-assign-search')?.value || '').toLowerCase().trim();
   const couplesOnly = !!document.getElementById('bulk-assign-couples-only')?.checked;
@@ -3004,6 +3052,7 @@ function renderBulkAssignList() {
   }
   syncBulkAssignSelectAll(data);
   updateBulkAssignCount();
+  renderBulkAssignTeamSummary();
 }
 
 function onBulkAssignCheck(checkbox) {
@@ -3066,10 +3115,10 @@ async function submitBulkAssign() {
 function badgeHtml(status) {
   const cls = {
     'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel','Cancelled':'b-can',
-    'On Hold':'b-can','Repeat Sample':'b-rel'
+    'On Hold':'b-can','Repeat Sample':'b-rel','Contaminated':'b-can'
   }[status] || 'b-yet';
   const icon = {'Yet to Start':IC.pin,'Ongoing':IC.user,'Released':IC.rocket,
-                'Cancelled':IC.ban,'On Hold':IC.ban,'Repeat Sample':IC.rocket}[status]||'';
+                'Cancelled':IC.ban,'On Hold':IC.ban,'Repeat Sample':IC.rocket,'Contaminated':IC.ban}[status]||'';
   return `<span class="badge ${cls}">${icon} ${esc(status)}</span>`;
 }
 
@@ -3099,9 +3148,11 @@ function coupleRowBg(r) {
 
 // Priority wins over the couple tint when a row is both — it's the more
 // time-critical flag. The couple pairing is still visible via the name's
-// gender icon even when its row tint is overridden this way.
+// gender icon even when its row tint is overridden this way. Once the sample
+// is no longer pending (released, cancelled, on hold, etc.) the urgency is
+// gone, so the tint stops even though the source data's priority flag stays.
 function rowHighlightBg(r) {
-  if (r.is_priority) return 'rgba(255,235,59,.25)';
+  if (r.is_priority && isPending(r)) return 'rgba(255,235,59,.25)';
   return coupleRowBg(r);
 }
 
@@ -4511,8 +4562,7 @@ function openEmpModal(empName) {
     getStatus(r) === 'Ongoing' &&
     normalizeAnalystName(r.pri_rev) === empName
   );
-  empRows = sortRowsByGenId(empRows, 'desc');
-  empRows = sortByCoupleAdjacency(empRows);
+  empRows = sortByCoupleAdjacency(sortRowsByGenId(empRows, _sortDir.empModal));
   _empModalAll = empRows;
   _empModalName = empName;
 
@@ -4532,6 +4582,7 @@ function openEmpModal(empName) {
         <option value="">All Sample Types</option>
         ${SAMPLE_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
       </select>
+      <button class="rel-filter-toggle" id="sort-btn-empModal" onclick="toggleSortDir('empModal')" style="height:34px;font-size:11px;padding:0 10px"></button>
       <button class="btn btn-sm btn-pri" onclick="downloadEmpModalExcel()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Excel
       </button>
@@ -4548,6 +4599,7 @@ function openEmpModal(empName) {
     '<div class="modal-table-wrap" id="emp-modal-table-wrap">' + buildModalTable(empRows, MODAL_COLS.assigned) + '</div>';
   document.getElementById('qmodal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
+  updateSortToggleBtn('empModal');
 }
 
 function filterEmpModal() {
@@ -4555,7 +4607,7 @@ function filterEmpModal() {
   const type = document.getElementById('emp-modal-type')?.value || '';
   let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
   if (type) data = data.filter(r => sampleTypeOf(r) === type);
-  data = sortByCoupleAdjacency(data);
+  data = sortByCoupleAdjacency(sortRowsByGenId(data, _sortDir.empModal));
   document.getElementById('qmodal-count').textContent = ` · ${data.length} record${data.length!==1?'s':''}`;
   document.getElementById('emp-modal-table-wrap').innerHTML = buildModalTable(data, MODAL_COLS.assigned);
   const countEl = document.getElementById('emp-modal-count');
@@ -4568,6 +4620,7 @@ function downloadEmpModalExcel() {
     const type = document.getElementById('emp-modal-type')?.value || '';
     let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
     if (type) data = data.filter(r => sampleTypeOf(r) === type);
+    data = sortByCoupleAdjacency(sortRowsByGenId(data, _sortDir.empModal));
     if (!data.length) { toast('No samples to download', 'warn'); return; }
     const cols = MODAL_COLS.assigned;
 
@@ -5155,7 +5208,7 @@ const TEAM_MEMBERS = [
   { key: 'gayathri', label: 'Gayathri',  color: '#ec4899' },
   { key: 'vamshi',   label: 'Vamshi',    color: '#f97316' },
   { key: 'nikhil',   label: 'Nikhil',    color: '#8b5cf6' },
-  { key: 'priya',    label: 'Priya',     color: '#14b8a6' },
+  { key: 'priya',    label: 'Priya',     color: '#800000' },
   { key: 'raghavi',  label: 'Raghavi',   color: '#eab308' },
 ];
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
