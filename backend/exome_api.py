@@ -131,6 +131,7 @@ def update_report(
     if not can_edit(request):
         return forbidden()
     doc = reports_client.update_report(report_id, _stamped(report, request))
+    print(f"[exome_api] PUT /reports/{report_id} returning: {doc}")
     if doc is None:
         return JSONResponse({"error": "Report not found"}, status_code=404)
     return doc

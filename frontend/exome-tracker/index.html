@@ -3876,6 +3876,8 @@ function refreshAll() {
   const active = document.querySelector('.page.active');
   if (active && active.id==='page-overdue') {
     renderOverdue();
+  } else if (active && active.id==='page-analytics') {
+    anDrawAll();
   } else if (active && active.id!=='page-dashboard') {
     const key = Object.keys(PAGE_MAP).find(k=>PAGE_MAP[k]===active.id);
     if (key) render(key);
@@ -5405,7 +5407,7 @@ function anDrawChart1() {
     const d = parseDate(r.tat) || parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch = year === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     
     const normTest = normalizeTest(r.test);
     if (!normTest) return false;
@@ -5435,7 +5437,7 @@ function anDrawChart2() {
     const d = parseDate(r.tat) || parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch = year === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     
     const normClient = normalizeClient(r.client);
     if (!normClient) return false;
@@ -5571,7 +5573,7 @@ function _chart0Data(year, month) {
     const d = _relOrTat(r);
     if (!d) return false;
     const yearMatch  = year  === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     return yearMatch && monthMatch;
   });
 
@@ -5620,7 +5622,7 @@ function reviewerReleasedSamples(key) {
     const d = parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch  = year  === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     return yearMatch && monthMatch && String(r.pri_rev || '').toLowerCase().trim().includes(key);
   }).sort((a, b) => {
     const da = parseDate(a.report_release_date), db = parseDate(b.report_release_date);
