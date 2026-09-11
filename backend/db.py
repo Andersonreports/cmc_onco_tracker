@@ -3,11 +3,9 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent / ".env")
-except Exception:
-    pass
+from env_loader import load_backend_env
+
+load_backend_env()
 
 try:
     import pymysql

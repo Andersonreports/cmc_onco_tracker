@@ -15,6 +15,7 @@ import access
 import exome_roles
 import reports_client
 import role_store
+import genetics_auth_client
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 REPO_ROOT = Path(__file__).parent.parent
@@ -75,6 +76,7 @@ def health(check: str | None = None):
         "status": "Anderson Trackings running",
         "role_backend": role_store.backend_name(),
         "role_count": len(role_store.all()),
+        "sign_in_service": genetics_auth_client.status(),
         "reports_api": reports_client.status(),
     }
     if check:

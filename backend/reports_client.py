@@ -9,13 +9,10 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from env_loader import load_backend_env
 import genetics_auth_client
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent / ".env")
-except Exception:
-    pass
+load_backend_env()
 
 # IT integration API: every endpoint is POST, bodies wrap in "sample_data",
 # responses come back under "response". No delete, no partial update, and

@@ -8,11 +8,9 @@ import re
 import secrets
 from pathlib import Path
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent / ".env")
-except Exception:
-    pass
+from env_loader import load_backend_env
+
+load_backend_env()
 
 import access
 import db

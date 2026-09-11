@@ -16,11 +16,9 @@ from fastapi import APIRouter, Cookie, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent / ".env")
-except Exception:
-    pass
+from env_loader import load_backend_env
+
+load_backend_env()
 
 BASE_DIR = Path(__file__).parent
 SECRET_FILE = BASE_DIR / ".auth_secret"

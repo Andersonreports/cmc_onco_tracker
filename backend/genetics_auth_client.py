@@ -9,11 +9,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent / ".env")
-except Exception:
-    pass
+from env_loader import load_backend_env
+
+load_backend_env()
 
 GENETICS_BASE_URL = os.getenv("GENETICS_API_BASE",
                         "https://integration.andrsn.in").strip().rstrip("/")
@@ -33,6 +31,18 @@ _NOT_CONFIGURED = {
 
 def is_configured() -> bool:
     return bool(GENETICS_BASE_URL and GENETICS_SERVICE_USERNAME and GENETICS_SERVICE_PASSWORD)
+
+
+def status() -> dict:
+    return {
+        "configured": is_configured(),
+        "base_url": bool(GENETICS_BASE_URL),
+        "service_username": bool(GENETICS_SERVICE_USERNAME),
+        "service_password": bool(GENETICS_SERVICE_PASSWORD),
+        "token_path": GENETICS_TOKEN_PATH,
+        "login_path": GENETICS_LOGIN_PATH,
+        "verify_path": GENETICS_VERIFY_PATH,
+    }
 
 
 def _extract(data: dict | None, *keys: str):
