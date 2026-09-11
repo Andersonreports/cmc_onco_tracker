@@ -36,10 +36,10 @@ browser automatically. Press Ctrl+C in the terminal window to stop it.
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn backend:app --reload
+uvicorn backend:app --reload --port 8010
 ```
 
-Visit `http://localhost:8000/`.
+Visit `http://localhost:8010/`.
 
 ## Deploy on a server
 

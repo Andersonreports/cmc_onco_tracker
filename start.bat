@@ -15,12 +15,12 @@ echo Installing/checking dependencies...
 pip install -q -r requirements.txt
 
 echo Starting server...
-start "CMC-ONCO Tracker Server" /min cmd /c "uvicorn backend:app --host 127.0.0.1 --port 8000"
+start "CMC-ONCO Tracker Server" /min cmd /c "uvicorn backend:app --host 127.0.0.1 --port 8010"
 
 echo Waiting for server to start...
 timeout /t 3 /nobreak >nul
 
-start "" http://127.0.0.1:8000/
+start "" http://127.0.0.1:8010/
 
 echo Tracker is running. Close the "CMC-ONCO Tracker Server" window to stop it.
 pause
