@@ -353,6 +353,7 @@
     .couple-gender{display:inline-flex;vertical-align:middle}
     .couple-gender-m{color:#2563eb}
     .couple-gender-f{color:#db2777}
+    .couple-gender-p{color:#1e3a8a}
     .pri-icon{display:inline-flex;vertical-align:middle;color:#1e293b}
     .tat-item{cursor:pointer;transition:var(--tr)}
     .tat-item:hover{background:rgba(0,0,0,.06)}
@@ -426,7 +427,7 @@
     #qmodal{
       background:#fff;border:1px solid var(--pb);
       border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.25);
-      width:100%;max-width:1100px;max-height:80vh;display:flex;flex-direction:column;
+      width:100%;max-width:1100px;height:80vh;max-height:80vh;display:flex;flex-direction:column;
       animation:fadeIn .2s ease-out;margin:20px;
     }
     @keyframes fadeIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
@@ -1109,6 +1110,23 @@
       font-size:9px;font-weight:800;letter-spacing:.5px;vertical-align:middle;
     }
 
+    .couple-num-tag{
+      display:inline-block;margin-left:6px;padding:1px 6px;border-radius:5px;
+      background:#eef2ff;color:#4338ca;border:1px solid #e0e7ff;
+      font-size:9px;font-weight:800;letter-spacing:.3px;vertical-align:middle;white-space:nowrap;
+    }
+
+    .name-cancelled{text-decoration:line-through;opacity:.6}
+
+    .legend-grid{display:flex;flex-direction:column}
+    .legend-row{display:flex;align-items:center;gap:18px;padding:12px 4px;border-bottom:1px solid var(--pb)}
+    .legend-row:last-child{border-bottom:none}
+    .legend-sample{flex:0 0 150px;font-weight:700;font-size:13px}
+    .legend-swatch{flex:0 0 150px;display:inline-block;width:64px;height:22px;border-radius:6px;border:1px solid transparent}
+    .legend-icons{flex:0 0 150px;display:flex;gap:8px;align-items:center}
+    .legend-icons .couple-gender svg{width:19px;height:19px}
+    .legend-desc{color:var(--ink-2);font-size:12.5px}
+
     .pcard-flag{
       display:inline-flex;align-items:center;gap:4px;margin-left:6px;
       padding:2px 7px;border-radius:5px;background:#fef3c7;color:#92400e;
@@ -1239,6 +1257,18 @@
     .pcard-meta{font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .pcard-status{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:11px;font-weight:600;line-height:1.25}
     .pcard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .prail-run-group{display:flex;flex-direction:column;gap:8px}
+    .prail-run-group + .prail-run-group{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+    .prail-run-hd{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3);
+    }
+    .prail-run-hd span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .prail-run-count{
+      flex-shrink:0;background:#f3f4f6;color:var(--ink-2);border-radius:20px;
+      padding:1px 8px;font-size:10.5px;font-weight:700;
+    }
+    .prail-run-cards{display:flex;flex-direction:column;gap:8px}
     .prail-foot{text-align:center;margin-top:16px}
     .prail-foot button{
       background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;
@@ -1491,6 +1521,10 @@
     <input type="text" id="global-search" placeholder="Search samples..." oninput="performGlobalSearch()" style="font-size:14px" />
   </div>
   <div class="ph-actions">
+    <button class="btn btn-quiet" id="legend-btn" onclick="openColorGuideModal()" title="What the colors and symbols on this page mean">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      Color Guide
+    </button>
     <button class="btn btn-quiet" id="refresh-btn" onclick="fetchReports()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Refresh Now
     </button>
@@ -2090,10 +2124,29 @@ function genIdSortKey(gid) {
   return m ? { num: parseInt(m[1], 10), suffix: m[2] || '' } : { num: -1, suffix: '' };
 }
 
+// "Newest/Oldest first" — despite the name, this sorts by run recency first
+// (run_number, the same field getStatus/the Run filter dropdown treat as
+// authoritative), not by gen_id. gen_id magnitude alone isn't reliable across
+// platforms — e.g. Genolab's AND-style ids are large reference-lab numbers
+// unrelated to processing order, so gen_id-only sorting could put an old
+// Genolab run above a newer Surfseq one. gen_id is now only a tiebreaker
+// within the same run.
 function sortRowsByGenId(list, dir) {
   return list.slice().sort((a, b) => {
-    const ka = genIdSortKey(a.gen_id), kb = genIdSortKey(b.gen_id);
-    const cmp = ka.num !== kb.num ? ka.num - kb.num : ka.suffix.localeCompare(kb.suffix);
+    const runA = parseInt(a.run_number || 0, 10);
+    const runB = parseInt(b.run_number || 0, 10);
+    let cmp;
+    if (runA !== runB) {
+      cmp = runA - runB;
+    } else {
+      const runTextCmp = String(a.run_text || '').localeCompare(String(b.run_text || ''));
+      if (runTextCmp !== 0) {
+        cmp = runTextCmp;
+      } else {
+        const ka = genIdSortKey(a.gen_id), kb = genIdSortKey(b.gen_id);
+        cmp = ka.num !== kb.num ? ka.num - kb.num : ka.suffix.localeCompare(kb.suffix);
+      }
+    }
     return dir === 'asc' ? cmp : -cmp;
   });
 }
@@ -2628,7 +2681,7 @@ function renderTatAlerts() {
   overEl.innerHTML = overdueFiltered.length ? overdueFiltered.map((r,i) => {
     const days = Math.abs(r.diff);
     return `<tr class="prow"${rowEditAttrs(r)}>
-      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</td>
+      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-date">${fmtDate(r.tat)}</td>
       <td class="cell-num">+${days}d</td>
@@ -2672,7 +2725,8 @@ function renderPrioritySamples() {
   const today = new Date(); today.setHours(0,0,0,0);
   _prailRows = all;
   const clickable = canEditReports();
-  el.innerHTML = _prailRows.map((r, i) => {
+
+  const cardHtml = (r) => {
     const st = getStatus(r);
     const td = parseTatDate(r);
     let daysLeft = null;
@@ -2696,7 +2750,23 @@ function renderPrioritySamples() {
         <span class="pcard-dot" style="background:${color}"></span>${esc(statusText)}${reviewer ? ' · ' + esc(reviewer) : ''}
       </div>
     </div>`;
-  }).join('');
+  };
+
+  // Stack cards into run-wise clusters instead of one flat, urgency-only list —
+  // each cluster keeps its rows in the existing urgency order, and clusters are
+  // ordered by their most urgent row so the riskiest run still surfaces first.
+  const groups = new Map();
+  all.forEach(r => {
+    const key = r.run_text || 'No Run';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+
+  el.innerHTML = [...groups.entries()].map(([runText, groupRows]) => `
+    <div class="prail-run-group">
+      <div class="prail-run-hd"><span>${esc(formatRunText(runText))}</span><span class="prail-run-count">${groupRows.length}</span></div>
+      <div class="prail-run-cards">${groupRows.map(cardHtml).join('')}</div>
+    </div>`).join('');
 }
 
 function todayDDMMYYYY() {
@@ -2713,7 +2783,7 @@ function renderTatSoonList(data) {
     const st = getStatus(r);
     const pillCls = r.diff === 0 ? 'spill-today' : (st === 'Ongoing' ? 'spill-ong' : 'spill-yet');
     return `<tr class="prow"${rowEditAttrs(r)}>
-      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</td>
+      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-num">${remaining}</td>
       <td class="cell-right"><span class="spill ${pillCls}">${esc(st)}</span></td>
@@ -2821,7 +2891,6 @@ function renderBulkReleaseList() {
     (r.client||'').toLowerCase().includes(q) ||
     (r.run_text||'').toLowerCase().includes(q)
   );
-  data = sortByCoupleAdjacency(data);
 
   const el = document.getElementById('bulk-release-list');
   el.innerHTML = data.length ? `<table class="ba-table">
@@ -2838,12 +2907,12 @@ function renderBulkReleaseList() {
       const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
       return `<tr${rowEditAttrs(r)}>
         <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" /></td>
-        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${coupleGenderIcon(r)}${r.name ? esc(r.name) : '—'}</td>
+        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
         ${cell(r.test, 'ba-test')}
         <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
         <td class="ba-mono"${r.and_id ? ` data-tip="${esc(r.and_id)}"` : ''}>${r.and_id ? esc(r.and_id) : '—'}</td>
         ${cell(r.client, 'ba-client')}
-        ${cell(r.run_text, 'ba-run')}
+        ${cell(formatRunText(r.run_text), 'ba-run')}
         <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
         <td class="ba-tat">${fmtDate(r.tat)}</td>
         <td><span class="od-pill ${pillCls}">${label}</span></td>
@@ -2968,7 +3037,7 @@ function populateBulkAssignReviewers() {
     const runs = [...new Set(unreleased.map(r => r.run_text).filter(Boolean))]
       .sort((a, b) => (extractRunNumber(b) || 0) - (extractRunNumber(a) || 0));
     sel.innerHTML = '<option value="">All Runs</option>' +
-      runs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+      runs.map(r => `<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('');
     sel.value = keep;
   }
 }
@@ -3037,8 +3106,7 @@ function renderBulkAssignList() {
     (r.run_text||'').toLowerCase().includes(q) ||
     coupleTag(r.couple_id).toLowerCase().includes(q)
   );
-  if (couplesOnly) data = data.filter(r => !!coupleTag(r.couple_id));
-  data = sortByCoupleAdjacency(data);
+  if (couplesOnly) data = sortByCoupleAdjacency(data.filter(r => !!coupleTag(r.couple_id)));
 
   const el = document.getElementById('bulk-assign-list');
   el.innerHTML = data.length ? `<table class="ba-table">
@@ -3053,12 +3121,12 @@ function renderBulkAssignList() {
       const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
       return `<tr${rowEditAttrs(r)}>
         <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
-        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${r.is_priority ? `<span class="pri-icon" title="Priority sample">${IC.alert}</span> ` : ''}${coupleGenderIcon(r)}${r.name ? esc(r.name) : '—'}</td>
+        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
         ${cell(r.test, 'ba-test')}
         <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
         <td class="ba-mono"${r.and_id ? ` data-tip="${esc(r.and_id)}"` : ''}>${r.and_id ? esc(r.and_id) : '—'}</td>
         ${cell(r.client, 'ba-client')}
-        ${cell(r.run_text, 'ba-run')}
+        ${cell(formatRunText(r.run_text), 'ba-run')}
         <td class="ba-tat">${fmtDate(r.tat)}</td>
         <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
       </tr>`;
@@ -3134,6 +3202,16 @@ async function submitBulkAssign() {
   }
 }
 
+// Same palette as the "row-status-*" table tint (buildModalTable), reused
+// wherever only the name text itself should carry the status color rather
+// than the whole row (e.g. the Global Search results dropdown).
+function statusNameColor(status) {
+  if (status === 'Released') return '#047857';
+  if (status === 'Ongoing') return '#ca8a04';
+  if (status === 'Yet to Start') return '#4b5563';
+  return '';
+}
+
 function badgeHtml(status) {
   const cls = {
     'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel','Cancelled':'b-can',
@@ -3166,9 +3244,18 @@ function fillNextCoupleId() {
 
 // Sample names already carry the patient's sex (e.g. "MRS.X (29Y/F)",
 // "MR.Y (33Y/M)") — that's reused here rather than asking for it again.
+// Not anchored to the end of the string: a trailing suffix like "-Repeat"
+// or "(POC SAMPLE)" after the age/sex segment must not block the match.
 function genderFromName(name) {
-  const m = String(name || '').match(/\d+\s*Y\s*\/\s*([MF])\)?\s*$/i);
+  const m = String(name || '').match(/\d+\s*Y\s*\/\s*([MF])\)?/i);
   return m ? m[1].toUpperCase() : '';
+}
+
+// POC (products of conception) / fetal samples carry an (NNY/F) suffix too
+// (genderFromName would call them female) but they're the third member of a
+// trio, not the mother — flag them separately so the trio gets its own icon.
+function isPocName(name) {
+  return /\bPOC\b|PRODUCTS?\s+OF\s+CONCEPTION|\bFETAL\b|\bFETUS\b/i.test(String(name || ''));
 }
 
 // A pale whole-row tint, keyed by gender when the name carries one — falls
@@ -3178,6 +3265,7 @@ function genderFromName(name) {
 function coupleRowBg(r) {
   const tag = coupleTag(r.couple_id);
   if (!tag) return '';
+  if (isPocName(r.name)) return 'rgba(30,58,138,.09)';
   const g = genderFromName(r.name);
   if (g === 'M') return 'rgba(37,99,235,.09)';
   if (g === 'F') return 'rgba(219,39,119,.09)';
@@ -3199,17 +3287,43 @@ function coupleTitleSuffix(r) {
   return tag ? ` · Couple case: ${tag}` : '';
 }
 
+// Visible "Couple 1"/"Trio-1" badge — used in compact list views (TAT Due,
+// TAT Overdue) where the couple tag isn't already shown in its own column.
+function coupleNumberTag(r) {
+  const tag = coupleTag(r.couple_id);
+  return tag ? `<span class="couple-num-tag">${esc(tag)}</span>` : '';
+}
+
+// Strikes through an already-escaped name string when the sample is Cancelled
+// — `text` must already be esc()'d by the caller, since this only wraps it.
+function nameTextHtml(r, text) {
+  return getStatus(r) === 'Cancelled' ? `<span class="name-cancelled">${text}</span>` : text;
+}
+
+// Same "Mark as priority" flag used everywhere a sample name is rendered —
+// not just the Allocate Samples list it originally shipped with.
+function priorityIconHtml(r) {
+  return r.is_priority ? `<span class="pri-icon" title="Priority sample">${IC.alert}</span> ` : '';
+}
+
 const GENDER_ICON = {
   M: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="15" r="6"/><line x1="13.5" y1="10.5" x2="20" y2="4"/><polyline points="14 4 20 4 20 10"/></svg>',
   F: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>',
+  P: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="6"/><path d="M12 7V4"/><path d="M9.5 6.5c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2.5"/><circle cx="9.7" cy="12" r=".6" fill="currentColor" stroke="none"/><circle cx="14.3" cy="12" r=".6" fill="currentColor" stroke="none"/><path d="M10 15.5c.7.6 3.3.6 4 0"/></svg>',
 };
 
 // Placed BEFORE the name text (not after) so text-overflow:ellipsis truncates
 // the tail of a long name, never this icon — unlike the row tint, this needs
 // a parsed gender, so it silently omits itself when the name doesn't carry one.
+// POC/fetal samples (the third member of a trio) get their own icon rather
+// than falling into the mother's female icon, even though genderFromName
+// would parse them as F too.
 function coupleGenderIcon(r) {
   const tag = coupleTag(r.couple_id);
   if (!tag) return '';
+  if (isPocName(r.name)) {
+    return `<span class="couple-gender couple-gender-p" title="Couple case: ${esc(tag)}">${GENDER_ICON.P}</span> `;
+  }
   const g = genderFromName(r.name);
   if (!g) return '';
   return `<span class="couple-gender couple-gender-${g.toLowerCase()}" title="Couple case: ${esc(tag)}">${GENDER_ICON[g]}</span> `;
@@ -3930,7 +4044,7 @@ function populateRunFilter(selectId, data) {
   const cur = sel.value;
   const vals = runOptions(data);
   sel.innerHTML = '<option value="">All Runs</option>';
-  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=formatRunText(v); sel.appendChild(o); });
   if (vals.includes(cur)) sel.value=cur;
 }
 
@@ -4277,6 +4391,20 @@ function fmtStamp(v) {
   return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+// Uniform display for Surfseq run identifiers ("SURFSeq - Run - <suffix>"),
+// regardless of how staff typed the separators/casing (Surf-seq-Run-111A,
+// Surfseq_Run-109A, SURFseq- Run-105A, ...). Only touches values that
+// actually look like a Surfseq run — Genolab entries and bare "Run_108A"
+// style values have no "surf" in them, so they pass through unchanged.
+function formatRunText(v) {
+  const s = String(v || '').trim();
+  if (!s) return s;
+  const m = s.match(/surf[\s_-]*seq[\s_-]*run[\s_-]*(.+)$/i);
+  if (!m) return s;
+  const suffix = m[1].trim();
+  return suffix ? `SURFSeq - Run - ${suffix}` : s;
+}
+
 function buildModalTable(data, cols, applyStatusColors = false) {
   if (!data.length) return `<div class="empty" style="padding:40px"><div class="ei">${IC.inbox}</div><p>No records</p></div>`;
   const visibleCols = cols.filter(c=>COL_LABELS[c]&&COL_LABELS[c].trim());
@@ -4292,8 +4420,8 @@ function buildModalTable(data, cols, applyStatusColors = false) {
     return `<tr class="${rowClass}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(v):'—'}</td>`;
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(formatRunText(v)):'—'}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
@@ -4365,7 +4493,7 @@ function openAllSamplesModal(defaultStatus) {
     <div class="rel-panel" id="all-filter-panel" style="margin:8px 22px 0;padding:10px 14px">
       <div class="rel-panel-grid">
         <div class="rel-panel-item"><label>Test</label><select class="sel" id="all-f-test" onchange="filterAllSamples()">${'<option value="">All Tests</option>'+tests.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select></div>
-        <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Status</label><select class="sel" id="all-f-status" onchange="filterAllSamples()">${'<option value="">All Statuses</option>'+statuses.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Client</label><select class="sel" id="all-f-client" onchange="filterAllSamples()">${'<option value="">All Clients</option>'+clients.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>CNV Status</label><select class="sel" id="all-f-cnv" onchange="filterAllSamples()">${'<option value="">All CNV Statuses</option>'+cnvStatuses.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
@@ -4425,7 +4553,6 @@ function filterAllSamples() {
     (r.run_text||'').toLowerCase().includes(q)||(r.cnv_status||'').toLowerCase().includes(q)
   );
 
-  data = sortByCoupleAdjacency(data);
   _allModalFiltered = data;
   document.getElementById('qmodal-count').textContent = ` · ${data.length} records`;
   document.getElementById('all-count-label').textContent = `${data.length} samples`;
@@ -4484,7 +4611,6 @@ function performGlobalSearch() {
   );
 
   data = sortRowsByGenId(data, 'desc').slice(0, 50);
-  data = sortByCoupleAdjacency(data);
 
   if (data.length) {
     const visibleCols = GLOBAL_SEARCH_COLS.filter(c=>COL_LABELS[c]&&COL_LABELS[c].trim());
@@ -4492,9 +4618,12 @@ function performGlobalSearch() {
     const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
       const v = r[c]||'';
       const cls = getColClass(c);
-      if (c==='name') return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+      if (c==='name') {
+        const nameColor = statusNameColor(getStatus(r));
+        return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)${nameColor ? `;color:${nameColor}` : ''}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+      }
       if (c==='test'||c==='client') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
-      if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(v):'—'}</td>`;
+      if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
       if (c==='gen_id'||c==='and_id') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
       if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)">${badgeHtml(st)}</td>`; }
       if (c==='report_release_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
@@ -4515,6 +4644,31 @@ document.addEventListener('click', (e) => {
     document.getElementById('global-search-results').style.display = 'none';
   }
 });
+
+function openColorGuideModal() {
+  document.getElementById('qmodal-title').textContent = 'Color Guide';
+  document.getElementById('qmodal-count').textContent = '';
+  document.getElementById('qmodal-body').innerHTML = `
+    <div style="padding:18px 24px 24px;overflow-y:auto">
+      <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">What the colors and symbols on this tracker mean.</p>
+      <div class="legend-grid">
+        <div class="legend-row"><span class="legend-sample" style="color:#047857">Sample Name</span><span class="legend-desc">Green font — Released</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#ca8a04">Sample Name</span><span class="legend-desc">Yellow font — Ongoing</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#b91c1c">Sample Name</span><span class="legend-desc">Red font — TAT overdue</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#4b5563">Sample Name</span><span class="legend-desc">Black font — Yet to start</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:rgba(255,235,59,.35);border-color:rgba(202,138,4,.4)"></span><span class="legend-desc">Yellow fill — Priority sample</span></div>
+        <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}</span><span class="legend-desc">Blue &amp; pink icons — Couple (male &amp; female tagged with the same Couple #)</span></div>
+        <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}${GENDER_ICON_LEGEND('P')}</span><span class="legend-desc">Blue, pink &amp; dark blue icons — Trio (adds the baby/POC sample)</span></div>
+        <div class="legend-row"><span class="legend-sample"><span class="name-cancelled">Sample Name</span></span><span class="legend-desc">Struck-through name — Cancelled</span></div>
+      </div>
+    </div>`;
+  document.getElementById('qmodal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function GENDER_ICON_LEGEND(g) {
+  return `<span class="couple-gender couple-gender-${g.toLowerCase()}">${GENDER_ICON[g]}</span>`;
+}
 
 function openQModal(title, data, cols) {
   document.getElementById('qmodal-title').textContent = title;
@@ -4620,7 +4774,7 @@ function openEmpModal(empName) {
     getStatus(r) === 'Ongoing' &&
     normalizeAnalystName(r.pri_rev) === empName
   );
-  empRows = sortByCoupleAdjacency(sortRowsByGenId(empRows, _sortDir.empModal));
+  empRows = sortRowsByGenId(empRows, _sortDir.empModal);
   _empModalAll = empRows;
   _empModalName = empName;
 
@@ -4638,7 +4792,7 @@ function openEmpModal(empName) {
       </button>
       <select id="emp-modal-run" class="sel" style="height:34px;max-width:220px" onchange="filterEmpModal()" title="One run at a time — keeps a repeat sample's earlier entry from being counted twice">
         <option value="">All Runs</option>
-        ${runs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+        ${runs.map(r => `<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('')}
       </select>
       <select id="emp-modal-type" class="sel" style="height:34px;max-width:180px" onchange="filterEmpModal()" title="Filter by sample type">
         <option value="">All Sample Types</option>
@@ -4650,9 +4804,9 @@ function openEmpModal(empName) {
       </button>
       <span id="emp-modal-count" style="font-size:12px;color:var(--pri);font-weight:700">${empRows.length} samples</span>
       <div class="emp-type-counts emp-type-counts-lg" style="margin:0">
-        <span class="etc-pill etc-af">AF ${counts.AF}</span>
-        <span class="etc-pill etc-single">Single ${counts.Single}</span>
-        <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
+        <span class="etc-pill etc-af" id="emp-modal-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single" id="emp-modal-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple" id="emp-modal-couple">Couple ${counts.Couple}</span>
       </div>
     </div>`;
 
@@ -4667,13 +4821,24 @@ function openEmpModal(empName) {
 function filterEmpModal() {
   const run = document.getElementById('emp-modal-run')?.value || '';
   const type = document.getElementById('emp-modal-type')?.value || '';
-  let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
-  if (type) data = data.filter(r => sampleTypeOf(r) === type);
-  data = sortByCoupleAdjacency(sortRowsByGenId(data, _sortDir.empModal));
+  const runFiltered = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+  let data = type ? runFiltered.filter(r => sampleTypeOf(r) === type) : runFiltered;
+  data = sortRowsByGenId(data, _sortDir.empModal);
   document.getElementById('qmodal-count').textContent = ` · ${data.length} record${data.length!==1?'s':''}`;
   document.getElementById('emp-modal-table-wrap').innerHTML = buildModalTable(data, MODAL_COLS.assigned);
   const countEl = document.getElementById('emp-modal-count');
   if (countEl) countEl.textContent = `${data.length} samples`;
+
+  // AF/Single/Couple breakdown follows the selected run, same as the record
+  // count — but stays independent of the type filter so it's still a full
+  // reference for that run even while the table is narrowed to one type.
+  const counts = teamWorkloadBreakdown(runFiltered);
+  const afEl = document.getElementById('emp-modal-af');
+  const singleEl = document.getElementById('emp-modal-single');
+  const coupleEl = document.getElementById('emp-modal-couple');
+  if (afEl) afEl.textContent = `AF ${counts.AF}`;
+  if (singleEl) singleEl.textContent = `Single ${counts.Single}`;
+  if (coupleEl) coupleEl.textContent = `Couple ${counts.Couple}`;
 }
 
 function downloadEmpModalExcel() {
@@ -4682,7 +4847,7 @@ function downloadEmpModalExcel() {
     const type = document.getElementById('emp-modal-type')?.value || '';
     let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
     if (type) data = data.filter(r => sampleTypeOf(r) === type);
-    data = sortByCoupleAdjacency(sortRowsByGenId(data, _sortDir.empModal));
+    data = sortRowsByGenId(data, _sortDir.empModal);
     if (!data.length) { toast('No samples to download', 'warn'); return; }
     const cols = MODAL_COLS.assigned;
 
@@ -4799,7 +4964,7 @@ function getFilteredTableData(key) {
   if (key === 'assigned')  data = sortRowsByGenId(data, _sortDir.assigned);
   if (key === 'released')  data = sortRowsByGenId(data, _sortDir.released);
 
-  return sortByCoupleAdjacency(data);
+  return data;
 }
 
 function renderTable(key) {
@@ -4821,8 +4986,8 @@ function renderTable(key) {
   const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='analyst_raw') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
@@ -4916,7 +5081,7 @@ function getFilteredOverdue() {
     (r.client||'').toLowerCase().includes(q)||(r.pri_rev||'').toLowerCase().includes(q)||
     (r.run_text||'').toLowerCase().includes(q)||(r.cnv_status||'').toLowerCase().includes(q)
   );
-  return sortByCoupleAdjacency(data);
+  return data;
 }
 
 function renderOverdue() {
@@ -4951,13 +5116,13 @@ function renderOverdue() {
   const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${OVERDUE_COLS.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${coupleGenderIcon(r)}${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='tat')     return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
     if (c==='_overdue_days') return `<td class="${cls}" data-col="${c}"><span style="background:rgba(239,68,68,.15);color:#b91c1c;padding:2px 8px;border-radius:6px;font-weight:600;font-size:12px">${r._overdue_days}d</span></td>`;
     if (c==='pri_rev') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
     return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}</td>`;
   }).join('')}</tr>`).join('');
 
