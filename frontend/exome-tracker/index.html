@@ -85,6 +85,7 @@
     .btn-out{background:var(--ib);color:var(--text);border-color:var(--bdr)}
     .btn-out:hover{border-color:var(--pri);color:var(--pri);background:rgba(79,70,229,.06)}
     .btn-sm{padding:5px 11px;font-size:12px}
+    .btn-icon-only{padding:8px;width:36px;height:36px;justify-content:center}
 
     .tabs{display:flex;gap:6px;padding:18px 28px 0}
     .tab{
@@ -110,7 +111,7 @@
     .page.active{display:block}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding-top:20px;margin-bottom:22px}
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;padding-top:20px;margin-bottom:22px}
     .scard{
       padding:20px 22px;border-radius:var(--r);transition:var(--tr);cursor:default;
       border-left:4px solid transparent;
@@ -121,6 +122,7 @@
     .scard .s-val{font-size:32px;font-weight:800;line-height:1}
     .scard .s-sub{font-size:11px;color:var(--muted);margin-top:3px}
     .sc-all{border-left-color:var(--pri)} .sc-all .s-val{color:var(--pri)}
+    .sc-pri{border-left-color:var(--c-flag)} .sc-pri .s-val{color:var(--c-flag)}
     .sc-yet{border-left-color:var(--yet)} .sc-yet .s-val{color:var(--yet)}
     .sc-ong{border-left-color:var(--ong)} .sc-ong .s-val{color:var(--ong)}
     .sc-cmp{border-left-color:var(--cmp)} .sc-cmp .s-val{color:var(--cmp)}
@@ -450,6 +452,9 @@
       margin:0;border-radius:0;
     }
     #qmodal-body{display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;padding:0}
+    #qmodal.qmodal-compact{width:100%;max-width:420px;height:auto;max-height:85vh}
+    #qmodal.qmodal-compact #qmodal-max{display:none}
+    #qmodal.qmodal-compact #qmodal-body{overflow-y:auto}
     .modal-filters-wrap{flex-shrink:0;padding-bottom:12px;border-bottom:1px solid var(--pb);background:var(--panel);position:sticky;top:0;z-index:20}
     .modal-table-wrap{overflow:auto;flex:1;min-height:0;width:max-content;max-width:100%}
     #qmodal-body table{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-content}
@@ -824,31 +829,6 @@
       .rev-ring-count{font-size:34px}
     }
 
-    @keyframes rrpIn { from { opacity:0; transform:translateY(-8px) scale(.97); } to { opacity:1; transform:none; } }
-    .rrp-title {
-      font-size: 13px; font-weight: 700; color: var(--text);
-      display: flex; align-items: center; gap: 7px;
-    }
-    .rrp-title svg { color: var(--rel); }
-    .rrp-list { padding: 8px 0; max-height: 420px; overflow-y: auto; }
-    .rrp-item {
-      display: flex; align-items: flex-start; gap: 11px;
-      padding: 10px 16px; cursor: pointer; transition: background .15s;
-      border-left: 3px solid transparent;
-    }
-    .rrp-item:hover { background: rgba(139,92,246,.06); border-left-color: var(--rel); }
-    .rrp-num {
-      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
-      background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(79,70,229,.1));
-      color: var(--rel); font-size: 10px; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .rrp-body { flex: 1; min-width: 0; }
-    .rrp-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-    .rrp-meta { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .rrp-date { font-size: 11px; font-weight: 600; color: var(--rel); white-space: nowrap; }
-    .rrp-empty { padding: 28px; text-align: center; color: var(--muted); font-size: 13px; }
-
     body {
       background: linear-gradient(135deg, #eef2ff 0%, #fdf4ff 45%, #ecfdf5 100%);
       background-attachment: fixed;
@@ -879,7 +859,7 @@
       border-radius: 6px !important; border: 1px solid rgba(79,70,229,.16) !important;
       display: inline-block !important; letter-spacing: .2px !important;
     }
-    .col-name { font-weight: 700 !important; font-size: 12.5px !important; color: #1e293b !important; }
+    .col-name { font-weight: 700 !important; font-size: 12.5px !important; color: #1e293b; }
     .rel-search-wrap {
       height: 46px !important; border-radius: 12px !important;
       background: rgba(255,255,255,.95) !important;
@@ -1008,6 +988,7 @@
       --sc-yet-bd:  #fdba74;  --sc-yet-bg:  #fff7ed;  --sc-yet-tx:  #ea580c;
       --sc-ong-bd:  #c4b5fd;  --sc-ong-bg:  #f5f3ff;  --sc-ong-tx:  #7c3aed;
       --sc-rel-bd:  #6ee7b7;  --sc-rel-bg:  #ecfdf5;  --sc-rel-tx:  #059669;
+      --sc-pri-bd:  #fcd34d;  --sc-pri-bg:  #fffbeb;  --sc-pri-tx:  #b45309;
     }
     body{background:var(--canvas);color:var(--ink-2)}
 
@@ -1089,6 +1070,8 @@
     .sc-ong .s-val,.sc-ong .s-icon,.sc-ong .s-lbl{color:var(--sc-ong-tx)}
     .sc-rel{border-color:var(--sc-rel-bd);background:var(--sc-rel-bg)}
     .sc-rel .s-val,.sc-rel .s-icon,.sc-rel .s-lbl{color:var(--sc-rel-tx)}
+    .sc-pri{border-color:var(--sc-pri-bd);background:var(--sc-pri-bg)}
+    .sc-pri .s-val,.sc-pri .s-icon,.sc-pri .s-lbl{color:var(--sc-pri-tx)}
 
     .rf-check{
       display:flex;align-items:flex-start;gap:10px;cursor:pointer;
@@ -1117,15 +1100,15 @@
     }
 
     .name-cancelled{text-decoration:line-through;opacity:.6}
+    .name-priority{color:#2563eb}
 
-    .legend-grid{display:flex;flex-direction:column}
-    .legend-row{display:flex;align-items:center;gap:18px;padding:12px 4px;border-bottom:1px solid var(--pb)}
+    .legend-grid{display:flex;flex-direction:column;width:100%;max-width:340px;margin:0 auto}
+    .legend-row{display:flex;align-items:center;gap:14px;padding:9px 2px;border-bottom:1px solid var(--pb)}
     .legend-row:last-child{border-bottom:none}
-    .legend-sample{flex:0 0 150px;font-weight:700;font-size:13px}
-    .legend-swatch{flex:0 0 150px;display:inline-block;width:64px;height:22px;border-radius:6px;border:1px solid transparent}
-    .legend-icons{flex:0 0 150px;display:flex;gap:8px;align-items:center}
-    .legend-icons .couple-gender svg{width:19px;height:19px}
-    .legend-desc{color:var(--ink-2);font-size:12.5px}
+    .legend-sample{flex:0 0 96px;font-weight:700;font-size:12px;text-align:left}
+    .legend-icons{flex:0 0 96px;display:flex;gap:6px;align-items:center}
+    .legend-icons .couple-gender svg{width:16px;height:16px}
+    .legend-desc{color:var(--ink-2);font-size:11.5px;text-align:left}
 
     .pcard-flag{
       display:inline-flex;align-items:center;gap:4px;margin-left:6px;
@@ -1133,7 +1116,7 @@
       font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
     }
 
-    .dash-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start}
+    .dash-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start}
     .dash-col{display:flex;flex-direction:column;gap:20px;min-width:0}
 
     .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -1146,7 +1129,7 @@
     .panel-hd .ph-name{font-size:14px;font-weight:700;letter-spacing:-.1px}
     .panel-hd .ph-note{font-size:11.5px;font-weight:500;color:var(--ink-3)}
     .panel-hd .ph-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-    .panel-over{border-left:4px solid #dc2626;background:#fdf3f3}
+    .panel-over{border-left:4px solid #dc2626}
     .panel-over .panel-hd{background:#fbe8e8}
     .panel-over .ph-icon svg{stroke:#b91c1c}
     .panel-over .ph-name{color:#b91c1c}
@@ -1169,10 +1152,6 @@
     .panel-soon .ptable tbody td{border-bottom-color:#f6e6c9}
     .panel-soon .ptable tbody tr.prow:hover{background:#f8ecd4 !important}
     .panel-soon .panel-tools{background:#fdf8ef;border-bottom-color:#f2ddb8}
-    .chip-alarm{
-      background:#b91c1c;color:#fff;border-radius:7px;
-      padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap;
-    }
     .panel-count{
       display:inline-flex;align-items:center;justify-content:center;
       min-width:24px;height:22px;padding:0 7px;border-radius:7px;
@@ -1257,31 +1236,30 @@
     .pcard-meta{font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .pcard-status{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:11px;font-weight:600;line-height:1.25}
     .pcard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .prail-run-group{display:flex;flex-direction:column;gap:8px}
-    .prail-run-group + .prail-run-group{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+    .prail-run-group{
+      display:flex;flex-direction:column;gap:8px;
+      border:1.5px solid var(--pri, #6366f1);border-radius:12px;
+      background:rgba(99,102,241,.04);padding:10px 10px 11px;
+    }
+    .prail-run-group + .prail-run-group{margin-top:12px}
     .prail-run-hd{
       display:flex;align-items:center;justify-content:space-between;gap:8px;
-      font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3);
+      font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--pri, #6366f1);
+      padding-bottom:8px;border-bottom:1px dashed rgba(99,102,241,.3);
     }
     .prail-run-hd span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .prail-run-count{
-      flex-shrink:0;background:#f3f4f6;color:var(--ink-2);border-radius:20px;
+      flex-shrink:0;background:rgba(99,102,241,.14);color:var(--pri, #6366f1);border-radius:20px;
       padding:1px 8px;font-size:10.5px;font-weight:700;
     }
     .prail-run-cards{display:flex;flex-direction:column;gap:8px}
+    .prail-run-cards .pcard{background:var(--surface)}
     .prail-foot{text-align:center;margin-top:16px}
     .prail-foot button{
       background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;
       color:var(--c-ong);cursor:pointer;padding:6px 10px;border-radius:7px;
     }
     .prail-foot button:hover{background:#f5f3ff}
-    .prail-rel .prail-title{color:#047857}
-    .prail-rel .prail-star{color:#047857}
-    .prail-rel .prail-foot button{color:#047857}
-    .prail-rel .prail-foot button:hover{background:#ecfdf5}
-    .prail-rel .rrp-list{padding:0;max-height:330px}
-    .prail-rel .rrp-item{border-left-color:transparent}
-    .prail-rel .rrp-item:hover{background:#f2fbf6;border-left-color:#10b981}
 
     .main{padding:0 32px 36px}
 
@@ -1521,9 +1499,8 @@
     <input type="text" id="global-search" placeholder="Search samples..." oninput="performGlobalSearch()" style="font-size:14px" />
   </div>
   <div class="ph-actions">
-    <button class="btn btn-quiet" id="legend-btn" onclick="openColorGuideModal()" title="What the colors and symbols on this page mean">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-      Color Guide
+    <button class="btn btn-quiet btn-icon-only" id="legend-btn" onclick="openColorGuideModal()" title="Color Guide — what the colors and symbols on this page mean" aria-label="Color Guide">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
     </button>
     <button class="btn btn-quiet" id="refresh-btn" onclick="fetchReports()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Refresh Now
@@ -1550,6 +1527,7 @@
         <div class="s-val" id="s-all">0</div>
         <div class="s-sub" id="s-all-sub">Click to view all samples</div>
       </div>
+      <div class="scard glass sc-pri clickable" onclick="openPriorityModal()"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><div class="s-lbl">Priority</div><div class="s-val" id="s-pri">0</div><div class="s-sub">Flagged as priority</div></div>
       <div class="scard glass sc-yet clickable" onclick="openAllSamplesModal('Yet to Start')"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg></span><div class="s-lbl">Yet to Start</div><div class="s-val" id="s-yet">0</div><div class="s-sub">No reviewer assigned</div></div>
       <div class="scard glass sc-ong clickable" onclick="openTeamWorkloadModal()"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><div class="s-lbl">In Review</div><div class="s-val" id="s-ong">0</div><div class="s-sub" id="s-ong-sub">Assigned to reviewers</div></div>
       <div class="scard glass sc-rel"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
@@ -1643,7 +1621,6 @@
               <select id="tat-over-reviewer" onchange="renderTatAlerts()" title="Filter by reviewer" style="height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12px;max-width:160px">
                 <option value="">All Reviewers</option>
               </select>
-              <span class="chip-alarm" id="tat-over-chip" style="display:none">Action Required</span>
               <button class="btn btn-sm btn-quiet" onclick="downloadOverdueExcel()" title="Download overdue list as Excel">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download
@@ -1678,7 +1655,7 @@
             <table class="ptable">
               <thead><tr>
                 <th style="width:24%">Sample</th><th style="width:20%">Test</th>
-                <th class="num" style="width:10%">Remaining</th><th class="num" style="width:12%">Status</th>
+                <th class="num" style="width:10%">Remaining</th>
                 <th class="num" style="width:14%">Reviewer</th><th style="width:20%">Remark</th>
               </tr></thead>
               <tbody id="tat-soon-list"></tbody>
@@ -1698,17 +1675,6 @@
           <div class="prail-list" id="prail-list"></div>
           <div class="prail-foot" id="prail-foot" style="display:none">
             <button onclick="openPriorityModal()">View All Priority Samples &rarr;</button>
-          </div>
-        </aside>
-
-        <aside class="prail prail-rel">
-          <div class="prail-hd">
-            <span class="prail-title">Recent Releases</span>
-            <span class="prail-star"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
-          </div>
-          <div class="rrp-list" id="rrp-rail-list"></div>
-          <div class="prail-foot">
-            <button onclick="switchTab('released', document.getElementById('t-rel'))">View All Released &rarr;</button>
           </div>
         </aside>
 
@@ -2675,8 +2641,6 @@ function renderTatAlerts() {
   const overReviewer = document.getElementById('tat-over-reviewer')?.value || '';
   const overdueFiltered = overdue.filter(r => matchesReviewerFilter(r, overReviewer));
   document.getElementById('tat-over-count').textContent = overdueFiltered.length;
-  const overChip = document.getElementById('tat-over-chip');
-  if (overChip) overChip.style.display = overdueFiltered.length ? '' : 'none';
   const overEl = document.getElementById('tat-over-list');
   overEl.innerHTML = overdueFiltered.length ? overdueFiltered.map((r,i) => {
     const days = Math.abs(r.diff);
@@ -2780,17 +2744,14 @@ function renderTatSoonList(data) {
   const el = document.getElementById('tat-soon-list');
   el.innerHTML = data.length ? data.map((r,i) => {
     const remaining = r.diff === 0 ? 'TODAY' : `${r.diff}d`;
-    const st = getStatus(r);
-    const pillCls = r.diff === 0 ? 'spill-today' : (st === 'Ongoing' ? 'spill-ong' : 'spill-yet');
     return `<tr class="prow"${rowEditAttrs(r)}>
       <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-num">${remaining}</td>
-      <td class="cell-right"><span class="spill ${pillCls}">${esc(st)}</span></td>
       <td class="cell-right">${esc(normalizeAnalystName(r.pri_rev) || '—')}</td>
       <td class="cell-remark" title="${esc(r.remarks||'')}">${r.remarks ? esc(r.remarks) : '—'}</td>
     </tr>`;
-  }).join('') : emptyRow('No matches', 6);
+  }).join('') : emptyRow('No matches', 5);
 }
 
 function filterTatSoon() {
@@ -3272,13 +3233,7 @@ function coupleRowBg(r) {
   return 'rgba(124,58,237,.09)';
 }
 
-// Priority wins over the couple tint when a row is both — it's the more
-// time-critical flag. The couple pairing is still visible via the name's
-// gender icon even when its row tint is overridden this way. Once the sample
-// is no longer pending (released, cancelled, on hold, etc.) the urgency is
-// gone, so the tint stops even though the source data's priority flag stays.
 function rowHighlightBg(r) {
-  if (r.is_priority && isPending(r)) return 'rgba(255,235,59,.25)';
   return coupleRowBg(r);
 }
 
@@ -3297,7 +3252,8 @@ function coupleNumberTag(r) {
 // Strikes through an already-escaped name string when the sample is Cancelled
 // — `text` must already be esc()'d by the caller, since this only wraps it.
 function nameTextHtml(r, text) {
-  return getStatus(r) === 'Cancelled' ? `<span class="name-cancelled">${text}</span>` : text;
+  const out = (r.is_priority && isPending(r)) ? `<span class="name-priority">${text}</span>` : text;
+  return getStatus(r) === 'Cancelled' ? `<span class="name-cancelled">${out}</span>` : out;
 }
 
 // Same "Mark as priority" flag used everywhere a sample name is rendered —
@@ -3919,6 +3875,7 @@ function switchTab(id, btn) {
   else if (id==='reanalysis') renderReanalysis();
   else if (id!=='dashboard') render(id);
   sizeTableWraps();
+  syncPriorityRailHeight();
 }
 
 function getRowYear(r) {
@@ -3941,6 +3898,7 @@ function updateStatsByYear() {
   document.getElementById('s-yet').textContent = yet.length;
   document.getElementById('s-ong').textContent = ong.length;
   document.getElementById('s-rel').textContent = rel.length;
+  document.getElementById('s-pri').textContent = getPriorityRows().length;
 
 }
 
@@ -3990,7 +3948,6 @@ function refreshAll() {
   renderPrioritySamples();
 
   if (document.querySelector('.page.active')?.id === 'page-reanalysis') renderReanalysis();
-  buildRecentReleasesPanel('rrp-rail-list');
   if (document.getElementById('bulk-release-panel')?.style.display === 'block') renderBulkReleaseList();
   if (document.getElementById('bulk-assign-panel')?.style.display === 'block') {
     populateBulkAssignReviewers();
@@ -4009,6 +3966,7 @@ function refreshAll() {
     if (key) render(key);
   }
   sizeTableWraps();
+  syncPriorityRailHeight();
 }
 
 const TBL_BOTTOM_GUTTER = 16;
@@ -4024,6 +3982,25 @@ function sizeTableWraps() {
 }
 
 window.addEventListener('resize', sizeTableWraps);
+
+const PRAIL_LIST_MIN_HEIGHT = 160;
+
+// Priority Samples sits beside TAT Overdue + TAT Due Soon; its list is capped
+// to match that combined column height instead of a fixed max-height, since
+// letting it grow to its own content height (34+ cards) blows way past it.
+function syncPriorityRailHeight() {
+  const cols = document.querySelectorAll('.dash-grid > .dash-col');
+  const leftCol = cols[0], rightCol = cols[1];
+  const prail = rightCol?.querySelector('.prail');
+  const prailList = document.getElementById('prail-list');
+  if (!leftCol || !prail || !prailList || !leftCol.offsetParent) return;
+
+  const chrome = prail.offsetHeight - prailList.offsetHeight;
+  const target = leftCol.getBoundingClientRect().height - chrome;
+  prailList.style.maxHeight = `${Math.max(target, PRAIL_LIST_MIN_HEIGHT)}px`;
+}
+
+window.addEventListener('resize', syncPriorityRailHeight);
 
 function runOptions(data) {
   const seen = new Map();
@@ -4343,6 +4320,7 @@ function renderTeamWorkload(containerId, data) {
 }
 
 function openTeamWorkloadModal() {
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
   _teamWorkloadFull = rows.filter(r => getStatus(r) === 'Ongoing');
   document.getElementById('qmodal-title').textContent = 'Team Workload';
   document.getElementById('qmodal-count').textContent = ` · ${_teamWorkloadFull.length} report${_teamWorkloadFull.length !== 1 ? 's' : ''} in review`;
@@ -4451,6 +4429,7 @@ let _allModalData = [];
 let _allModalFiltered = [];
 
 function openAllSamplesModal(defaultStatus) {
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
   _allModalData = rows.slice();
   sortAllSamplesData();
   _allModalFiltered = _allModalData;
@@ -4646,17 +4625,18 @@ document.addEventListener('click', (e) => {
 });
 
 function openColorGuideModal() {
+  document.getElementById('qmodal').classList.add('qmodal-compact');
   document.getElementById('qmodal-title').textContent = 'Color Guide';
   document.getElementById('qmodal-count').textContent = '';
   document.getElementById('qmodal-body').innerHTML = `
-    <div style="padding:18px 24px 24px;overflow-y:auto">
-      <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">What the colors and symbols on this tracker mean.</p>
+    <div style="padding:14px 22px 20px;overflow-y:auto;text-align:center">
+      <p style="margin:0 0 12px;font-size:12px;color:var(--muted)">What the colors and symbols on this tracker mean.</p>
       <div class="legend-grid">
         <div class="legend-row"><span class="legend-sample" style="color:#047857">Sample Name</span><span class="legend-desc">Green font — Released</span></div>
         <div class="legend-row"><span class="legend-sample" style="color:#ca8a04">Sample Name</span><span class="legend-desc">Yellow font — Ongoing</span></div>
         <div class="legend-row"><span class="legend-sample" style="color:#b91c1c">Sample Name</span><span class="legend-desc">Red font — TAT overdue</span></div>
         <div class="legend-row"><span class="legend-sample" style="color:#4b5563">Sample Name</span><span class="legend-desc">Black font — Yet to start</span></div>
-        <div class="legend-row"><span class="legend-swatch" style="background:rgba(255,235,59,.35);border-color:rgba(202,138,4,.4)"></span><span class="legend-desc">Yellow fill — Priority sample</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#2563eb">Sample Name</span><span class="legend-desc">Blue font — Priority sample</span></div>
         <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}</span><span class="legend-desc">Blue &amp; pink icons — Couple (male &amp; female tagged with the same Couple #)</span></div>
         <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}${GENDER_ICON_LEGEND('P')}</span><span class="legend-desc">Blue, pink &amp; dark blue icons — Trio (adds the baby/POC sample)</span></div>
         <div class="legend-row"><span class="legend-sample"><span class="name-cancelled">Sample Name</span></span><span class="legend-desc">Struck-through name — Cancelled</span></div>
@@ -4671,6 +4651,7 @@ function GENDER_ICON_LEGEND(g) {
 }
 
 function openQModal(title, data, cols) {
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
   document.getElementById('qmodal-title').textContent = title;
   document.getElementById('qmodal-count').textContent = ` · ${data.length} record${data.length!==1?'s':''}`;
   document.getElementById('qmodal-body').innerHTML = '<div class="modal-table-wrap">' + buildModalTable(data, cols) + '</div>';
@@ -4683,6 +4664,7 @@ function closeQModal(e) {
   document.getElementById('qmodal-backdrop').classList.remove('open');
   document.body.style.overflow = '';
   setQModalMaximized(false);
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
 }
 
 function setQModalMaximized(on) {
@@ -4770,6 +4752,7 @@ let _empModalAll = [];
 let _empModalName = '';
 
 function openEmpModal(empName) {
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
   let empRows = rows.filter(r =>
     getStatus(r) === 'Ongoing' &&
     normalizeAnalystName(r.pri_rev) === empName
@@ -5252,46 +5235,6 @@ function downloadTabExcel(key) {
   }
 }
 
-function buildRecentReleasesPanel(targetId = 'rrp-rail-list') {
-  const list = document.getElementById(targetId);
-  if (!list) return;
-  const released = rows.filter(r => getStatus(r) === 'Released');
-
-  released.sort((a, b) => {
-    const da = _relOrTat(a);
-    const db = _relOrTat(b);
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
-    return db - da;
-  });
-
-  const top7 = released.slice(0, 7);
-  if (!top7.length) {
-    list.innerHTML = `<div class="rrp-empty">No released reports yet.</div>`;
-    return;
-  }
-
-  list.innerHTML = top7.map((r, i) => {
-    const relD  = _relOrTat(r);
-    const dateStr = relD ? ddmmyyyy(relD) : '—';
-    const reviewer = r.pri_rev || r.analyst || '—';
-    return `<div class="rrp-item">
-      <div class="rrp-num">${i + 1}</div>
-      <div class="rrp-body">
-        <div class="rrp-name">${esc(r.name || r.gen_id || '—')}</div>
-        <div class="rrp-meta">
-          <span>${esc(r.test || '—')}</span>
-          <span>·</span>
-          <span>${esc(r.gen_id || '—')}</span>
-          ${reviewer !== '—' ? `<span>·</span><span>${esc(reviewer)}</span>` : ''}
-        </div>
-      </div>
-      <div class="rrp-date">${dateStr}</div>
-    </div>`;
-  }).join('');
-}
-
 function fmtDate(v) {
   if (!v) return '—';
   const s = String(v).trim();
@@ -5383,6 +5326,7 @@ let _priorityRows = [];
 const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','pri_rev'];
 
 function openPriorityModal() {
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
   _priorityRows = getPriorityRows();
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -5842,6 +5786,7 @@ function anPeriodLabel() {
 }
 
 function openReviewerRingModal(key, label) {
+  document.getElementById('qmodal').classList.remove('qmodal-compact');
   const reviewerSamples = reviewerReleasedSamples(key);
   const period = anPeriodLabel();
 
