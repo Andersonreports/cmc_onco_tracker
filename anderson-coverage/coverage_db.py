@@ -1,17 +1,17 @@
 """
 coverage_db.py — read precomputed sample coverage from the SQLite DB.
 
-This is the only source of sample coverage: the reference panel intervals and
-per-type coverage all come from the DB (default ./coverage.db), so the tool is
-fully self-contained and never reads BAM files. The DBs are built offline by
-build/build_db.py.
+When build/coverage.db (default ./coverage.db) exists, the app uses this instead
+of the BAM files: the reference panel intervals and per-type coverage all come
+from the DB, so the tool is fully self-contained (works straight from the repo,
+no BAMs required).
 
 Per query we aggregate, for a set of interval ids, each sample type's:
   mean depth  = sum_depth / (Σ bp × n_replicates)              (exact)
   % ≥ t       = 100 × bases≥t / (Σ bp × n_replicates)          (exact)
   min (tier)  = highest threshold fully covered across all bases (approx)
 Median and per-replicate SD are not stored (per-base histograms would bloat the
-DB); median is reported as None and SD as 0.
+DB); median is reported as None and SD as 0 in DB mode.
 """
 
 import os
@@ -41,6 +41,16 @@ class CoverageDB:
                       cur.execute("SELECT slug,label,n,ord FROM sample_type ORDER BY ord")]
         self._ord = {t["slug"]: t["ord"] for t in self.types}
         self._meta_n = {t["slug"]: t["n"] for t in self.types}
+        # Optional per-gene "% of coding region covered" lookup. Not present
+        # in every DB (e.g. the CNV backbone DB has no gene annotation), so
+        # load defensively.
+        self.gene_pct = {}
+        has_ref = cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='gene_ref_coverage'"
+        ).fetchone()
+        if has_ref:
+            self.gene_pct = dict(cur.execute(
+                "SELECT gene, pct_coding_covered FROM gene_ref_coverage"))
         # Build the in-memory panel index from the DB intervals (id == row order).
         # Full annotation is restored losslessly from the compressed pack.
         (blob,) = cur.execute("SELECT data FROM annot_pack").fetchone()
@@ -105,4 +115,12 @@ class CoverageDB:
 
 
 def open_db(path):
-    return CoverageDB(path) if path and os.path.exists(path) else None
+    if not path or not os.path.exists(path):
+        return None
+    try:
+        return CoverageDB(path)
+    except sqlite3.DatabaseError as e:
+        # A checkout that flattened the coverage.db symlink leaves a text file
+        # holding its target path. Skip it rather than take the whole app down.
+        print(f"[coverage_db] skipping {path}: {e}")
+        return None

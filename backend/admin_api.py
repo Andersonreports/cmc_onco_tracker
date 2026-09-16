@@ -34,11 +34,14 @@ def list_users(anderson_session: str | None = Cookie(default=None)):
     _require_admin(anderson_session)
     users = [
         {"mobile": r.get("mobile", ""), "name": r.get("name") or "",
+         "role": access.role_of(r.get("role")),
          "accesses": access.normalize(r.get("role")),
          "local_password": bool(r.get("password_hash"))}
         for r in role_store.all()
     ]
-    return {"users": users, "grantable": list(access.GRANTABLE), "labels": access.LABELS}
+    roles = [{"key": k, "label": v["label"]} for k, v in access.ROLES.items()]
+    return {"users": users, "roles": roles,
+            "grantable": list(access.GRANTABLE), "labels": access.LABELS}
 
 
 @router.post("/users")
@@ -51,10 +54,12 @@ def upsert_user(body: UserBody, anderson_session: str | None = Cookie(default=No
     if not accesses:
         raise HTTPException(
             status_code=400,
-            detail=f"Select at least one access. Valid: {', '.join(access.GRANTABLE)}.")
+            detail=f"Select a role. Valid: {', '.join(access.ROLES)}.")
     name = (body.name or "").strip()
-    role_store.set_role(mobile, access.to_stored(accesses), name)
-    return {"ok": True, "mobile": mobile, "name": name, "accesses": accesses}
+    stored = access.to_stored(body.role)
+    role_store.set_role(mobile, stored, name)
+    return {"ok": True, "mobile": mobile, "name": name,
+            "role": access.role_of(stored), "accesses": accesses}
 
 
 @router.delete("/users/{mobile}")

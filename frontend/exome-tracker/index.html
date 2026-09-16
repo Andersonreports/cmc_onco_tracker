@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <title>Genetics Exome Sample Tracker</title>
+  <link rel="icon" href="/and-logo.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/and-logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="xlsx.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -78,6 +80,8 @@
     }
     .btn-pri{background:var(--pri);color:#fff;border-color:var(--pri)}
     .btn-pri:hover{background:var(--pri-h);transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,70,229,.35)}
+    .btn-green{background:#10b981;color:#fff;border-color:#10b981}
+    .btn-green:hover{background:#059669;border-color:#059669;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,.35)}
     .btn-out{background:var(--ib);color:var(--text);border-color:var(--bdr)}
     .btn-out:hover{border-color:var(--pri);color:var(--pri);background:rgba(79,70,229,.06)}
     .btn-sm{padding:5px 11px;font-size:12px}
@@ -173,6 +177,8 @@
       font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:var(--tr);white-space:nowrap;
     }
     .rel-filter-toggle:hover{border-color:var(--pri);color:var(--pri)}
+    .rel-filter-toggle.back-btn{color:var(--ink) !important;border-color:var(--bdr) !important;background:var(--ib) !important;box-shadow:none !important}
+    .rel-filter-toggle.back-btn:hover{border-color:var(--ink) !important;color:var(--ink) !important}
     .rel-filter-toggle.active{border-color:var(--pri);color:var(--pri);background:rgba(79,70,229,.06)}
     .rel-filter-toggle svg{transition:transform .2s ease}
     .rel-filter-toggle.active svg{transform:rotate(180deg)}
@@ -233,8 +239,8 @@
     .long-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .col-mono{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.3px;color:var(--pri)}
     .col-date{color:var(--muted);font-size:12px;white-space:nowrap}
-    .col-name{font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    th.col-w-name, td.col-w-name{min-width:210px;width:210px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .col-name{font-weight:600;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th.col-w-name, td.col-w-name{min-width:260px;width:260px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     th.col-w-client, td.col-w-client{min-width:240px;width:240px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     th.col-w-test, td.col-w-test{min-width:120px;width:120px}
     th.col-w-id, td.col-w-id{min-width:180px;width:180px}
@@ -260,6 +266,7 @@
     .b-ong{background:rgba(245,158,11,.12);color:#b45309;border:1px solid rgba(245,158,11,.28)}
     .b-cmp{background:rgba(16,185,129,.12);color:#047857;border:1px solid rgba(16,185,129,.25)}
     .b-rel{background:rgba(139,92,246,.12);color:#6d28d9;border:1px solid rgba(139,92,246,.25)}
+    .b-can{background:rgba(100,116,139,.12);color:#475569;border:1px solid rgba(100,116,139,.28)}
     .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px}
     .qcard{
       padding:15px 17px;border-radius:var(--rs);border-left:3px solid transparent;
@@ -326,12 +333,28 @@
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
       color:var(--ink-2);max-width:170px;
     }
+    #hover-tip{
+      position:fixed;z-index:9999;pointer-events:none;
+      background:#1e293b;color:#fff;font-size:12px;font-weight:500;
+      padding:6px 10px;border-radius:7px;box-shadow:0 8px 20px rgba(0,0,0,.25);
+      max-width:360px;white-space:normal;word-break:break-word;line-height:1.35;
+      opacity:0;transform:translateY(4px);transition:opacity .1s ease,transform .1s ease;
+    }
+    #hover-tip.show{opacity:1;transform:translateY(0)}
     .ti-owner{
       display:inline-block;max-width:120px;text-align:center;font-size:10.5px;font-weight:700;
       padding:2px 8px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
       background:rgba(16,185,129,.14);color:#047857;
     }
     .ti-owner.ti-unassigned{background:rgba(239,68,68,.13);color:#b91c1c}
+    .od-pill{display:inline-block;min-width:74px;text-align:center;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
+    .od-pill.od-over{background:rgba(239,68,68,.15);color:#b91c1c}
+    .od-pill.od-soon{background:rgba(245,158,11,.15);color:#92400e}
+    .couple-gender{display:inline-flex;vertical-align:middle}
+    .couple-gender-m{color:#2563eb}
+    .couple-gender-f{color:#db2777}
+    .couple-gender-p{color:#1e3a8a}
+    .pri-icon{display:inline-flex;vertical-align:middle;color:#1e293b}
     .tat-item{cursor:pointer;transition:var(--tr)}
     .tat-item:hover{background:rgba(0,0,0,.06)}
     .tat-detail{
@@ -376,6 +399,19 @@
     .emp-team-title{font-size:16px;font-weight:800;color:var(--text)}
     .emp-team-sub{font-size:12px;font-weight:500;color:var(--muted)}
     .emp-count{font-size:12px;font-weight:700;color:var(--team-c-dark, var(--ong))}
+    .emp-type-counts{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap}
+    .etc-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap}
+    .etc-af{background:rgba(59,130,246,.14);color:#1d4ed8}
+    .etc-single{background:rgba(100,116,139,.14);color:#475569}
+    .etc-couple{background:rgba(219,39,119,.13);color:#be185d}
+    .emp-type-counts-lg{gap:10px}
+    .emp-type-counts-lg .etc-pill{font-size:14px;font-weight:700;padding:6px 14px;border-radius:10px}
+    .ba-team-grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px}
+    .ba-team-tile{padding:6px 8px;border-radius:8px;border:1px solid var(--pb);background:var(--panel);min-width:0}
+    .ba-team-leader{font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ba-team-total{font-size:15px;font-weight:800;color:var(--pri);line-height:1.2}
+    .ba-team-breakdown{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+    .ba-team-breakdown .etc-pill{font-size:10px;padding:2px 6px;white-space:nowrap}
     .emp-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
     .emp-pill{
       font-size:10.5px;padding:2px 8px;border-radius:10px;
@@ -391,7 +427,7 @@
     #qmodal{
       background:#fff;border:1px solid var(--pb);
       border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.25);
-      width:100%;max-width:1100px;max-height:80vh;display:flex;flex-direction:column;
+      width:100%;max-width:1100px;height:80vh;max-height:80vh;display:flex;flex-direction:column;
       animation:fadeIn .2s ease-out;margin:20px;
     }
     @keyframes fadeIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
@@ -417,6 +453,8 @@
     .modal-filters-wrap{flex-shrink:0;padding-bottom:12px;border-bottom:1px solid var(--pb);background:var(--panel);position:sticky;top:0;z-index:20}
     .modal-table-wrap{overflow:auto;flex:1;min-height:0;width:max-content;max-width:100%}
     #qmodal-body table{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-content}
+    #qmodal.maximized .modal-table-wrap{width:100%}
+    #qmodal.maximized .modal-table-wrap table{width:100%}
     #qmodal-body th{
       position:sticky;top:0;background:var(--panel);z-index:10;
       padding:10px 14px;font-size:10.5px;font-weight:700;letter-spacing:.06em;
@@ -465,9 +503,10 @@
       background:#e7f6f0 !important;
       color:#065f46 !important;border-bottom:2px solid rgba(16,185,129,.18) !important;
     }
-    #page-released .tbl-wrap tbody tr:hover{background:linear-gradient(90deg,rgba(16,185,129,.07) 0%,rgba(52,211,153,.02) 70%,transparent 100%) !important}
-    #page-released .tbl-wrap tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 #10b981 !important}
+    #page-released .tbl-wrap tbody tr:hover{background:#4ade80 !important}
+    #page-released .tbl-wrap tbody tr:hover td:first-child{box-shadow:inset 4px 0 0 #10b981 !important}
     #page-released .tbl-wrap tbody tr:nth-child(even){background:rgba(16,185,129,.022) !important}
+    #page-released .tbl-wrap tbody tr:nth-child(even):hover{background:#4ade80 !important}
     #page-released .tbl-wrap .col-mono{
       color:#047857 !important;background:rgba(16,185,129,.08) !important;
       border:1px solid rgba(16,185,129,.18) !important;
@@ -488,9 +527,10 @@
       background:#fdecec !important;
       color:#b91c1c !important;border-bottom:2px solid rgba(239,68,68,.16) !important;
     }
-    #page-overdue .tbl-wrap tbody tr:hover{background:linear-gradient(90deg,rgba(239,68,68,.06) 0%,rgba(248,113,113,.02) 70%,transparent 100%) !important}
-    #page-overdue .tbl-wrap tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 #ef4444 !important}
+    #page-overdue .tbl-wrap tbody tr:hover{background:#fca5a5 !important}
+    #page-overdue .tbl-wrap tbody tr:hover td:first-child{box-shadow:inset 4px 0 0 #ef4444 !important}
     #page-overdue .tbl-wrap tbody tr:nth-child(even){background:rgba(239,68,68,.018) !important}
+    #page-overdue .tbl-wrap tbody tr:nth-child(even):hover{background:#fca5a5 !important}
     #page-overdue .tbl-wrap .col-mono{
       color:#b91c1c !important;background:rgba(239,68,68,.07) !important;
       border:1px solid rgba(239,68,68,.16) !important;
@@ -581,6 +621,7 @@
       .tat-grid{grid-template-columns:1fr}
       .emp-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
       #qmodal{max-width:95vw;margin:10px}
+      .ba-team-grid{grid-template-columns:repeat(9,minmax(110px,1fr));overflow-x:auto;padding-bottom:4px}
     }
 
     @media(max-width:640px){
@@ -865,6 +906,7 @@
     .b-ong  { background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(251,191,36,.08)) !important; box-shadow: 0 1px 4px rgba(245,158,11,.12); }
     .b-cmp  { background: linear-gradient(135deg, rgba(16,185,129,.14), rgba(52,211,153,.08)) !important; box-shadow: 0 1px 4px rgba(16,185,129,.12); }
     .b-rel  { background: linear-gradient(135deg, rgba(139,92,246,.14), rgba(167,139,250,.08)) !important; box-shadow: 0 1px 4px rgba(139,92,246,.12); }
+    .b-can  { background: linear-gradient(135deg, rgba(100,116,139,.14), rgba(148,163,184,.08)) !important; box-shadow: 0 1px 4px rgba(100,116,139,.12); }
     .tab:not(.active):hover { background: rgba(99,102,241,.09) !important; color: #4f46e5 !important; border-radius: 10px 10px 0 0; }
 
     .hdr-title {
@@ -925,6 +967,7 @@
     .b-ong { background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(251,191,36,.1)); color: #b45309; border: 1px solid rgba(245,158,11,.3); }
     .b-cmp { background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(52,211,153,.1)); color: #065f46; border: 1px solid rgba(16,185,129,.3); }
     .b-rel { background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(167,139,250,.1)); color: #6d28d9; border: 1px solid rgba(139,92,246,.3); }
+    .b-can { background: linear-gradient(135deg, rgba(100,116,139,.15), rgba(148,163,184,.1)); color: #475569; border: 1px solid rgba(100,116,139,.3); }
 
     .an-check-item:hover { background: linear-gradient(90deg, rgba(79,70,229,.06), rgba(139,92,246,.04)); border-radius: 6px; }
 
@@ -1067,6 +1110,23 @@
       font-size:9px;font-weight:800;letter-spacing:.5px;vertical-align:middle;
     }
 
+    .couple-num-tag{
+      display:inline-block;margin-left:6px;padding:1px 6px;border-radius:5px;
+      background:#eef2ff;color:#4338ca;border:1px solid #e0e7ff;
+      font-size:9px;font-weight:800;letter-spacing:.3px;vertical-align:middle;white-space:nowrap;
+    }
+
+    .name-cancelled{text-decoration:line-through;opacity:.6}
+
+    .legend-grid{display:flex;flex-direction:column}
+    .legend-row{display:flex;align-items:center;gap:18px;padding:12px 4px;border-bottom:1px solid var(--pb)}
+    .legend-row:last-child{border-bottom:none}
+    .legend-sample{flex:0 0 150px;font-weight:700;font-size:13px}
+    .legend-swatch{flex:0 0 150px;display:inline-block;width:64px;height:22px;border-radius:6px;border:1px solid transparent}
+    .legend-icons{flex:0 0 150px;display:flex;gap:8px;align-items:center}
+    .legend-icons .couple-gender svg{width:19px;height:19px}
+    .legend-desc{color:var(--ink-2);font-size:12.5px}
+
     .pcard-flag{
       display:inline-flex;align-items:center;gap:4px;margin-left:6px;
       padding:2px 7px;border-radius:5px;background:#fef3c7;color:#92400e;
@@ -1118,36 +1178,46 @@
       min-width:24px;height:22px;padding:0 7px;border-radius:7px;
       font-size:12px;font-weight:700;background:rgba(0,0,0,.06);color:var(--ink-2);
     }
-    .panel-tools{padding:11px 20px;border-bottom:1px solid var(--line);background:#fcfcfd}
+    .panel-tools{padding:11px 20px;border-bottom:1px solid var(--line);background:#fcfcfd;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .panel-tools input{
-      width:100%;padding:7px 11px;border-radius:8px;border:1px solid var(--line);
+      flex:1;min-width:160px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);
       background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12.5px;
     }
     .panel-tools input:focus{outline:none;border-color:var(--ink-3)}
+    .panel-tools select{
+      flex-shrink:0;max-width:200px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);
+      background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12.5px;
+    }
+    .panel-tools select:focus{outline:none;border-color:var(--ink-3)}
     .panel-body{max-height:392px;overflow-y:auto}
 
-    .ptable{width:100%;border-collapse:collapse;font-size:13px}
+    .ptable{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
     .ptable thead th{
       position:sticky;top:0;z-index:1;background:#fafbfc;
       text-align:left;padding:10px 20px;font-size:11.5px;font-weight:600;
       color:var(--ink-3);border-bottom:1px solid var(--line);white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;
     }
     .ptable thead th.num{text-align:right}
-    .ptable tbody td{padding:13px 20px;border-bottom:1px solid #f1f2f4;vertical-align:middle}
+    .ptable tbody td{
+      padding:13px 20px;border-bottom:1px solid #f1f2f4;vertical-align:middle;
+      overflow:hidden;text-overflow:ellipsis;
+    }
     .ptable tbody tr.prow{cursor:pointer;transition:background .15s ease}
     .ptable tbody tr.prow:hover{background:#fafbfc}
     .ptable .cell-id{font-weight:700;white-space:nowrap}
     .panel-over .ptable .cell-id{color:var(--ink)}
     .panel-soon .ptable .cell-id{color:var(--ink)}
-    .ptable .cell-type{color:var(--ink-2)}
+    .ptable .cell-type{color:var(--ink-2);white-space:nowrap}
     .ptable .cell-num{text-align:right;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
     .panel-over .ptable .cell-num{color:#b91c1c}
     .ptable thead th.ctr{text-align:center}
     .ptable .cell-date{text-align:center;white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums}
     .panel-over .ptable .cell-date{color:#b91c1c}
     .panel-soon .ptable .cell-num{color:#b45309}
-    .ptable .cell-right{text-align:right;color:var(--ink-2);white-space:nowrap}
+    .ptable .cell-right{text-align:right;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ptable .cell-mute{color:var(--ink-3)}
+    .ptable .cell-remark{color:var(--ink-2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .spill{
       display:inline-block;padding:4px 9px;border-radius:6px;
       font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;
@@ -1168,25 +1238,37 @@
     .prail-title{font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--c-ong)}
     .prail-star{color:var(--c-ong);display:inline-flex}
     .prail-list{
-      display:flex;flex-direction:column;gap:12px;
+      display:flex;flex-direction:column;gap:8px;
       max-height:392px;overflow-y:auto;padding-right:4px;
     }
     .pcard{
-      border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+      border:1px solid var(--line);border-radius:10px;padding:9px 12px;
       background:var(--surface);transition:var(--tr);cursor:pointer;position:relative;
     }
     .pcard:hover{border-color:#d1d5db;box-shadow:0 4px 14px rgba(16,24,40,.07);transform:translateY(-1px)}
     .pcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-    .pcard-id{font-size:13px;font-weight:700;letter-spacing:-.1px}
+    .pcard-id{font-size:11.5px;font-weight:700;letter-spacing:-.1px;line-height:1.25}
     .pcard-ic{flex-shrink:0;display:inline-flex}
-    .pcard-ic svg{width:15px;height:15px}
+    .pcard-ic svg{width:13px;height:13px}
     .pcard-name{
-      font-size:15.5px;font-weight:700;color:var(--ink);margin-top:7px;letter-spacing:-.3px;
+      font-size:13.5px;font-weight:700;color:var(--ink);margin-top:3px;letter-spacing:-.3px;line-height:1.3;
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
-    .pcard-meta{font-size:12.5px;color:var(--ink-3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .pcard-status{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;font-weight:600}
+    .pcard-meta{font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pcard-status{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:11px;font-weight:600;line-height:1.25}
     .pcard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .prail-run-group{display:flex;flex-direction:column;gap:8px}
+    .prail-run-group + .prail-run-group{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+    .prail-run-hd{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3);
+    }
+    .prail-run-hd span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .prail-run-count{
+      flex-shrink:0;background:#f3f4f6;color:var(--ink-2);border-radius:20px;
+      padding:1px 8px;font-size:10.5px;font-weight:700;
+    }
+    .prail-run-cards{display:flex;flex-direction:column;gap:8px}
     .prail-foot{text-align:center;margin-top:16px}
     .prail-foot button{
       background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;
@@ -1262,8 +1344,8 @@
     .tbl-wrap,.modal-table-wrap{
       --fz-bg:#ffffff; --fz-bg-alt:#fbfbfe; --fz-bg-hover:#f4f4fd; --fz-head-bg:#f0f0fb;
     }
-    #page-released .tbl-wrap{--fz-bg-alt:#fbfefd; --fz-bg-hover:#f0fbf7; --fz-head-bg:#eefaf5}
-    #page-overdue  .tbl-wrap{--fz-bg-alt:#fefbfb; --fz-bg-hover:#fdf2f2; --fz-head-bg:#fdf0f0}
+    #page-released .tbl-wrap{--fz-bg-alt:#fbfefd; --fz-bg-hover:#4ade80; --fz-head-bg:#eefaf5}
+    #page-overdue  .tbl-wrap{--fz-bg-alt:#fefbfb; --fz-bg-hover:#fca5a5; --fz-head-bg:#fdf0f0}
 
     .freeze-armed thead th.fz-pinnable{cursor:pointer}
     .freeze-armed thead th.fz-pinnable:hover{outline:2px dashed var(--pri);outline-offset:-2px}
@@ -1288,6 +1370,25 @@
     .tbl-wrap table{border-collapse:separate;border-spacing:0}
     .tbl-wrap tbody td{border-bottom:1px solid var(--bdr)}
     .tbl-wrap tbody tr:last-child td{border-bottom:none}
+
+    #tbl-max-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:490;backdrop-filter:blur(2px)}
+    #tbl-max-backdrop.show{display:block}
+    .tbl-wrap.tbl-maximized{
+      position:fixed !important;top:24px;left:24px;right:24px;bottom:24px;
+      z-index:500;width:auto !important;max-width:none !important;max-height:none !important;
+      box-shadow:0 30px 80px rgba(0,0,0,.4);
+    }
+
+    #bulk-assign-panel.tbl-maximized{
+      position:fixed !important;top:24px;left:24px;right:24px;bottom:24px;margin-top:0 !important;
+      z-index:500;width:auto !important;max-width:none !important;max-height:none !important;
+      box-shadow:0 30px 80px rgba(0,0,0,.4);display:flex !important;flex-direction:column;overflow:hidden;
+    }
+    /* Base cap lives in CSS (not inline) so the maximized override below can
+       actually win — an inline max-height on the element would always beat it
+       regardless of specificity, leaving a blank gap under a "maximized" list. */
+    #bulk-assign-list{max-height:440px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)}
+    #bulk-assign-panel.tbl-maximized #bulk-assign-list{flex:1;max-height:none}
 
     #qmodal-body th{background:var(--fz-head-bg,#f0f0fb) !important;background-image:none !important}
 
@@ -1318,6 +1419,8 @@
     </div>
   </div>
 </header>
+
+<div id="tbl-max-backdrop" onclick="exitTableMaximize()"></div>
 
 <div id="qmodal-backdrop" onclick="closeQModal(event)">
   <div id="qmodal">
@@ -1371,9 +1474,15 @@
           <label>Clinical Reviewer</label>
           <select class="sel" id="rf-final" style="height:38px;width:100%"></select>
         </div>
-        <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-rel_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
+        <div class="rf-item"><label>Release Date</label><input type="text" class="date-txt" id="rf-report_release_date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" /></div>
         <div class="rf-item"><label>Run Number</label><input type="text" id="rf-run_text" placeholder="e.g. SURFseq- Run-102" /></div>
-        <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remark"></textarea></div>
+        <div class="rf-item"><label>Couple ID</label>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="rf-couple_id" placeholder="Same tag on both samples, e.g. Couple 1" style="flex:1" />
+            <button type="button" class="btn btn-out btn-sm" onclick="fillNextCoupleId()" title="Fill in the next unused couple number" style="flex-shrink:0;white-space:nowrap">Next #</button>
+          </div>
+        </div>
+        <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remarks"></textarea></div>
         <div class="rf-item rf-wide"><label>History</label><textarea id="rf-history"></textarea></div>
         <div class="rf-item rf-wide">
           <label class="rf-check">
@@ -1398,23 +1507,37 @@
       </div>
     </div>
     <div id="report-modal-actions">
-      <button class="btn btn-out btn-sm" id="report-delete-btn" onclick="deleteReportFromModal()" style="display:none;border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.06);color:#dc2626;margin-right:auto">Delete</button>
       <button class="btn btn-out btn-sm" onclick="closeReportModal(null)">Cancel</button>
-      <button class="btn btn-pri btn-sm" onclick="submitReportForm()">Save</button>
+      <button class="btn btn-pri btn-sm" id="report-save-btn" onclick="submitReportForm()">Save</button>
     </div>
   </div>
 </div>
 
 <main class="main">
 
-<div class="page-heading" id="page-heading">
+<div class="page-heading" id="page-heading" style="position:relative">
+  <div class="rel-search-wrap glass" style="flex:1;min-width:220px;height:42px" onclick="this.querySelector('input').focus()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="global-search" placeholder="Search samples..." oninput="performGlobalSearch()" style="font-size:14px" />
+  </div>
   <div class="ph-actions">
+    <button class="btn btn-quiet" id="legend-btn" onclick="openColorGuideModal()" title="What the colors and symbols on this page mean">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      Color Guide
+    </button>
     <button class="btn btn-quiet" id="refresh-btn" onclick="fetchReports()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Refresh Now
     </button>
     <button class="btn btn-ink" id="add-report-btn" onclick="openReportModal()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Report
     </button>
+    <input type="file" id="bulk-edit-excel-file" accept=".xlsx,.xls" style="display:none" onchange="handleBulkEditExcelUpload(event)" />
+    <button class="btn btn-out" id="bulk-edit-btn" onclick="document.getElementById('bulk-edit-excel-file').click()" title="Update existing samples by Gen ID / Anderson ID — fill in only Repeat Expansion and/or TAT Date">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Update via Excel
+    </button>
+  </div>
+  <div id="global-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:8px;background:white;border:1px solid var(--pb);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden" onclick="event.stopPropagation()">
+    <div style="max-height:500px;overflow-y:auto" id="global-search-table-wrap"></div>
   </div>
 </div>
 
@@ -1429,15 +1552,11 @@
       </div>
       <div class="scard glass sc-yet clickable" onclick="openAllSamplesModal('Yet to Start')"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg></span><div class="s-lbl">Yet to Start</div><div class="s-val" id="s-yet">0</div><div class="s-sub">No reviewer assigned</div></div>
       <div class="scard glass sc-ong clickable" onclick="openTeamWorkloadModal()"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><div class="s-lbl">In Review</div><div class="s-val" id="s-ong">0</div><div class="s-sub" id="s-ong-sub">Assigned to reviewers</div></div>
-      <div class="scard glass sc-rel clickable" onclick="openAllSamplesModal('Released')"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
+      <div class="scard glass sc-rel"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
     </div>
 
     <div style="margin-bottom:20px;position:relative">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <div class="rel-search-wrap glass" style="max-width:400px;flex:1;min-width:220px" onclick="this.querySelector('input').focus()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" id="global-search" placeholder="Search samples..." oninput="performGlobalSearch()" style="font-size:13px" />
-        </div>
         <button class="btn btn-out btn-sm" id="bulk-release-toggle-btn" onclick="toggleBulkReleasePanel()" style="display:none;gap:6px;height:38px;padding:0 14px;font-weight:600;flex-shrink:0;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/></svg> Release Date
         </button>
@@ -1445,55 +1564,69 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Allocate Samples
         </button>
       </div>
-      <div id="global-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:8px;background:white;border:1px solid var(--pb);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden" onclick="event.stopPropagation()">
-        <div style="max-height:500px;overflow-y:auto" id="global-search-table-wrap"></div>
-      </div>
 
-      <div id="bulk-release-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px;max-width:760px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <input type="text" class="date-txt sel" id="bulk-release-date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" />
-          <button class="btn btn-pri btn-sm" onclick="submitBulkRelease()">Mark Selected as Released</button>
-          <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600">0 selected</span>
+      <div id="bulk-release-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <div class="rel-search-wrap" style="flex:0 1 340px;min-width:220px" onclick="this.querySelector('input').focus()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" id="bulk-release-search" placeholder="Search samples..." oninput="renderBulkReleaseList()" style="font-size:13px" />
+          </div>
+          <select id="bulk-release-reviewer-filter" onchange="renderBulkReleaseList()" title="Filter by reviewer" style="height:42px;padding:0 10px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--ib);color:var(--text);font-family:inherit;font-size:13px;max-width:180px;flex-shrink:0">
+            <option value="">All Reviewers</option>
+          </select>
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <input type="text" id="bulk-remark-text" class="sel" placeholder="Remark — applies to every selected sample" style="max-width:320px;flex:1;min-width:200px" />
-          <button class="btn btn-out btn-sm" onclick="submitBulkRemark()">Apply Remark to Selected</button>
-        </div>
-        <div class="rel-search-wrap" style="max-width:400px;margin-bottom:12px" onclick="this.querySelector('input').focus()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" id="bulk-release-search" placeholder="Search samples..." oninput="renderBulkReleaseList()" style="font-size:13px" />
+          <input type="text" class="date-txt sel" id="bulk-release-date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" style="flex-shrink:0" />
+          <input type="text" id="bulk-remark-text" class="sel" placeholder="Remark…" style="flex:1;min-width:160px" />
+          <select id="bulk-release-clin-reviewer" class="sel" style="height:38px;flex:1;min-width:160px" title="Clinical reviewer these samples go to"></select>
+          <select id="bulk-release-cnv-status" class="sel" style="height:38px;flex:1;min-width:160px" title="CNV status these samples go to"></select>
+          <button class="btn btn-green btn-sm" onclick="submitBulkApply()" style="flex-shrink:0">Apply to Selected</button>
+          <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
         </div>
         <div id="bulk-release-caption" style="font-size:11px;color:var(--muted);margin:-6px 0 10px"></div>
-        <div id="bulk-release-list" style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+        <div id="bulk-release-list" style="max-height:460px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
       </div>
 
       <div id="bulk-assign-panel" class="glass" style="display:none;margin-top:12px;padding:18px 20px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <select id="bulk-assign-reviewer" class="sel" style="height:38px;max-width:260px;flex:1;min-width:200px" title="Reviewer these samples go to"></select>
-          <button class="btn btn-pri btn-sm" onclick="submitBulkAssign()">Assign Selected</button>
-          <span id="bulk-assign-selected-count" style="font-size:12px;color:var(--muted);font-weight:600">0 selected</span>
-        </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-          <div class="rel-search-wrap" style="max-width:340px;flex:1;min-width:200px" onclick="this.querySelector('input').focus()">
+          <button class="rel-filter-toggle back-btn" onclick="closeBulkAssignPanel()" style="height:38px;font-size:11px;padding:0 10px;flex-shrink:0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <select id="bulk-assign-reviewer" class="sel" style="height:38px;max-width:200px;flex:0 1 200px" title="Reviewer these samples go to"></select>
+          <button class="btn btn-pri btn-sm" onclick="submitBulkAssign()" style="flex-shrink:0">Assign Selected</button>
+
+          <div class="rel-search-wrap" style="flex:1;min-width:180px" onclick="this.querySelector('input').focus()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input type="text" id="bulk-assign-search" placeholder="Search samples..." oninput="renderBulkAssignList()" style="font-size:13px" />
           </div>
-          <select class="sel" id="bulk-assign-run" onchange="renderBulkAssignList()" style="height:38px;max-width:200px" title="Allocate one run at a time">
+          <select class="sel" id="bulk-assign-run" onchange="renderBulkAssignList()" style="height:38px;max-width:160px;flex-shrink:0" title="Allocate one run at a time">
             <option value="">All Runs</option>
           </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">
             <input type="checkbox" id="bulk-assign-select-all" onchange="toggleBulkAssignSelectAll(this)" style="width:15px;height:15px;cursor:pointer" />
             Select all shown
           </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">
             <input type="checkbox" id="bulk-assign-include-assigned" onchange="renderBulkAssignList()" style="width:15px;height:15px;cursor:pointer" />
             Include samples that already have a reviewer
           </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">
+            <input type="checkbox" id="bulk-assign-couples-only" onchange="renderBulkAssignList()" style="width:15px;height:15px;cursor:pointer" />
+            Couple cases only
+          </label>
+
+          <span id="bulk-assign-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
+
+          <button id="bulk-assign-max-btn" class="rel-filter-toggle" onclick="toggleTableMaximize('bulk-assign-panel','bulk-assign-max-btn')" title="Maximize" style="flex-shrink:0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <span class="tbl-max-label">Maximize</span>
+          </button>
         </div>
+        <div id="bulk-assign-team-summary" class="ba-team-grid" style="margin-bottom:12px"></div>
         <div id="bulk-assign-caption" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
-        <div id="bulk-assign-list" style="max-height:440px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
+        <div id="bulk-assign-list"></div>
       </div>
     </div>
 
@@ -1507,6 +1640,9 @@
             <span class="ph-name">TAT Overdue Status</span>
             <span class="panel-count" id="tat-over-count">0</span>
             <span class="ph-right">
+              <select id="tat-over-reviewer" onchange="renderTatAlerts()" title="Filter by reviewer" style="height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12px;max-width:160px">
+                <option value="">All Reviewers</option>
+              </select>
               <span class="chip-alarm" id="tat-over-chip" style="display:none">Action Required</span>
               <button class="btn btn-sm btn-quiet" onclick="downloadOverdueExcel()" title="Download overdue list as Excel">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1516,7 +1652,10 @@
           </div>
           <div class="panel-body">
             <table class="ptable">
-              <thead><tr><th>Sample</th><th>Test</th><th class="ctr">TAT</th><th class="num">Delay</th><th class="num">Reviewer</th></tr></thead>
+              <thead><tr>
+                <th style="width:26%">Sample</th><th style="width:22%">Test</th><th class="ctr" style="width:13%">TAT</th>
+                <th class="num" style="width:10%">Delay</th><th class="num" style="width:12%">Reviewer</th><th style="width:17%">Remark</th>
+              </tr></thead>
               <tbody id="tat-over-list"></tbody>
             </table>
           </div>
@@ -1531,10 +1670,17 @@
           </div>
           <div class="panel-tools">
             <input id="tat-days-search" type="number" min="0" placeholder="Filter by days remaining…" oninput="filterTatSoon()" />
+            <select id="tat-soon-reviewer" onchange="filterTatSoon()" title="Filter by reviewer">
+              <option value="">All Reviewers</option>
+            </select>
           </div>
           <div class="panel-body">
             <table class="ptable">
-              <thead><tr><th>Sample</th><th>Test</th><th class="num">Remaining</th><th class="num">Status</th></tr></thead>
+              <thead><tr>
+                <th style="width:24%">Sample</th><th style="width:20%">Test</th>
+                <th class="num" style="width:10%">Remaining</th><th class="num" style="width:12%">Status</th>
+                <th class="num" style="width:14%">Reviewer</th><th style="width:20%">Remark</th>
+              </tr></thead>
               <tbody id="tat-soon-list"></tbody>
             </table>
           </div>
@@ -1562,7 +1708,7 @@
           </div>
           <div class="rrp-list" id="rrp-rail-list"></div>
           <div class="prail-foot">
-            <button onclick="openAllSamplesModal('Released')">View All Released &rarr;</button>
+            <button onclick="switchTab('released', document.getElementById('t-rel'))">View All Released &rarr;</button>
           </div>
         </aside>
 
@@ -1939,8 +2085,16 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         <span id="ra-clear-team-label">Clear team</span>
       </button>
+      <button class="rel-filter-toggle" onclick="downloadReanalysisExcel()" style="border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08);color:#059669">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Excel
+      </button>
+      <button id="ra-max-btn" class="rel-filter-toggle" onclick="toggleTableMaximize('ra-tbl-wrap','ra-max-btn')" title="Maximize table">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <span class="tbl-max-label">Maximize</span>
+      </button>
     </div>
-    <div class="tbl-wrap glass"><div id="ra-table"></div></div>
+    <div class="tbl-wrap glass" id="ra-tbl-wrap"><div id="ra-table"></div></div>
   </div>
 
 </main>
@@ -1950,21 +2104,50 @@
 <script>
 let rows   = [];
 
-const _sortDir = { allSamples:'desc', assigned:'desc', released:'desc', overdue:'asc' };
+const _sortDir = { allSamples:'desc', assigned:'desc', released:'desc', overdue:'asc', empModal:'desc' };
 const SORT_LABELS = {
   allSamples: { desc:'Newest first', asc:'Oldest first' },
   assigned:   { desc:'Newest first', asc:'Oldest first' },
   released:   { desc:'Newest first', asc:'Oldest first' },
   overdue:    { asc:'Most overdue first', desc:'Least overdue first' },
+  empModal:   { desc:'Newest first', asc:'Oldest first' },
 };
 const SORT_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4"/><path d="M16 15l-4 4-4-4"/></svg>';
 
-function sortRowsByDate(list, dateGetter, dir) {
-  return list.slice().sort((a,b) => {
-    const da = dateGetter(a), db = dateGetter(b);
-    const ta = da ? da.getTime() : (dir === 'asc' ? Infinity : -Infinity);
-    const tb = db ? db.getTime() : (dir === 'asc' ? Infinity : -Infinity);
-    return dir === 'asc' ? ta - tb : tb - ta;
+// The trailing number in a Gen ID (e.g. 5459 in "GEN_T_2.0.spik_5459") tracks
+// upload order reliably, since samples are always uploaded in ascending Gen ID
+// order — unlike TAT/assign/release dates, which can jumble samples from
+// different runs and clients out of the order they actually came in.
+// A trailing letter (e.g. "5178A" for a repeat/re-draw) is a tiebreaker.
+function genIdSortKey(gid) {
+  const m = String(gid || '').match(/(\d+)([A-Za-z]*)\s*$/);
+  return m ? { num: parseInt(m[1], 10), suffix: m[2] || '' } : { num: -1, suffix: '' };
+}
+
+// "Newest/Oldest first" — despite the name, this sorts by run recency first
+// (run_number, the same field getStatus/the Run filter dropdown treat as
+// authoritative), not by gen_id. gen_id magnitude alone isn't reliable across
+// platforms — e.g. Genolab's AND-style ids are large reference-lab numbers
+// unrelated to processing order, so gen_id-only sorting could put an old
+// Genolab run above a newer Surfseq one. gen_id is now only a tiebreaker
+// within the same run.
+function sortRowsByGenId(list, dir) {
+  return list.slice().sort((a, b) => {
+    const runA = parseInt(a.run_number || 0, 10);
+    const runB = parseInt(b.run_number || 0, 10);
+    let cmp;
+    if (runA !== runB) {
+      cmp = runA - runB;
+    } else {
+      const runTextCmp = String(a.run_text || '').localeCompare(String(b.run_text || ''));
+      if (runTextCmp !== 0) {
+        cmp = runTextCmp;
+      } else {
+        const ka = genIdSortKey(a.gen_id), kb = genIdSortKey(b.gen_id);
+        cmp = ka.num !== kb.num ? ka.num - kb.num : ka.suffix.localeCompare(kb.suffix);
+      }
+    }
+    return dir === 'asc' ? cmp : -cmp;
   });
 }
 
@@ -1980,6 +2163,7 @@ function toggleSortDir(key) {
   updateSortToggleBtn(key);
   if (key === 'allSamples') { sortAllSamplesData(); filterAllSamples(); }
   else if (key === 'overdue') renderOverdue();
+  else if (key === 'empModal') filterEmpModal();
   else render(key);
 }
 
@@ -2081,6 +2265,7 @@ const IC = {
   dna:     '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/><path d="M17 6l-2.5-2.5"/><path d="M14 8l-1-1"/><path d="M7 18l2.5 2.5"/><path d="M3.5 14.5l.5.5"/><path d="M20 9l.5.5"/><path d="M6.5 12.5l1 1"/><path d="M16.5 10.5l1 1"/><path d="M10 16l1.5 1.5"/></svg>',
   home:    '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
   pin:     '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg>',
+  ban:     '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
   rocket:  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
   folder:  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   user:    '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
@@ -2098,6 +2283,7 @@ const IC = {
   x:       '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
 };
 
+
 const COL_MAP = {
   sno:       ['s.no','sno','serial','#'],
   name:      ['sample_name','sample name','samplename','name'],
@@ -2108,7 +2294,6 @@ const COL_MAP = {
   tat:       ['tat(30 days)','tat','turnaround'],
   rep_exp:   ['repeat expansion','repeat'],
   cnv_status:['cnv status','cnv'],
-  mito_status:['mito status','mito'],
   analyst:   ['analyze by','analysed by','analyzed by','analyst','analyze_by'],
   ana_date:  ['analyze date','analysis date','analyzed date','date of analysis','analyze_date'],
   pri_rev:   ['reviewer','primary reviwer (diwakar/naveen)','primary reviewer','primary review','primary_reviewer'],
@@ -2117,9 +2302,10 @@ const COL_MAP = {
   reanalysis:['re-analysis','re analysis','reanalysis'],
   priority:  ['priority','is priority','urgent'],
   run:       ['run_no','run no','run number','run'],
-  remark:    ['remark','remarks','note','notes'],
-  rel_date:  ['report release date','release date','released on','report_release_date'],
+  remarks:    ['remark','remarks','note','notes'],
+  report_release_date:  ['report release date','release date','released on','report_release_date'],
   history:   ['history writeup','history','writeup'],
+  couple_id: ['couple id','couple_id','couple no','couple number','couple tag','couple'],
 };
 
 function extractRunNumber(text) {
@@ -2128,23 +2314,10 @@ function extractRunNumber(text) {
   return m ? parseInt(m[1], 10) : null;
 }
 
-function deriveMitoStatus(testRaw, mitoRaw) {
-  const explicit = String(mitoRaw || '').trim();
-  if (explicit) return explicit;
-  const test = String(testRaw || '').toLowerCase();
-  if (!test) return '';
-  if (test.includes('mito')) {
-    if (test.includes('wes') || test.includes('exome')) return 'WES + Mito';
-    if (test.includes('ces')) return 'CES + Mito';
-    return 'Mito';
-  }
-  return '';
-}
-
 // Categories that jump the queue, checked as each run is imported.
 const PRIORITY_RULES = [
-  { label: 'Fast track',          fields: ['remark'],       re: /fast\s*-?\s*track/i },
-  { label: 'Expedited TAT',       fields: ['remark'],       re: /\b(?:dr\.?\s*)?(raman|sachin|anand|siva)\b/i },
+  { label: 'Fast track',          fields: ['remarks'],      re: /fast\s*-?\s*track/i },
+  { label: 'Expedited TAT',       fields: ['remarks'],      re: /\b(?:dr\.?\s*)?(raman|sachin|anand|siva)\b/i },
   { label: 'Single gene',         fields: ['test'],         re: /single\s*gene/i },
   { label: 'Female infertility',  fields: ['test'],         re: /female\s*infertility/i },
   // "female infertility" contains "male infertility" — the boundary stops a double match.
@@ -2162,13 +2335,17 @@ function priorityReason(row) {
 }
 
 function mapRow(raw) {
-  const keys = Object.keys(raw).map(k => k.toLowerCase().trim());
+  // Headers vary in punctuation across sheets ("Couple ID", "Couple_ID",
+  // "Couple-ID", "COUPLEID" all mean the same column) — headerKey() strips
+  // spaces/dots/underscores/hyphens so aliases match regardless of style.
+  const keys = Object.keys(raw).map(k => headerKey(k));
   function get(aliases) {
-    for (const a of aliases) {
+    const wanted = aliases.map(headerKey);
+    for (const a of wanted) {
       const i = keys.indexOf(a);
       if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
     }
-    for (const a of aliases) {
+    for (const a of wanted) {
       const i = keys.findIndex(k => k.includes(a));
       if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
     }
@@ -2191,17 +2368,17 @@ function mapRow(raw) {
     tat:          fmtDate(get(COL_MAP.tat)),
     rep_exp:      get(COL_MAP.rep_exp),
     cnv_status:   get(COL_MAP.cnv_status),
-    mito_status:  deriveMitoStatus(get(COL_MAP.test), get(COL_MAP.mito_status)),
     analyst:      analystClean,
     analyst_raw:  analystRaw,
     assign_date:  assignDate,
     ana_date:     fmtDate(get(COL_MAP.ana_date)),
     pri_rev:      get(COL_MAP.pri_rev),
     final:        get(COL_MAP.final),
-    remark:       get(COL_MAP.remark),
-    rel_date:     fmtDate(get(COL_MAP.rel_date)),
+    remarks:       get(COL_MAP.remarks),
+    report_release_date:     fmtDate(get(COL_MAP.report_release_date)),
     history:      get(COL_MAP.history),
     bioinfo_time: get(COL_MAP.bioinfo_time),
+    couple_id:    get(COL_MAP.couple_id),
     is_reanalysis: yes(get(COL_MAP.reanalysis)),
     run_number:   extractRunNumber(runTxt) || raw._run_num || DEFAULT_RUN_NUMBER,
     run_text:     runTxt,
@@ -2212,17 +2389,118 @@ function mapRow(raw) {
   return row;
 }
 
+// Day-2 pass: the primary team's follow-up sheet only carries the sample IDs
+// plus whichever of Repeat Expansion / TAT came back — a blank cell must stay
+// "" (not fmtDate's "—" placeholder) so the backend knows to leave it alone.
+function mapEditRow(raw) {
+  const keys = Object.keys(raw).map(k => k.toLowerCase().trim());
+  function get(aliases) {
+    for (const a of aliases) {
+      const i = keys.indexOf(a);
+      if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
+    }
+    for (const a of aliases) {
+      const i = keys.findIndex(k => k.includes(a));
+      if (i !== -1) return String(Object.values(raw)[i] ?? '').trim();
+    }
+    return '';
+  }
+  const tatRaw = get(COL_MAP.tat);
+  return {
+    gen_id:  get(COL_MAP.gen_id),
+    and_id:  get(COL_MAP.and_id),
+    rep_exp: get(COL_MAP.rep_exp),
+    tat:     tatRaw ? fmtDate(tatRaw) : '',
+  };
+}
+
 // Runs before 54 predate release-date capture, so they count as released.
 const FIRST_RUN_WITH_RELEASE_DATES = 54;
 
+// A sample called off leaves every count, whatever its release date says or
+// however old the run is — any remark saying it was cancelled takes it out
+// of Yet to Start, Overdue, Due Soon and the Released/Cancelled stats alike.
+const CANCELLED_REMARK = /\bcancell?ed\b/i;
+
+function isCancelled(r) {
+  return CANCELLED_REMARK.test(r.remarks || '');
+}
+
+// Handed off to Siva sir's team — still unreleased, but no longer this
+// tracker's queue to chase, so it shouldn't sit in Yet to Start or Overdue.
+const SENT_TO_SIVA_REMARK = /sent\s*to\s*(?:dr\.?\s*)?siva(?:\s*sir)?/i;
+
+function isSentToSiva(r) {
+  return SENT_TO_SIVA_REMARK.test(r.remarks || '');
+}
+
+// The patient came back and a fresh sample carries the actual release date —
+// this original row never gets one of its own, so it would sit in Overdue
+// forever. It's done, just not a release in its own right, so it's kept out
+// of the Released count too (the repeat row supplies that).
+const REPEAT_SAMPLE_REMARK = /repeat\s*sample/i;
+
+// Same patient, same Anderson ID, redrawn: IT reuses the gen id with an "A"
+// appended for the sample that actually goes forward. The earlier row (no
+// trailing "A") is spent, so it's a Repeat Sample even with no remark typed —
+// recomputeAutoRepeatIds() finds these pairs whenever `rows` is (re)loaded.
+let _autoRepeatIds = new Set();
+
+function recomputeAutoRepeatIds() {
+  const byAndId = new Map();
+  rows.forEach(r => {
+    const and = String(r.and_id || '').trim();
+    if (!and) return;
+    if (!byAndId.has(and)) byAndId.set(and, []);
+    byAndId.get(and).push(r);
+  });
+  const ids = new Set();
+  byAndId.forEach(group => {
+    if (group.length < 2) return;
+    const genIds = new Set(group.map(r => String(r.gen_id || '').trim()).filter(Boolean));
+    group.forEach(r => {
+      const gid = String(r.gen_id || '').trim();
+      if (gid && genIds.has(gid + 'A')) ids.add(r.id);
+    });
+  });
+  _autoRepeatIds = ids;
+}
+
+function isRepeatSample(r) {
+  return REPEAT_SAMPLE_REMARK.test(r.remarks || '') || _autoRepeatIds.has(r.id);
+}
+
+// A contaminated sample won't proceed to analysis until it's redrawn, so like
+// a Siva hand-off it shouldn't sit in Yet to Start or Overdue while it waits.
+const CONTAMINATED_REMARK = /contaminat/i;
+
+function isContaminated(r) {
+  return CONTAMINATED_REMARK.test(r.remarks || '');
+}
+
 function getStatus(r) {
   const run = parseInt(r.run_number || 0, 10);
-  const hasRelDate = r.rel_date && r.rel_date !== '—' && r.rel_date !== '-' &&
-                     String(r.rel_date).trim() !== '';
+  const hasRelDate = r.report_release_date && r.report_release_date !== '—' && r.report_release_date !== '-' &&
+                     String(r.report_release_date).trim() !== '';
 
+  if (isCancelled(r)) return 'Cancelled';
+  if (r.is_reanalysis) return 'Re-analysis';
   if (run < FIRST_RUN_WITH_RELEASE_DATES || hasRelDate) return 'Released';
+  if (isRepeatSample(r)) return 'Repeat Sample';
+  if (isSentToSiva(r)) return 'On Hold';
+  if (isContaminated(r)) return 'Contaminated';
   if (r.pri_rev) return 'Ongoing';
   return 'Yet to Start';
+}
+
+// Work still owed: everything a reviewer, a TAT alert or an allocation cares
+// about. Cancelled, on-hold, contaminated, repeat-sample and re-analysis rows
+// are owed nothing here — re-analysis has no TAT/release date of its own and
+// lives on its own tab — so they sit outside it.
+function isPending(r) {
+  const st = getStatus(r);
+  return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Contaminated' &&
+         st !== 'Repeat Sample' && st !== 'Re-analysis';
 }
 
 function parseDate(v) {
@@ -2349,7 +2627,7 @@ function getTatAlerts() {
   const warnLimit = new Date(today); warnLimit.setDate(warnLimit.getDate() + TAT_WARN_DAYS);
 
   const dueSoon = [], overdue = [], dueToday = [];
-  applySelfFilter(rows).filter(r => getStatus(r) !== 'Released').forEach(r => {
+  applySelfFilter(rows).filter(isPending).forEach(r => {
     const td = parseTatDate(r);
     if (!td) return;
     td.setHours(0,0,0,0);
@@ -2365,31 +2643,52 @@ function getTatAlerts() {
   return { dueSoon, dueToday, overdue };
 }
 
+function matchesReviewerFilter(r, val) {
+  if (!val) return true;
+  const reviewer = normalizeAnalystName(r.pri_rev);
+  if (val === '__unassigned__') return !reviewer;
+  return reviewer === val;
+}
+
+function populateTatReviewerFilters() {
+  const options = `<option value="">All Reviewers</option>` +
+    REVIEWERS.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('') +
+    `<option value="__unassigned__">Unassigned</option>`;
+  ['tat-over-reviewer', 'tat-soon-reviewer', 'bulk-release-reviewer-filter'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const keep = sel.value;
+    sel.innerHTML = options;
+    sel.value = keep;
+  });
+}
+
 function renderTatAlerts() {
   const { dueSoon, dueToday, overdue } = getTatAlerts();
   const soonAll = [...dueToday, ...dueSoon];
 
   _tatSoonAll = soonAll;
-  document.getElementById('tat-soon-count').textContent = soonAll.length;
   const daysInput = document.getElementById('tat-days-search');
   if (daysInput) daysInput.value = '';
-  renderTatSoonList(soonAll);
+  filterTatSoon();
 
-  document.getElementById('tat-over-count').textContent = overdue.length;
+  const overReviewer = document.getElementById('tat-over-reviewer')?.value || '';
+  const overdueFiltered = overdue.filter(r => matchesReviewerFilter(r, overReviewer));
+  document.getElementById('tat-over-count').textContent = overdueFiltered.length;
   const overChip = document.getElementById('tat-over-chip');
-  if (overChip) overChip.style.display = overdue.length ? '' : 'none';
+  if (overChip) overChip.style.display = overdueFiltered.length ? '' : 'none';
   const overEl = document.getElementById('tat-over-list');
-  overEl.innerHTML = overdue.length ? overdue.map((r,i) => {
+  overEl.innerHTML = overdueFiltered.length ? overdueFiltered.map((r,i) => {
     const days = Math.abs(r.diff);
-    return `<tr class="prow" onclick="toggleTatDetail('over-${i}')">
-      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</td>
+    return `<tr class="prow"${rowEditAttrs(r)}>
+      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-date">${fmtDate(r.tat)}</td>
       <td class="cell-num">+${days}d</td>
       <td class="cell-right">${esc(normalizeAnalystName(r.pri_rev) || '—')}</td>
-    </tr>
-    ${tatDetailBlock('over-'+i, r, 5)}`;
-  }).join('') : emptyRow(`All good! ${IC.check}`, 5);
+      <td class="cell-remark" title="${esc(r.remarks||'')}">${r.remarks ? esc(r.remarks) : '—'}</td>
+    </tr>`;
+  }).join('') : emptyRow(`All good! ${IC.check}`, 6);
 
 }
 
@@ -2401,7 +2700,7 @@ let _prailRows = [];
 
 function getPriorityRows() {
   return applySelfFilter(rows)
-    .filter(r => r.is_priority && getStatus(r) !== 'Released')
+    .filter(r => r.is_priority && isPending(r))
     .sort((a,b) => {
       const da = parseTatDate(a), db = parseTatDate(b);
       return (da ? da.getTime() : Infinity) - (db ? db.getTime() : Infinity);
@@ -2426,7 +2725,8 @@ function renderPrioritySamples() {
   const today = new Date(); today.setHours(0,0,0,0);
   _prailRows = all;
   const clickable = canEditReports();
-  el.innerHTML = _prailRows.map((r, i) => {
+
+  const cardHtml = (r) => {
     const st = getStatus(r);
     const td = parseTatDate(r);
     let daysLeft = null;
@@ -2439,7 +2739,7 @@ function renderPrioritySamples() {
       : daysLeft === 0 ? `${st} · due today`
       : overdue ? `${st} · ${Math.abs(daysLeft)}d overdue`
       : `${st} · ${daysLeft}d left`;
-    return `<div class="pcard"${clickable ? ` onclick="openReportModal(_prailRows[${i}])" title="Open this sample"` : ' style="cursor:default"'}>
+    return `<div class="pcard"${clickable ? ` onclick='openReportModalById(${JSON.stringify(r.id)})' title="Open this sample"` : ' style="cursor:default"'}>
       <div class="pcard-top">
         <span class="pcard-id" style="color:${color}">${esc(r.gen_id || r.and_id || r.sno || '—')}${overdue ? '<span class="pcard-flag">overdue</span>' : ''}</span>
         <span class="pcard-ic" style="color:${color}">${urgent ? IC.alert : IC.flask}</span>
@@ -2450,117 +2750,28 @@ function renderPrioritySamples() {
         <span class="pcard-dot" style="background:${color}"></span>${esc(statusText)}${reviewer ? ' · ' + esc(reviewer) : ''}
       </div>
     </div>`;
-  }).join('');
-}
+  };
 
-function tatDetailBlock(id, r, cols = 4) {
-  const chips = [
-    ['Sample', r.name],
-    ['Gen ID', r.gen_id],
-    ['Anderson ID', r.and_id],
-    ['Test', r.test],
-    ['Client', r.client],
-    ['TAT', fmtDate(r.tat)],
-    ['Analyst', r.analyst],
-    ['Reviewer', r.pri_rev],
-    ['Clinical Reviewer', r.final],
-    ['CNV', r.cnv_status],
-    ['Remark', r.remark],
-  ];
-  const releaseRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" class="date-txt" id="qrd-${id}" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" value="${esc(formatInputDate(r.rel_date)||'')}" />
-      <button class="btn btn-pri btn-sm" onclick="quickSetReleaseDate('${id}','${r.id}')">Mark Released</button>
-    </div>` : '';
-  const remarkRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <input type="text" id="qrm-${id}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
-      <button class="btn btn-out btn-sm" onclick="quickSetRemark('${r.id}','qrm-${id}')">Save Remark</button>
-    </div>` : '';
-  const clinRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <select class="sel" id="qcr-${id}" title="Clinical Reviewer" style="height:32px;flex:1">
-        ${clinicalReviewerOptions(r.final||'')}
-      </select>
-      <button class="btn btn-out btn-sm" onclick="quickSetClinicalReviewer('${r.id}','qcr-${id}')">Save Clinical Reviewer</button>
-    </div>` : '';
-  const cnvRow = canEditReports() ? `
-    <div class="tat-release-row" onclick="event.stopPropagation()">
-      <select class="sel" id="qcnv-${id}" title="CNV Status" style="height:32px;flex:1">
-        ${cnvStatusOptions(r.cnv_status||'')}
-      </select>
-      <button class="btn btn-out btn-sm" onclick="quickSetCnvStatus('${r.id}','qcnv-${id}')">Save CNV Status</button>
-    </div>` : '';
-  return `<tr class="tat-detail" id="tat-d-${id}"><td colspan="${cols}"><div class="tat-detail-inner">
-    ${chips.map(([l,v]) => `<span class="tat-chip"><span class="tc-label">${l}</span><span class="tc-val">${esc(v||'—')}</span></span>`).join('')}
-    ${releaseRow}
-    ${remarkRow}
-    ${clinRow}
-    ${cnvRow}
-  </div></td></tr>`;
+  // Stack cards into run-wise clusters instead of one flat, urgency-only list —
+  // each cluster keeps its rows in the existing urgency order, and clusters are
+  // ordered by their most urgent row so the riskiest run still surfaces first.
+  const groups = new Map();
+  all.forEach(r => {
+    const key = r.run_text || 'No Run';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+
+  el.innerHTML = [...groups.entries()].map(([runText, groupRows]) => `
+    <div class="prail-run-group">
+      <div class="prail-run-hd"><span>${esc(formatRunText(runText))}</span><span class="prail-run-count">${groupRows.length}</span></div>
+      <div class="prail-run-cards">${groupRows.map(cardHtml).join('')}</div>
+    </div>`).join('');
 }
 
 function todayDDMMYYYY() {
   const d = new Date();
   return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
-}
-
-async function quickPatchReport(reportId, patch, okMsg, errLabel) {
-  const row = rows.find(r => r.id === reportId);
-  if (!row) { toast('Could not find that report — try refreshing', 'err'); return; }
-
-  const { id, ...payload } = { ...row, ...patch };
-
-  try {
-    const resp = await fetch(`api/reports/${reportId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) throw await apiError(resp);
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    toast(okMsg);
-  } catch (e) {
-    toast(`Failed to save ${errLabel}: ` + e.message, 'err');
-  }
-}
-
-async function quickSetReleaseDate(localId, reportId) {
-  const dateVal = (document.getElementById('qrd-' + localId)?.value || '').trim();
-  if (!dateVal) { toast('Enter a release date', 'warn'); return; }
-  await quickPatchReport(reportId, { rel_date: toApiDate(dateVal) },
-    'Release date saved — moved to Released', 'release date');
-}
-
-async function quickSetRemark(reportId, inputId) {
-  const el = document.getElementById(inputId);
-  if (!el) return;
-  await quickPatchReport(reportId, { remark: el.value.trim() }, 'Remark saved', 'remark');
-}
-
-async function quickSetClinicalReviewer(reportId, selectId) {
-  const el = document.getElementById(selectId);
-  if (!el) return;
-  await quickPatchReport(reportId, { final: el.value },
-    el.value ? `Clinical reviewer set to ${el.value}` : 'Clinical reviewer cleared',
-    'clinical reviewer');
-}
-
-async function quickSetCnvStatus(reportId, selectId) {
-  const el = document.getElementById(selectId);
-  if (!el) return;
-  await quickPatchReport(reportId, { cnv_status: el.value },
-    el.value ? `CNV status set to ${el.value}` : 'CNV status cleared',
-    'CNV status');
-}
-
-function toggleTatDetail(id) {
-  const el = document.getElementById('tat-d-' + id);
-  if (!el) return;
-  document.querySelectorAll('.tat-detail.open').forEach(d => { if (d !== el) d.classList.remove('open'); });
-  el.classList.toggle('open');
 }
 
 let _tatSoonAll = [];
@@ -2571,41 +2782,45 @@ function renderTatSoonList(data) {
     const remaining = r.diff === 0 ? 'TODAY' : `${r.diff}d`;
     const st = getStatus(r);
     const pillCls = r.diff === 0 ? 'spill-today' : (st === 'Ongoing' ? 'spill-ong' : 'spill-yet');
-    return `<tr class="prow" onclick="toggleTatDetail('soon-${i}')">
-      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</td>
+    return `<tr class="prow"${rowEditAttrs(r)}>
+      <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-num">${remaining}</td>
       <td class="cell-right"><span class="spill ${pillCls}">${esc(st)}</span></td>
-    </tr>
-    ${tatDetailBlock('soon-'+i, r)}`;
-  }).join('') : emptyRow('No matches');
+      <td class="cell-right">${esc(normalizeAnalystName(r.pri_rev) || '—')}</td>
+      <td class="cell-remark" title="${esc(r.remarks||'')}">${r.remarks ? esc(r.remarks) : '—'}</td>
+    </tr>`;
+  }).join('') : emptyRow('No matches', 6);
 }
 
 function filterTatSoon() {
+  const reviewerVal = document.getElementById('tat-soon-reviewer')?.value || '';
   const val = document.getElementById('tat-days-search').value.trim();
   if (val === '') {
-    renderTatSoonList(_tatSoonAll);
-    document.getElementById('tat-soon-count').textContent = _tatSoonAll.length;
+    const filtered = _tatSoonAll.filter(r => matchesReviewerFilter(r, reviewerVal));
+    renderTatSoonList(filtered);
+    document.getElementById('tat-soon-count').textContent = filtered.length;
     return;
   }
   const max = parseInt(val, 10);
   if (isNaN(max) || max < 0) {
-    renderTatSoonList(_tatSoonAll);
-    document.getElementById('tat-soon-count').textContent = _tatSoonAll.length;
+    const filtered = _tatSoonAll.filter(r => matchesReviewerFilter(r, reviewerVal));
+    renderTatSoonList(filtered);
+    document.getElementById('tat-soon-count').textContent = filtered.length;
     return;
   }
   const today = new Date(); today.setHours(0,0,0,0);
   const results = [];
-  rows.filter(r => getStatus(r) !== 'Released').forEach(r => {
+  rows.filter(isPending).forEach(r => {
     const td = parseTatDate(r);
     if (!td) return;
     td.setHours(0,0,0,0);
     const diff = Math.round((td - today) / 86400000);
     if(diff === max) results.push({...r, tatDate:td, diff});
   });
-  results.sort((a,b) => a.diff - b.diff);
-  document.getElementById('tat-soon-count').textContent = results.length;
-  renderTatSoonList(results);
+  const filtered = results.filter(r => matchesReviewerFilter(r, reviewerVal)).sort((a,b) => a.diff - b.diff);
+  document.getElementById('tat-soon-count').textContent = filtered.length;
+  renderTatSoonList(filtered);
 }
 
 let _bulkReleaseSelected = new Set();
@@ -2615,7 +2830,7 @@ const BULK_RELEASE_DUE_DAYS = 10;
 function getBulkReleaseCandidates() {
   const today = new Date(); today.setHours(0,0,0,0);
   const out = [];
-  applySelfFilter(rows).filter(r => getStatus(r) !== 'Released').forEach(r => {
+  applySelfFilter(rows).filter(isPending).forEach(r => {
     const td = parseTatDate(r);
     if (!td) return;
     td.setHours(0,0,0,0);
@@ -2636,67 +2851,86 @@ function toggleBulkReleasePanel() {
     document.getElementById('bulk-release-date').value = '';
     document.getElementById('bulk-remark-text').value = '';
     document.getElementById('bulk-release-search').value = '';
+    document.getElementById('bulk-release-reviewer-filter').value = '';
+    populateBulkReleaseClinicalReviewers();
+    document.getElementById('bulk-release-clin-reviewer').value = '';
+    populateBulkReleaseCnvStatuses();
+    document.getElementById('bulk-release-cnv-status').value = '';
     renderBulkReleaseList();
   }
 }
 
+function populateBulkReleaseClinicalReviewers() {
+  const el = document.getElementById('bulk-release-clin-reviewer');
+  if (!el) return;
+  const keep = el.value;
+  el.innerHTML = `<option value="">Clinical reviewer name</option>` +
+    CLINICAL_REVIEWERS.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  el.value = keep;
+}
+
+function populateBulkReleaseCnvStatuses() {
+  const el = document.getElementById('bulk-release-cnv-status');
+  if (!el) return;
+  const keep = el.value;
+  el.innerHTML = `<option value="">CNV status</option>` +
+    CNV_STATUSES.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  el.value = keep;
+}
+
 function renderBulkReleaseList() {
   const q = (document.getElementById('bulk-release-search')?.value || '').toLowerCase().trim();
+  const reviewerVal = document.getElementById('bulk-release-reviewer-filter')?.value || '';
   const all = getBulkReleaseCandidates();
-  let data = all;
+  let data = all.filter(r => matchesReviewerFilter(r, reviewerVal));
   if (q) data = data.filter(r =>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
     (r.gen_id||'').toLowerCase().includes(q) ||
     (r.and_id||'').toLowerCase().includes(q) ||
-    (r.client||'').toLowerCase().includes(q)
+    (r.client||'').toLowerCase().includes(q) ||
+    (r.run_text||'').toLowerCase().includes(q)
   );
 
   const el = document.getElementById('bulk-release-list');
-  el.innerHTML = data.length ? data.map(r => {
-    const label = r.diff < 0 ? `${Math.abs(r.diff)}d overdue` : (r.diff === 0 ? 'TODAY' : `${r.diff}d left`);
-    const cls = r.diff < 0 ? 'tat-over' : 'tat-soon';
-    const checked = _bulkReleaseSelected.has(r.id) ? 'checked' : '';
-    return `<div>
-      <div class="tat-item ${cls}" style="cursor:default">
-        <input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" style="flex-shrink:0;width:16px;height:16px;cursor:pointer" />
-        <span class="ti-name" title="${esc(r.name||r.gen_id||'')}">${esc(r.name||r.gen_id||'—')}</span>
-        <span class="ti-date">${fmtDate(r.tat)}</span>
-        <span class="ti-days">${label}</span>
-        <button class="row-action-btn" title="Remarks" onclick="toggleBulkRemarkRow('${r.id}')" style="flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </button>
-      </div>
-      <div id="bulk-remark-${esc(r.id)}" style="display:none">
-        <div class="tat-release-row">
-          <input type="text" id="bulk-remark-input-${esc(r.id)}" placeholder="Add remark…" value="${esc(r.remark||'')}" />
-          <button class="btn btn-pri btn-sm" onclick="quickSetRemark('${r.id}','bulk-remark-input-${r.id}')">Save Remark</button>
-        </div>
-        <div class="tat-release-row">
-          <select class="sel" id="bulk-clin-input-${esc(r.id)}" title="Clinical Reviewer" style="height:32px;flex:1">
-            ${clinicalReviewerOptions(r.final||'')}
-          </select>
-          <button class="btn btn-out btn-sm" onclick="quickSetClinicalReviewer('${r.id}','bulk-clin-input-${r.id}')">Save Clinical Reviewer</button>
-        </div>
-        <div class="tat-release-row">
-          <select class="sel" id="bulk-cnv-input-${esc(r.id)}" title="CNV Status" style="height:32px;flex:1">
-            ${cnvStatusOptions(r.cnv_status||'')}
-          </select>
-          <button class="btn btn-out btn-sm" onclick="quickSetCnvStatus('${r.id}','bulk-cnv-input-${r.id}')">Save CNV Status</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('') : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
+  el.innerHTML = data.length ? `<table class="ba-table">
+    <thead><tr>
+      <th class="ba-check"><input type="checkbox" id="bulk-release-select-all" onchange="toggleBulkReleaseSelectAll(this)" title="Select all shown" /></th>
+      <th>Sample Name</th><th>Test</th><th>Gen. ID</th><th>And. ID</th>
+      <th>Client</th><th>Run</th><th>Reviewer</th><th>TAT</th><th>Overdue</th><th>Remark</th>
+    </tr></thead>
+    <tbody>${data.map(r => {
+      const label = r.diff < 0 ? `${Math.abs(r.diff)}d overdue` : (r.diff === 0 ? 'TODAY' : `${r.diff}d left`);
+      const pillCls = r.diff < 0 ? 'od-over' : 'od-soon';
+      const checked = _bulkReleaseSelected.has(r.id) ? 'checked' : '';
+      const reviewer = normalizeAnalystName(r.pri_rev);
+      const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
+      return `<tr${rowEditAttrs(r)}>
+        <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" /></td>
+        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
+        ${cell(r.test, 'ba-test')}
+        <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
+        <td class="ba-mono"${r.and_id ? ` data-tip="${esc(r.and_id)}"` : ''}>${r.and_id ? esc(r.and_id) : '—'}</td>
+        ${cell(r.client, 'ba-client')}
+        ${cell(formatRunText(r.run_text), 'ba-run')}
+        <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
+        <td class="ba-tat">${fmtDate(r.tat)}</td>
+        <td><span class="od-pill ${pillCls}">${label}</span></td>
+        ${cell(r.remarks, '')}
+      </tr>`;
+    }).join('')}</tbody></table>`
+    : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
 
   const caption = document.getElementById('bulk-release-caption');
   if (caption) {
     const overdue = all.filter(r => r.diff < 0).length;
-    caption.textContent = q
-      ? `${data.length} of ${all.length} awaiting a release date match this search`
+    caption.textContent = (q || reviewerVal)
+      ? `${data.length} of ${all.length} awaiting a release date match this filter`
       : `${all.length} awaiting a release date — ${overdue} overdue, the rest due within ${BULK_RELEASE_DUE_DAYS} days`;
   }
 
   upgradeDateFields();
+  syncBulkReleaseSelectAll();
   updateBulkReleaseCount();
 }
 
@@ -2704,13 +2938,25 @@ function onBulkReleaseCheck(checkbox) {
   const id = checkbox.dataset.id;
   if (checkbox.checked) _bulkReleaseSelected.add(id);
   else _bulkReleaseSelected.delete(id);
+  syncBulkReleaseSelectAll();
   updateBulkReleaseCount();
 }
 
-function toggleBulkRemarkRow(id) {
-  const el = document.getElementById('bulk-remark-' + id);
-  if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+function toggleBulkReleaseSelectAll(box) {
+  const shown = [...document.querySelectorAll('#bulk-release-list input[type="checkbox"][data-id]')];
+  shown.forEach(cb => {
+    cb.checked = box.checked;
+    if (box.checked) _bulkReleaseSelected.add(cb.dataset.id);
+    else _bulkReleaseSelected.delete(cb.dataset.id);
+  });
+  updateBulkReleaseCount();
+}
+
+function syncBulkReleaseSelectAll() {
+  const box = document.getElementById('bulk-release-select-all');
+  if (!box) return;
+  const shown = [...document.querySelectorAll('#bulk-release-list input[type="checkbox"][data-id]')];
+  box.checked = shown.length > 0 && shown.every(cb => cb.checked);
 }
 
 function updateBulkReleaseCount() {
@@ -2718,54 +2964,44 @@ function updateBulkReleaseCount() {
   if (label) label.textContent = `${_bulkReleaseSelected.size} selected`;
 }
 
-async function submitBulkRelease() {
+async function submitBulkApply() {
+  if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
+
   const dateVal = document.getElementById('bulk-release-date').value.trim();
-  if (!dateVal) { toast('Enter a release date', 'warn'); return; }
-  if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
-
-  try {
-    const resp = await fetch('api/reports/bulk-release', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkReleaseSelected], rel_date: toApiDate(dateVal) }),
-    });
-    const result = await resp.json();
-    if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
-
-    _bulkReleaseSelected = new Set();
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    renderBulkReleaseList();
-    toast(`Marked ${result.count} report${result.count !== 1 ? 's' : ''} as Released`);
-  } catch (e) {
-    toast('Failed to mark as released: ' + e.message, 'err');
-  }
-}
-
-async function submitBulkRemark() {
   const remarkVal = document.getElementById('bulk-remark-text').value.trim();
-  if (!remarkVal) { toast('Enter a remark', 'warn'); return; }
-  if (_bulkReleaseSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
+  const clinReviewerVal = document.getElementById('bulk-release-clin-reviewer').value.trim();
+  const cnvVal = document.getElementById('bulk-release-cnv-status').value.trim();
+  if (!dateVal && !remarkVal && !clinReviewerVal && !cnvVal) {
+    toast('Fill in at least one field to apply', 'warn'); return;
+  }
+
+  const payload = { id: [..._bulkReleaseSelected] };
+  if (dateVal) payload.report_release_date = toApiDate(dateVal);
+  if (remarkVal) payload.remarks = remarkVal;
+  if (clinReviewerVal) payload.final = clinReviewerVal;
+  if (cnvVal) payload.cnv_status = cnvVal;
 
   try {
-    const resp = await fetch('api/reports/bulk-remark', {
+    const resp = await fetch('api/reports/bulk-apply', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkReleaseSelected], remark: remarkVal }),
+      body: JSON.stringify(payload),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
 
     _bulkReleaseSelected = new Set();
+    document.getElementById('bulk-release-date').value = '';
     document.getElementById('bulk-remark-text').value = '';
+    document.getElementById('bulk-release-clin-reviewer').value = '';
+    document.getElementById('bulk-release-cnv-status').value = '';
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
     renderBulkReleaseList();
-    toast(`Remark applied to ${result.count} report${result.count !== 1 ? 's' : ''}`);
+    toast(`Applied to ${result.count} report${result.count !== 1 ? 's' : ''}`);
   } catch (e) {
-    toast('Failed to apply remark: ' + e.message, 'err');
+    toast('Failed to apply: ' + e.message, 'err');
   }
 }
 
@@ -2775,7 +3011,7 @@ function getBulkAssignCandidates() {
   const includeAssigned = !!document.getElementById('bulk-assign-include-assigned')?.checked;
   const run = document.getElementById('bulk-assign-run')?.value || '';
   return applySelfFilter(rows)
-    .filter(r => getStatus(r) !== 'Released')
+    .filter(isPending)
     .filter(r => includeAssigned || !normalizeAnalystName(r.pri_rev))
     .filter(r => !run || r.run_text === run)
     .sort((a, b) => {
@@ -2797,11 +3033,11 @@ function populateBulkAssignReviewers() {
   const sel = document.getElementById('bulk-assign-run');
   if (sel) {
     const keep = sel.value;
-    const unreleased = applySelfFilter(rows).filter(r => getStatus(r) !== 'Released');
+    const unreleased = applySelfFilter(rows).filter(isPending);
     const runs = [...new Set(unreleased.map(r => r.run_text).filter(Boolean))]
       .sort((a, b) => (extractRunNumber(b) || 0) - (extractRunNumber(a) || 0));
     sel.innerHTML = '<option value="">All Runs</option>' +
-      runs.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+      runs.map(r => `<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('');
     sel.value = keep;
   }
 }
@@ -2823,17 +3059,54 @@ function toggleBulkAssignPanel() {
   }
 }
 
+function closeBulkAssignPanel() {
+  if (_maximizedTable?.wrapId === 'bulk-assign-panel') exitTableMaximize();
+  toggleBulkAssignPanel();
+}
+
+function renderBulkAssignTeamSummary() {
+  const el = document.getElementById('bulk-assign-team-summary');
+  if (!el) return;
+  const run = document.getElementById('bulk-assign-run')?.value || '';
+  const ongoing = applySelfFilter(rows).filter(r => getStatus(r) === 'Ongoing' && (!run || r.run_text === run));
+  const byTeam = {};
+  ongoing.forEach(r => {
+    const team = teamFor(normalizeAnalystName(r.pri_rev));
+    (byTeam[team] || (byTeam[team] = [])).push(r);
+  });
+  // Every team not already carrying a load still needs a tile — an empty team
+  // is exactly the one allocation should prefer, so it can't be left off.
+  const allTeams = [...new Set(Object.values(TEAM_MAP))].sort((a, b) => teamOrder(a) - teamOrder(b));
+  el.innerHTML = allTeams.map(team => {
+    const teamRows = byTeam[team] || [];
+    const counts = teamWorkloadBreakdown(teamRows);
+    const leader = TEAM_LEADER_MAP[team] || '—';
+    return `<div class="ba-team-tile">
+      <div class="ba-team-leader">${esc(leader)}</div>
+      <div class="ba-team-total">${teamRows.length}</div>
+      <div class="ba-team-breakdown">
+        <span class="etc-pill etc-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderBulkAssignList() {
   const q = (document.getElementById('bulk-assign-search')?.value || '').toLowerCase().trim();
+  const couplesOnly = !!document.getElementById('bulk-assign-couples-only')?.checked;
   const all = getBulkAssignCandidates();
-  const data = !q ? all : all.filter(r =>
+  let data = !q ? all : all.filter(r =>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
     (r.gen_id||'').toLowerCase().includes(q) ||
     (r.and_id||'').toLowerCase().includes(q) ||
     (r.client||'').toLowerCase().includes(q) ||
-    (r.run_text||'').toLowerCase().includes(q)
+    (r.run_text||'').toLowerCase().includes(q) ||
+    coupleTag(r.couple_id).toLowerCase().includes(q)
   );
+  if (couplesOnly) data = sortByCoupleAdjacency(data.filter(r => !!coupleTag(r.couple_id)));
 
   const el = document.getElementById('bulk-assign-list');
   el.innerHTML = data.length ? `<table class="ba-table">
@@ -2845,15 +3118,15 @@ function renderBulkAssignList() {
     <tbody>${data.map(r => {
       const reviewer = normalizeAnalystName(r.pri_rev);
       const checked = _bulkAssignSelected.has(r.id) ? 'checked' : '';
-      const cell = (v, cls) => `<td class="${cls || ''}" title="${esc(v || '')}">${v ? esc(v) : '—'}</td>`;
-      return `<tr>
-        <td class="ba-check"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
-        ${cell(r.name, 'ba-name')}
+      const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
+      return `<tr${rowEditAttrs(r)}>
+        <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
+        <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
         ${cell(r.test, 'ba-test')}
-        <td class="ba-mono" title="${esc(r.gen_id || '')}">${r.gen_id ? esc(r.gen_id) : '—'}</td>
-        <td class="ba-mono" title="${esc(r.and_id || '')}">${r.and_id ? esc(r.and_id) : '—'}</td>
+        <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
+        <td class="ba-mono"${r.and_id ? ` data-tip="${esc(r.and_id)}"` : ''}>${r.and_id ? esc(r.and_id) : '—'}</td>
         ${cell(r.client, 'ba-client')}
-        ${cell(r.run_text, 'ba-run')}
+        ${cell(formatRunText(r.run_text), 'ba-run')}
         <td class="ba-tat">${fmtDate(r.tat)}</td>
         <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
       </tr>`;
@@ -2863,12 +3136,13 @@ function renderBulkAssignList() {
   const caption = document.getElementById('bulk-assign-caption');
   if (caption) {
     const unassigned = all.filter(r => !normalizeAnalystName(r.pri_rev)).length;
-    caption.textContent = q
-      ? `${data.length} of ${all.length} shown match this search`
+    caption.textContent = (q || couplesOnly)
+      ? `${data.length} of ${all.length} shown match this filter`
       : `${all.length} unreleased sample${all.length === 1 ? '' : 's'} — ${unassigned} with no reviewer yet`;
   }
   syncBulkAssignSelectAll(data);
   updateBulkAssignCount();
+  renderBulkAssignTeamSummary();
 }
 
 function onBulkAssignCheck(checkbox) {
@@ -2911,7 +3185,7 @@ async function submitBulkAssign() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ ids: [..._bulkAssignSelected], pri_rev: reviewer }),
+      body: JSON.stringify({ id: [..._bulkAssignSelected], pri_rev: reviewer }),
     });
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
@@ -2928,18 +3202,155 @@ async function submitBulkAssign() {
   }
 }
 
+// Same palette as the "row-status-*" table tint (buildModalTable), reused
+// wherever only the name text itself should carry the status color rather
+// than the whole row (e.g. the Global Search results dropdown).
+function statusNameColor(status) {
+  if (status === 'Released') return '#047857';
+  if (status === 'Ongoing') return '#ca8a04';
+  if (status === 'Yet to Start') return '#4b5563';
+  return '';
+}
+
 function badgeHtml(status) {
   const cls = {
-    'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel'
+    'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel','Cancelled':'b-can',
+    'On Hold':'b-can','Repeat Sample':'b-rel','Contaminated':'b-can'
   }[status] || 'b-yet';
-  const icon = {'Yet to Start':IC.pin,'Ongoing':IC.user,'Released':IC.rocket}[status]||'';
+  const icon = {'Yet to Start':IC.pin,'Ongoing':IC.user,'Released':IC.rocket,
+                'Cancelled':IC.ban,'On Hold':IC.ban,'Repeat Sample':IC.rocket,'Contaminated':IC.ban}[status]||'';
   return `<span class="badge ${cls}">${icon} ${esc(status)}</span>`;
+}
+
+function coupleTag(v) {
+  return String(v || '').trim();
+}
+
+// Scans every couple_id in use for the highest "Couple N" number so staff
+// don't have to remember or hunt down the last one assigned.
+function nextCoupleNumber() {
+  let max = 0;
+  rows.forEach(r => {
+    const m = coupleTag(r.couple_id).match(/couple\s*[-_ ]?\s*(\d+)/i);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return max + 1;
+}
+
+function fillNextCoupleId() {
+  const el = document.getElementById('rf-couple_id');
+  if (el) el.value = 'Couple ' + nextCoupleNumber();
+}
+
+// Sample names already carry the patient's sex (e.g. "MRS.X (29Y/F)",
+// "MR.Y (33Y/M)") — that's reused here rather than asking for it again.
+// Not anchored to the end of the string: a trailing suffix like "-Repeat"
+// or "(POC SAMPLE)" after the age/sex segment must not block the match.
+function genderFromName(name) {
+  const m = String(name || '').match(/\d+\s*Y\s*\/\s*([MF])\)?/i);
+  return m ? m[1].toUpperCase() : '';
+}
+
+// POC (products of conception) / fetal samples carry an (NNY/F) suffix too
+// (genderFromName would call them female) but they're the third member of a
+// trio, not the mother — flag them separately so the trio gets its own icon.
+function isPocName(name) {
+  return /\bPOC\b|PRODUCTS?\s+OF\s+CONCEPTION|\bFETAL\b|\bFETUS\b/i.test(String(name || ''));
+}
+
+// A pale whole-row tint, keyed by gender when the name carries one — falls
+// back to a neutral tint so a couple tag still shows up even when the name
+// string doesn't parse to M/F. Applied to the <tr> (via rowEditAttrs) rather
+// than the name cell, so it's unaffected by the name text's own truncation.
+function coupleRowBg(r) {
+  const tag = coupleTag(r.couple_id);
+  if (!tag) return '';
+  if (isPocName(r.name)) return 'rgba(30,58,138,.09)';
+  const g = genderFromName(r.name);
+  if (g === 'M') return 'rgba(37,99,235,.09)';
+  if (g === 'F') return 'rgba(219,39,119,.09)';
+  return 'rgba(124,58,237,.09)';
+}
+
+// Priority wins over the couple tint when a row is both — it's the more
+// time-critical flag. The couple pairing is still visible via the name's
+// gender icon even when its row tint is overridden this way. Once the sample
+// is no longer pending (released, cancelled, on hold, etc.) the urgency is
+// gone, so the tint stops even though the source data's priority flag stays.
+function rowHighlightBg(r) {
+  if (r.is_priority && isPending(r)) return 'rgba(255,235,59,.25)';
+  return coupleRowBg(r);
+}
+
+function coupleTitleSuffix(r) {
+  const tag = coupleTag(r.couple_id);
+  return tag ? ` · Couple case: ${tag}` : '';
+}
+
+// Visible "Couple 1"/"Trio-1" badge — used in compact list views (TAT Due,
+// TAT Overdue) where the couple tag isn't already shown in its own column.
+function coupleNumberTag(r) {
+  const tag = coupleTag(r.couple_id);
+  return tag ? `<span class="couple-num-tag">${esc(tag)}</span>` : '';
+}
+
+// Strikes through an already-escaped name string when the sample is Cancelled
+// — `text` must already be esc()'d by the caller, since this only wraps it.
+function nameTextHtml(r, text) {
+  return getStatus(r) === 'Cancelled' ? `<span class="name-cancelled">${text}</span>` : text;
+}
+
+// Same "Mark as priority" flag used everywhere a sample name is rendered —
+// not just the Allocate Samples list it originally shipped with.
+function priorityIconHtml(r) {
+  return r.is_priority ? `<span class="pri-icon" title="Priority sample">${IC.alert}</span> ` : '';
+}
+
+const GENDER_ICON = {
+  M: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="15" r="6"/><line x1="13.5" y1="10.5" x2="20" y2="4"/><polyline points="14 4 20 4 20 10"/></svg>',
+  F: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/></svg>',
+  P: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="6"/><path d="M12 7V4"/><path d="M9.5 6.5c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2.5"/><circle cx="9.7" cy="12" r=".6" fill="currentColor" stroke="none"/><circle cx="14.3" cy="12" r=".6" fill="currentColor" stroke="none"/><path d="M10 15.5c.7.6 3.3.6 4 0"/></svg>',
+};
+
+// Placed BEFORE the name text (not after) so text-overflow:ellipsis truncates
+// the tail of a long name, never this icon — unlike the row tint, this needs
+// a parsed gender, so it silently omits itself when the name doesn't carry one.
+// POC/fetal samples (the third member of a trio) get their own icon rather
+// than falling into the mother's female icon, even though genderFromName
+// would parse them as F too.
+function coupleGenderIcon(r) {
+  const tag = coupleTag(r.couple_id);
+  if (!tag) return '';
+  if (isPocName(r.name)) {
+    return `<span class="couple-gender couple-gender-p" title="Couple case: ${esc(tag)}">${GENDER_ICON.P}</span> `;
+  }
+  const g = genderFromName(r.name);
+  if (!g) return '';
+  return `<span class="couple-gender couple-gender-${g.toLowerCase()}" title="Couple case: ${esc(tag)}">${GENDER_ICON[g]}</span> `;
+}
+
+// Stable-sorts so every row sharing a couple tag lands right after that tag's
+// first occurrence — the primary team can then eyeball adjacent rows as a pair
+// without hunting across the whole (independently sorted) list for the match.
+function sortByCoupleAdjacency(data) {
+  const firstIndex = new Map();
+  data.forEach((r, i) => {
+    const tag = coupleTag(r.couple_id).toLowerCase();
+    if (tag && !firstIndex.has(tag)) firstIndex.set(tag, i);
+  });
+  return data
+    .map((r, i) => {
+      const tag = coupleTag(r.couple_id).toLowerCase();
+      return { r, i, key: tag ? firstIndex.get(tag) : i };
+    })
+    .sort((a, b) => a.key - b.key || a.i - b.i)
+    .map(x => x.r);
 }
 
 const HEADER_KEYS = new Set(Object.values(COL_MAP).flat().map(h => h.replace(/[\s._]/g, '')));
 
 function headerKey(text) {
-  return String(text == null ? '' : text).trim().toLowerCase().replace(/[\s._]/g, '');
+  return String(text == null ? '' : text).trim().toLowerCase().replace(/[\s._-]/g, '');
 }
 
 // Sheets write "absent" as a dash, so those cells count as empty.
@@ -2950,7 +3361,8 @@ function isBlankMark(v) {
   return !s || BLANK_MARK.test(s);
 }
 
-function parseBinary(data) {
+function parseBinary(data, mapper) {
+  mapper = mapper || mapRow;
   const wb = XLSX.read(data, { type:'array' });
 
   const targetName = wb.SheetNames.find(n => n.toLowerCase().replace(/\s+/g,'') === 'sheet1');
@@ -3030,13 +3442,13 @@ function parseBinary(data) {
     allRows.push(obj);
   }
 
-  return allRows.map(mapRow).filter(r => r.name || r.gen_id || r.and_id || r.client || r.test);
+  return allRows.map(mapper).filter(r => r.name || r.gen_id || r.and_id || r.client || r.test);
 }
 
 async function apiError(resp) {
   try {
     const body = await resp.json();
-    const msg = body && (body.error || body.detail);
+    const msg = body && (body.error || body.detail || body.message);
     if (msg) return new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
   } catch (e) { /* non-JSON body */ }
   return new Error(`HTTP ${resp.status}`);
@@ -3074,7 +3486,7 @@ function startAutoSync() {
 let raTeamFilter = null;
 let raSearch     = '';
 
-const REANALYSIS_COLS = ['name','test','gen_id','and_id','run_text','client','tat','mito_status','ana_date','pri_rev','remark'];
+const REANALYSIS_COLS = ['name','test','gen_id','and_id','run_text','client','tat','ana_date','pri_rev','remarks'];
 
 function getReanalysisRows() {
   return applySelfFilter(rows).filter(r => r.is_reanalysis);
@@ -3125,6 +3537,29 @@ function raOnSearch(v) {
   renderReanalysis();
 }
 
+function getFilteredReanalysisRows() {
+  let data = getReanalysisRows();
+  if (raTeamFilter) {
+    data = data.filter(r => String(r.pri_rev || '').toLowerCase().includes(raTeamFilter));
+  }
+  if (raSearch) {
+    const q = raSearch.toLowerCase();
+    data = data.filter(r => REANALYSIS_COLS.some(c => String(r[c] || '').toLowerCase().includes(q)));
+  }
+  return sortRowsByGenId(data, 'desc');
+}
+
+function downloadReanalysisExcel() {
+  try {
+    const tm = raTeamFilter ? TEAM_MEMBERS.find(t => t.key === raTeamFilter) : null;
+    const suffix = buildFilenameSuffix([tm ? tm.label : '', raSearch]);
+    exportTableToExcel(getFilteredReanalysisRows(), REANALYSIS_COLS, `Reanalysis${suffix}`);
+  } catch(e) {
+    toast('Download failed: ' + e.message, 'err');
+    console.error('[downloadReanalysisExcel]', e);
+  }
+}
+
 function renderReanalysis() {
   const chartEl = document.getElementById('ra-chart-body');
   const tableEl = document.getElementById('ra-table');
@@ -3151,14 +3586,7 @@ function renderReanalysis() {
   if (totalEl) totalEl.textContent = 'Total: ' + total;
   chartEl.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:space-evenly;align-items:flex-start;padding:24px 16px">${buildReanalysisRingsHtml(teamCount, total)}</div>`;
 
-  let data = all;
-  if (raTeamFilter) {
-    data = data.filter(r => String(r.pri_rev || '').toLowerCase().includes(raTeamFilter));
-  }
-  if (raSearch) {
-    const q = raSearch.toLowerCase();
-    data = data.filter(r => REANALYSIS_COLS.some(c => String(r[c] || '').toLowerCase().includes(q)));
-  }
+  const data = getFilteredReanalysisRows();
 
   if (countEl) countEl.textContent = data.length;
   if (clearBtn) {
@@ -3176,25 +3604,36 @@ function renderReanalysis() {
 
 let currentUser = null;
 
+// Mirrors CAPABILITIES in exome_roles.py — the server is what enforces these.
+const ROLE_CAPS = {
+  admin:   ['upload', 'edit'],
+  lead:    ['edit'],
+  primary: ['upload', 'edit'],
+  member:  [],
+  viewer:  [],
+};
+
+function userCan(capability) {
+  return !!currentUser && (ROLE_CAPS[currentUser.role] || []).includes(capability);
+}
+
 function canEditReports() {
-  return !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'lead');
+  return userCan('edit');
+}
+
+function canUploadReports() {
+  return userCan('upload');
 }
 
 function isAdminUser() {
   return !!currentUser && currentUser.role === 'admin';
 }
 
-function isSelfFilterActive() {
-  return !!currentUser && currentUser.role !== 'admin';
-}
-
-function matchesCurrentUser(r) {
-  if (!currentUser) return false;
-  return normalizeAnalystName(r.pri_rev).toLowerCase() === currentUser.username.toLowerCase();
-}
-
+// Every duty reads the whole list: a lead allocates from it, the primary team
+// uploads into it, and members are there to see it. Kept as the one seam to
+// narrow again if a duty ever needs only its own samples.
 function applySelfFilter(list) {
-  return isSelfFilterActive() ? list.filter(matchesCurrentUser) : list;
+  return list;
 }
 
 const DEV_USER = null;
@@ -3219,9 +3658,12 @@ function applyRolePermissions() {
   const canEdit = canEditReports();
 
   const addBtn = document.getElementById('add-report-btn');
+  const bulkEditBtn = document.getElementById('bulk-edit-btn');
   const bulkReleaseBtn = document.getElementById('bulk-release-toggle-btn');
   const bulkAssignBtn = document.getElementById('bulk-assign-toggle-btn');
-  if (addBtn) addBtn.style.display = canEdit ? '' : 'none';
+  // Adding samples belongs to the Primary team, allocation and release to the lead.
+  if (addBtn) addBtn.style.display = canUploadReports() ? '' : 'none';
+  if (bulkEditBtn) bulkEditBtn.style.display = canUploadReports() ? '' : 'none';
   if (bulkReleaseBtn) bulkReleaseBtn.style.display = canEdit ? '' : 'none';
   if (bulkAssignBtn) bulkAssignBtn.style.display = canEdit ? '' : 'none';
 
@@ -3231,13 +3673,14 @@ function applyRolePermissions() {
 
 const REPORT_FORM_FIELDS = [
   'name','test','gen_id','and_id','client','tat','rep_exp','cnv_status','analyst_raw',
-  'ana_date','pri_rev','final','rel_date','run_text','remark','history',
+  'ana_date','pri_rev','final','couple_id','report_release_date','run_text','remarks','history',
 ];
 // run_number is parsed from the run label for sorting; a run with no number sorts last.
 const DEFAULT_RUN_NUMBER = 9999;
-const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil'];
+const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram', 'Priya', 'Raghavi'];
 const CLINICAL_REVIEWERS = ['Dr.Sarath', 'Dr.Robert'];
 const CNV_STATUSES = ['No CNV', 'CNV - Suspected', 'CNV - Reported'];
+const SAMPLE_TYPES = ['AF', 'Single', 'Couple'];
 
 // Keeps an off-list value selectable so opening a legacy row never wipes it.
 function selectOptions(choices, current) {
@@ -3249,7 +3692,22 @@ function reviewerOptions(current)         { return selectOptions(REVIEWERS, curr
 function clinicalReviewerOptions(current) { return selectOptions(CLINICAL_REVIEWERS, current); }
 function cnvStatusOptions(current)        { return selectOptions(CNV_STATUSES, current); }
 
+// Row templates render once and their onclick can sit in the DOM long after
+// rows[] moves on (a search result left open, a background tab), so this
+// looks the row up fresh at click time instead of trusting whatever was
+// baked in when the HTML was built.
+function openReportModalById(id) {
+  const row = rows.find(r => String(r.id) === String(id));
+  if (!row) {
+    toast('That sample was replaced by a re-import, so this row is out of date. Refresh and try again.', 'err');
+    return;
+  }
+  openReportModal(row);
+}
+
 function openReportModal(row) {
+  const gsr = document.getElementById('global-search-results');
+  if (gsr) gsr.style.display = 'none';
   document.getElementById('report-modal-title').textContent = row ? 'Edit Report' : 'Add Report';
   document.getElementById('rf-id').value = row?.id || '';
   document.getElementById('rf-is_priority').checked = !!row?.is_priority;
@@ -3257,7 +3715,10 @@ function openReportModal(row) {
   document.getElementById('rf-is_reanalysis').checked = !!row?.is_reanalysis;
   document.getElementById('rf-upload-section').style.display = row ? 'none' : 'flex';
   document.getElementById('rf-excel-file').value = '';
-  document.getElementById('report-delete-btn').style.display = row ? '' : 'none';
+  // Editing a saved sample is the lead's; adding one is the Primary team's, so
+  // Save has to follow whichever the modal is currently doing.
+  const saveBtn = document.getElementById('report-save-btn');
+  if (saveBtn) saveBtn.style.display = (row ? canEditReports() : canUploadReports()) ? '' : 'none';
   REPORT_FORM_FIELDS.forEach(f => {
     const el = document.getElementById('rf-' + f);
     if (!el) return;
@@ -3267,7 +3728,7 @@ function openReportModal(row) {
       el.innerHTML = clinicalReviewerOptions(row?.final || '');
     } else if (f === 'cnv_status') {
       el.innerHTML = cnvStatusOptions(row?.cnv_status || '');
-    } else if (f === 'tat' || f === 'ana_date' || f === 'rel_date') {
+    } else if (f === 'tat' || f === 'ana_date' || f === 'report_release_date') {
       el.value = row ? formatInputDate(row[f] || '') : '';
     } else {
       el.value = row ? (row[f] || '') : '';
@@ -3303,7 +3764,7 @@ async function submitReportForm() {
 
   payload.tat = toApiDate(payload.tat);
   payload.ana_date = toApiDate(payload.ana_date);
-  payload.rel_date = toApiDate(payload.rel_date);
+  payload.report_release_date = toApiDate(payload.report_release_date);
   payload.test = normalizeTestName(payload.test);
   const assignDateMatch = payload.analyst_raw.match(/\(([^)]+)\)/);
   payload.assign_date = assignDateMatch ? assignDateMatch[1].trim() : '';
@@ -3358,9 +3819,18 @@ async function handleReportExcelUpload(event) {
 
     const blank = parsedRows.filter(r => isBlankMark(r.tat)).length;
     const flagged = parsedRows.filter(r => r.priority_reason).length;
+    // Samples are always uploaded in ascending Gen ID order, so a batch whose
+    // lowest Gen ID doesn't land past the highest one already on file is a
+    // sign the wrong sheet (or an out-of-order one) just got uploaded.
+    const existingMax = rows.reduce((max, r) => Math.max(max, genIdSortKey(r.gen_id).num), -1);
+    const newGenNums = parsedRows.map(r => genIdSortKey(r.gen_id).num).filter(n => n >= 0);
+    const newMin = newGenNums.length ? Math.min(...newGenNums) : null;
+    const outOfSequence = newMin !== null && existingMax >= 0 && newMin <= existingMax;
     const note = (flagged ? ` · ${flagged} marked priority` : '') +
-                 (blank ? ` · ${blank} without a TAT date in the sheet` : '');
-    toast(`Added ${result.count} report${result.count !== 1 ? 's' : ''} from Excel${note}`);
+                 (blank ? ` · ${blank} without a TAT date in the sheet` : '') +
+                 (outOfSequence ? ` · Gen IDs in this file don't continue after the last existing sample — check the file` : '');
+    toast(`Added ${result.count} report${result.count !== 1 ? 's' : ''} from Excel${note}`,
+          outOfSequence ? 'warn' : undefined);
   } catch (e) {
     toast('Failed to import Excel: ' + e.message, 'err');
   } finally {
@@ -3368,37 +3838,44 @@ async function handleReportExcelUpload(event) {
   }
 }
 
-async function deleteReport(id) {
-  if (!confirm('Delete this report? This cannot be undone.')) return;
+async function handleBulkEditExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
   try {
-    const resp = await fetch(`api/reports/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-    if (!resp.ok) throw await apiError(resp);
-    await fetchReports(true);
-    refreshAllSamplesModalIfOpen();
-    toast('Report deleted');
-  } catch (e) {
-    toast('Failed to delete report: ' + e.message, 'err');
-  }
-}
+    const parsedRows = parseBinary(new Uint8Array(await file.arrayBuffer()), mapEditRow);
+    if (!parsedRows.length) {
+      toast('No samples found in that file', 'warn');
+      return;
+    }
 
-async function deleteReportFromModal() {
-  const id = document.getElementById('rf-id').value;
-  if (!id) { toast('Nothing to delete — this report has not been saved yet', 'warn'); return; }
-  if (!confirm('Delete this report? This cannot be undone.')) return;
-  try {
-    const resp = await fetch(`api/reports/${id}`, { method: 'DELETE', credentials: 'same-origin' });
-    if (!resp.ok) throw await apiError(resp);
-    closeReportModal(null);
+    const resp = await fetch('api/reports/bulk-edit', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(parsedRows),
+    });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.error || `HTTP ${resp.status}`);
+
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
-    toast('Report deleted');
+
+    const unmatched = result.unmatched || [];
+    const note = unmatched.length
+      ? ` · ${unmatched.length} sample${unmatched.length !== 1 ? 's' : ''} not found (` +
+        unmatched.map(u => u.gen_id || u.and_id || '?').join(', ') + ')'
+      : '';
+    toast(`Updated ${result.count} sample${result.count !== 1 ? 's' : ''} from Excel${note}`,
+          unmatched.length ? 'warn' : undefined);
   } catch (e) {
-    toast('Failed to delete report: ' + e.message, 'err');
+    toast('Failed to import Excel: ' + e.message, 'err');
+  } finally {
+    event.target.value = '';
   }
 }
 
 function sortAllSamplesData() {
-  _allModalData = sortRowsByDate(_allModalData, r => parseDate(r.tat), _sortDir.allSamples);
+  _allModalData = sortRowsByGenId(_allModalData, _sortDir.allSamples);
 }
 
 function refreshAllSamplesModalIfOpen() {
@@ -3410,14 +3887,27 @@ function refreshAllSamplesModalIfOpen() {
   filterAllSamples();
 }
 
+// Every row template funnels through here for its onclick, so the couple
+// background rides along on the same style attribute instead of a second one
+// the browser would just ignore — and it needs !important to win against the
+// page-scoped nth-child/hover background rules that already carry it.
 function rowEditAttrs(r) {
-  if (!canEditReports()) return '';
-  return ` onclick='openReportModal(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="cursor:pointer"`;
+  const canEdit = canEditReports();
+  const styles = [];
+  if (canEdit) styles.push('cursor:pointer');
+  const bg = rowHighlightBg(r);
+  if (bg) styles.push(`background:${bg} !important`);
+  const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
+  const onclickAttr = canEdit
+    ? ` onclick='openReportModalById(${JSON.stringify(r.id)})'`
+    : '';
+  return `${onclickAttr}${styleAttr}`;
 }
 
 const PAGE_MAP = { dashboard:'page-dashboard', assigned:'page-assigned', released:'page-released', overdue:'page-overdue', analytics:'page-analytics', reanalysis:'page-reanalysis' };
 
 function switchTab(id, btn) {
+  exitTableMaximize();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(PAGE_MAP[id]).classList.add('active');
@@ -3432,19 +3922,22 @@ function switchTab(id, btn) {
 }
 
 function getRowYear(r) {
-  const d = parseDate(r.tat) || parseDate(r.ana_date) || parseDate(r.rel_date);
+  const d = parseDate(r.tat) || parseDate(r.ana_date) || parseDate(r.report_release_date);
   return d ? d.getFullYear() : null;
 }
 
 function updateStatsByYear() {
-  const filtered = rows;
+  const cancelled = rows.filter(isCancelled);
+  const filtered = rows.filter(r => !isCancelled(r));
 
   const yet = filtered.filter(r=>getStatus(r)==='Yet to Start');
   const ong = filtered.filter(r=>getStatus(r)==='Ongoing');
   const rel = filtered.filter(r=>getStatus(r)==='Released');
 
   document.getElementById('s-all').textContent = filtered.length;
-  document.getElementById('s-all-sub').textContent = 'Click to view all samples';
+  document.getElementById('s-all-sub').textContent = cancelled.length
+    ? `${cancelled.length} cancelled, not counted — click to view all`
+    : 'Click to view all samples';
   document.getElementById('s-yet').textContent = yet.length;
   document.getElementById('s-ong').textContent = ong.length;
   document.getElementById('s-rel').textContent = rel.length;
@@ -3452,6 +3945,7 @@ function updateStatsByYear() {
 }
 
 function refreshAll() {
+  recomputeAutoRepeatIds();
   const ong = rows.filter(r=>getStatus(r)==='Ongoing');
 
   updateStatsByYear();
@@ -3489,7 +3983,8 @@ function refreshAll() {
     empNames.length ? empNames.slice(0,3).join(', ') + (empNames.length>3?` +${empNames.length-3} more`:'') : 'Assigned to reviewers';
 
   if (document.getElementById('qmodal-backdrop')?.classList.contains('open') && document.getElementById('qmodal-title')?.textContent === 'Team Workload') {
-    renderTeamWorkload('q-active', ong);
+    _teamWorkloadFull = ong;
+    filterTeamWorkload();
   }
   renderTatAlerts();
   renderPrioritySamples();
@@ -3507,6 +4002,8 @@ function refreshAll() {
   const active = document.querySelector('.page.active');
   if (active && active.id==='page-overdue') {
     renderOverdue();
+  } else if (active && active.id==='page-analytics') {
+    anDrawAll();
   } else if (active && active.id!=='page-dashboard') {
     const key = Object.keys(PAGE_MAP).find(k=>PAGE_MAP[k]===active.id);
     if (key) render(key);
@@ -3515,14 +4012,14 @@ function refreshAll() {
 }
 
 const TBL_BOTTOM_GUTTER = 16;
-const TBL_MIN_HEIGHT = 280;
+const TBL_MIN_HEIGHT = 160;
 
 function sizeTableWraps() {
   document.querySelectorAll('.tbl-wrap').forEach(wrap => {
     if (!wrap.offsetParent) return;          // belongs to a page that is not showing
     const top = wrap.getBoundingClientRect().top + window.scrollY;
     const avail = window.innerHeight - top - TBL_BOTTOM_GUTTER;
-    wrap.style.maxHeight = avail >= TBL_MIN_HEIGHT ? `${avail}px` : '';
+    wrap.style.maxHeight = `${Math.max(avail, TBL_MIN_HEIGHT)}px`;
   });
 }
 
@@ -3547,7 +4044,7 @@ function populateRunFilter(selectId, data) {
   const cur = sel.value;
   const vals = runOptions(data);
   sel.innerHTML = '<option value="">All Runs</option>';
-  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=formatRunText(v); sel.appendChild(o); });
   if (vals.includes(cur)) sel.value=cur;
 }
 
@@ -3612,8 +4109,8 @@ function populateDateFilters(monthId, yearId, data) {
   const ySel = document.getElementById(yearId);
   if (!mSel || !ySel) return;
   const curM = mSel.value, curY = ySel.value;
-  const months = [...new Set(data.map(r=>{ const d=parseDate(r.rel_date); return d?d.getMonth()+1:null; }).filter(Boolean))].sort((a,b)=>a-b);
-  const years  = [...new Set(data.map(r=>{ const d=parseDate(r.rel_date); return d?d.getFullYear():null; }).filter(Boolean))].filter(y=>y<=2026).sort((a,b)=>b-a);
+  const months = [...new Set(data.map(r=>{ const d=parseDate(r.report_release_date); return d?d.getMonth()+1:null; }).filter(Boolean))].sort((a,b)=>a-b);
+  const years  = [...new Set(data.map(r=>{ const d=parseDate(r.report_release_date); return d?d.getFullYear():null; }).filter(Boolean))].filter(y=>y<=2026).sort((a,b)=>b-a);
   mSel.innerHTML = '<option value="">All Months</option>' + months.map(m=>`<option value="${m}">${MONTHS[m-1]}</option>`).join('');
   ySel.innerHTML = '<option value="">All Years</option>'  + years.map(y=>`<option value="${y}">${y}</option>`).join('');
   if (months.map(String).includes(curM)) mSel.value=curM;
@@ -3719,11 +4216,12 @@ function normalizeTestName(name) {
 const TEAM_MAP = {
   'Naveen':    'Team 1',
   'Vignesh':   'Team 2',
-  'Dr. Sudha': 'Team 3',
-  'Diwakar':   'Team 4',
-  'Gayathri':  'Team 5',
-  'Vamshi':    'Team 6',
-  'Nikhil':    'Team 7'
+  'Diwakar':   'Team 3',
+  'Gayathri':  'Team 4',
+  'Vamshi':    'Team 5',
+  'Nikhil':    'Team 6',
+  'Priya':     'Team 7',
+  'Raghavi':   'Team 8'
 };
 
 const TEAM_LEADER_MAP = Object.fromEntries(
@@ -3742,9 +4240,7 @@ function teamOrder(teamName) {
 
 const TEAM_TARGET_DEFAULT = 40;
 const TEAM_TARGET_BY_LEADER = {
-  'Dr. Sudha': 80,
-  'Vamshi':    50,
-  'Nikhil':    50,
+  'Gayathri':  35,
 };
 const TEAM_TARGETS = Object.fromEntries(
   Object.entries(TEAM_MAP).map(([leader, team]) =>
@@ -3758,21 +4254,60 @@ function teamTint(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// Team Workload's full (unfiltered) ongoing set — the per-team AF/Single/Couple
+// breakdown always reads from this, independent of the sample-type filter, so
+// the counts stay a constant reference no matter which slice is on screen.
+let _teamWorkloadFull = [];
+
+// AF samples carry an "AF" suffix on their Gen ID; couple samples are the ones
+// tagged with a couple_id; everything else — no suffix, no couple tag — is Single.
+const AF_GEN_ID_SUFFIX = /af$/i;
+
+function sampleTypeOf(r) {
+  if (AF_GEN_ID_SUFFIX.test(String(r.gen_id || '').trim())) return 'AF';
+  if (coupleTag(r.couple_id)) return 'Couple';
+  return 'Single';
+}
+
+// "Couple" counts pairs, not samples — 2 samples sharing a couple_id is 1
+// couple case, so it's the number of distinct tags, not a per-row tally.
+function teamWorkloadBreakdown(reports) {
+  const counts = { AF: 0, Single: 0, Couple: 0 };
+  const coupleTags = new Set();
+  reports.forEach(r => {
+    const t = sampleTypeOf(r);
+    if (t === 'Couple') coupleTags.add(coupleTag(r.couple_id).toLowerCase());
+    else if (t in counts) counts[t]++;
+  });
+  counts.Couple = coupleTags.size;
+  return counts;
+}
+
+function filterTeamWorkload() {
+  const type = document.getElementById('team-workload-type-filter')?.value || '';
+  const data = type ? _teamWorkloadFull.filter(r => sampleTypeOf(r) === type) : _teamWorkloadFull;
+  document.getElementById('qmodal-count').textContent = ` · ${data.length} report${data.length !== 1 ? 's' : ''} in review`;
+  renderTeamWorkload('q-active', data);
+}
+
 function renderTeamWorkload(containerId, data) {
   const el = document.getElementById(containerId);
   if (!data.length) {
     el.innerHTML=`<div class="empty" style="padding:30px 0;grid-column:1/-1"><div class="ei">${IC.party}</div><p>No reports in progress</p></div>`;
     return;
   }
-  const sorted = data.slice().sort((a,b) => {
-    const da = parseDate(a.tat), db = parseDate(b.tat);
-    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-  });
+  const sorted = sortRowsByGenId(data, 'desc');
   const byEmp = {};
   sorted.forEach(r => {
     const emp = normalizeAnalystName(r.pri_rev) || 'Unassigned';
     if (!byEmp[emp]) byEmp[emp] = [];
     byEmp[emp].push(r);
+  });
+  const byEmpFull = {};
+  _teamWorkloadFull.forEach(r => {
+    const emp = normalizeAnalystName(r.pri_rev) || 'Unassigned';
+    if (!byEmpFull[emp]) byEmpFull[emp] = [];
+    byEmpFull[emp].push(r);
   });
   const entries = Object.entries(byEmp).sort((a,b) => teamOrder(teamFor(a[0])) - teamOrder(teamFor(b[0])));
 
@@ -3783,6 +4318,7 @@ function renderTeamWorkload(containerId, data) {
     const colorDark = shadeColor(color, -40);
     const cardVars = `--team-c:${color};--team-c-dark:${colorDark};`
       + `--team-tint-strong:${teamTint(color,.13)};--team-tint-border:${teamTint(color,.28)}`;
+    const counts = teamWorkloadBreakdown(byEmpFull[emp] || reports);
     return `
     <div class="emp-card glass" style="${cardVars}" onclick="openEmpModal('${emp.replace(/'/g,"\\'")}')">
       <div class="emp-card-hdr">
@@ -3791,6 +4327,11 @@ function renderTeamWorkload(containerId, data) {
           <span class="emp-team-title">${esc(teamTitle)}</span>
           <span class="emp-team-sub">${esc(emp)}</span>
         </div>
+      </div>
+      <div class="emp-type-counts">
+        <span class="etc-pill etc-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
       </div>
       <div class="emp-count">${reports.length} report${reports.length!==1?'s':''} in review</div>
       <div class="emp-pills">
@@ -3802,29 +4343,40 @@ function renderTeamWorkload(containerId, data) {
 }
 
 function openTeamWorkloadModal() {
-  const ong = rows.filter(r => getStatus(r) === 'Ongoing');
+  _teamWorkloadFull = rows.filter(r => getStatus(r) === 'Ongoing');
   document.getElementById('qmodal-title').textContent = 'Team Workload';
-  document.getElementById('qmodal-count').textContent = ` · ${ong.length} report${ong.length !== 1 ? 's' : ''} in review`;
-  document.getElementById('qmodal-body').innerHTML = '<div class="emp-grid" id="q-active" style="padding:24px"></div>';
+  document.getElementById('qmodal-count').textContent = ` · ${_teamWorkloadFull.length} report${_teamWorkloadFull.length !== 1 ? 's' : ''} in review`;
+  document.getElementById('qmodal-body').innerHTML =
+    `<div style="padding:16px 24px 0;display:flex;align-items:center;gap:10px">
+      <button class="rel-filter-toggle back-btn" onclick="closeQModal(null)" style="height:36px;font-size:11px;padding:0 10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <select id="team-workload-type-filter" onchange="filterTeamWorkload()" title="Filter by sample type" style="height:36px;padding:0 10px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--ib);color:var(--text);font-family:inherit;font-size:12px">
+        <option value="">All Sample Types</option>
+        ${SAMPLE_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="emp-grid" id="q-active" style="padding:24px"></div>`;
   document.getElementById('qmodal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
   setQModalMaximized(true);
-  renderTeamWorkload('q-active', ong);
+  renderTeamWorkload('q-active', _teamWorkloadFull);
 }
 
 const MODAL_COLS = {
-  assigned: ['name','test','gen_id','and_id','run_text','client','tat','mito_status','rep_exp','cnv_status','ana_date'],
+  assigned: ['name','test','gen_id','and_id','run_text','client','tat','rep_exp','cnv_status','ana_date'],
 };
 
 function getColClass(c) {
   const classMap = {
     'name':'col-w-name','client':'col-w-client','test':'col-w-test',
     'gen_id':'col-w-id','and_id':'col-w-id','run_text':'col-w-run',
-    'tat':'col-w-tat','rel_date':'col-w-date','ana_date':'col-w-date','assign_date':'col-w-date',
+    'tat':'col-w-tat','report_release_date':'col-w-date','ana_date':'col-w-date','assign_date':'col-w-date',
     '_status':'col-w-status','_rel':'col-w-date',
     'analyst':'col-w-analyst','analyst_txt':'col-w-analyst','pri_rev':'col-w-analyst',
     'analyst_raw':'col-w-analyst','final':'col-w-analyst','last_updated_by':'col-w-analyst',
-    'remark':'col-w-text','history':'col-w-text','last_updated_at':'col-w-stamp',
+    'remarks':'col-w-text','history':'col-w-text','last_updated_at':'col-w-stamp',
     'bioinfo_time':'col-w-flag','is_priority':'col-w-flag','is_reanalysis':'col-w-flag',
   };
   return classMap[c]||'';
@@ -3837,6 +4389,20 @@ function fmtStamp(v) {
   if (isNaN(d.getTime())) return esc(s);
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// Uniform display for Surfseq run identifiers ("SURFSeq - Run - <suffix>"),
+// regardless of how staff typed the separators/casing (Surf-seq-Run-111A,
+// Surfseq_Run-109A, SURFseq- Run-105A, ...). Only touches values that
+// actually look like a Surfseq run — Genolab entries and bare "Run_108A"
+// style values have no "surf" in them, so they pass through unchanged.
+function formatRunText(v) {
+  const s = String(v || '').trim();
+  if (!s) return s;
+  const m = s.match(/surf[\s_-]*seq[\s_-]*run[\s_-]*(.+)$/i);
+  if (!m) return s;
+  const suffix = m[1].trim();
+  return suffix ? `SURFSeq - Run - ${suffix}` : s;
 }
 
 function buildModalTable(data, cols, applyStatusColors = false) {
@@ -3854,16 +4420,16 @@ function buildModalTable(data, cols, applyStatusColors = false) {
     return `<tr class="${rowClass}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(v):'—'}</td>`;
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(formatRunText(v)):'—'}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
-    if (c==='rel_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
+    if (c==='report_release_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
     if (c==='ana_date') return `<td class="${cls} col-date" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='tat') return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
-    if (c==='_rel') { const st=getStatus(r); return `<td class="${cls} col-date" data-col="${c}">${st==='Released'?fmtRelDate(r.rel_date,r):'<span class="muted-val">—</span>'}</td>`; }
+    if (c==='_rel') { const st=getStatus(r); return `<td class="${cls} col-date" data-col="${c}">${st==='Released'?fmtRelDate(r.report_release_date,r):'<span class="muted-val">—</span>'}</td>`; }
     if (c==='is_priority'||c==='is_reanalysis') {
       const on = !!r[c];
       const tag = c==='is_priority' ? 'PRIORITY' : 'RE-AN';
@@ -3877,8 +4443,8 @@ function buildModalTable(data, cols, applyStatusColors = false) {
 
 const ALL_COLS = [
   'name','test','gen_id','and_id','client','run_text','tat','bioinfo_time',
-  'rep_exp','cnv_status','mito_status','analyst_raw','ana_date','pri_rev','final',
-  '_status','remark','rel_date','history','is_priority','is_reanalysis',
+  'rep_exp','cnv_status','analyst_raw','ana_date','pri_rev','final',
+  '_status','remarks','report_release_date','history','is_priority','is_reanalysis',
   'last_updated_by','last_updated_at',
 ];
 let _allModalData = [];
@@ -3890,10 +4456,11 @@ function openAllSamplesModal(defaultStatus) {
   _allModalFiltered = _allModalData;
 
   const tests = [...new Set(_allModalData.map(r=>r.test).filter(Boolean))].sort();
-  const statuses = ['Yet to Start','Ongoing','Released'];
+  const statuses = ['Yet to Start','Ongoing','Released','Cancelled'];
   const clients = [...new Set(_allModalData.map(r=>r.client).filter(Boolean))].sort();
-  const runs = [...new Set(_allModalData.map(r=>r.run_text).filter(Boolean))].sort();
+  const runs = runOptions(_allModalData);
   const cnvStatuses = [...new Set(_allModalData.map(r=>r.cnv_status).filter(Boolean))].sort();
+  const reviewers = REVIEWERS.slice().sort();
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const tatMonths = [...new Set(_allModalData.map(r=>{ const d=parseDate(r.tat); return d?d.getMonth()+1:null; }).filter(Boolean))].sort((a,b)=>a-b);
@@ -3901,6 +4468,10 @@ function openAllSamplesModal(defaultStatus) {
 
   const filterHtml = `
     <div style="padding:12px 22px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <button class="rel-filter-toggle back-btn" onclick="closeQModal(null)" style="height:36px;font-size:11px;padding:0 10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
       <div class="rel-search-wrap" style="flex:1;min-width:180px;height:36px" onclick="this.querySelector('input').focus()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
         <input type="text" id="all-q" placeholder="Search…" oninput="filterAllSamples()" style="font-size:12px" />
@@ -3922,10 +4493,11 @@ function openAllSamplesModal(defaultStatus) {
     <div class="rel-panel" id="all-filter-panel" style="margin:8px 22px 0;padding:10px 14px">
       <div class="rel-panel-grid">
         <div class="rel-panel-item"><label>Test</label><select class="sel" id="all-f-test" onchange="filterAllSamples()">${'<option value="">All Tests</option>'+tests.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select></div>
-        <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Status</label><select class="sel" id="all-f-status" onchange="filterAllSamples()">${'<option value="">All Statuses</option>'+statuses.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Client</label><select class="sel" id="all-f-client" onchange="filterAllSamples()">${'<option value="">All Clients</option>'+clients.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>CNV Status</label><select class="sel" id="all-f-cnv" onchange="filterAllSamples()">${'<option value="">All CNV Statuses</option>'+cnvStatuses.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Reviewer</label><select class="sel" id="all-f-reviewer" onchange="filterAllSamples()">${'<option value="">All Reviewers</option>'+reviewers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>TAT Month</label><select class="sel" id="all-f-month" onchange="filterAllSamples()">${'<option value="">All Months</option>'+tatMonths.map(m=>`<option value="${m}">${MONTHS[m-1]}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>TAT Year</label><select class="sel" id="all-f-year" onchange="filterAllSamples()">${'<option value="">All Years</option>'+tatYears.map(y=>`<option value="${y}">${y}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Re-analysis</label><select class="sel" id="all-f-reanalysis" onchange="filterAllSamples()">
@@ -3959,6 +4531,7 @@ function filterAllSamples() {
   const status  = document.getElementById('all-f-status')?.value||'';
   const clientF = document.getElementById('all-f-client')?.value||'';
   const cnv     = document.getElementById('all-f-cnv')?.value||'';
+  const reviewer = document.getElementById('all-f-reviewer')?.value||'';
   const month   = document.getElementById('all-f-month')?.value||'';
   const year    = document.getElementById('all-f-year')?.value||'';
   const reanaly = document.getElementById('all-f-reanalysis')?.value||'';
@@ -3970,6 +4543,7 @@ function filterAllSamples() {
   if (status)  data = data.filter(r=>getStatus(r)===status);
   if (clientF) data = data.filter(r=>r.client===clientF);
   if (cnv)     data = data.filter(r=>r.cnv_status===cnv);
+  if (reviewer) data = data.filter(r=>extractAnalysts(r.pri_rev).includes(reviewer));
   if (month)   data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getMonth()+1)===month; });
   if (year)    data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getFullYear())===year; });
   if (q)       data = data.filter(r=>
@@ -3995,6 +4569,7 @@ function downloadAllSamplesExcel() {
       document.getElementById('all-f-status')?.value,
       document.getElementById('all-f-client')?.value,
       document.getElementById('all-f-cnv')?.value,
+      document.getElementById('all-f-reviewer')?.value,
       monthLabel(document.getElementById('all-f-month')?.value),
       document.getElementById('all-f-year')?.value,
     ]);
@@ -4006,14 +4581,14 @@ function downloadAllSamplesExcel() {
 }
 
 function clearAllSamplesFilters() {
-  ['all-f-test','all-f-run','all-f-status','all-f-client','all-f-cnv','all-f-month','all-f-year','all-f-reanalysis'].forEach(id => {
+  ['all-f-test','all-f-run','all-f-status','all-f-client','all-f-cnv','all-f-reviewer','all-f-month','all-f-year','all-f-reanalysis'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   const q = document.getElementById('all-q'); if (q) q.value = '';
   filterAllSamples();
 }
 
-const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','_status','rel_date'];
+const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','pri_rev','_status','report_release_date'];
 function performGlobalSearch() {
   const input = document.getElementById('global-search');
   const resultsEl = document.getElementById('global-search-results');
@@ -4035,23 +4610,23 @@ function performGlobalSearch() {
     getStatus(r).toLowerCase().includes(q)
   );
 
-  data = data.slice().sort((a,b) => {
-    const da = parseDate(a.tat), db = parseDate(b.tat);
-    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-  }).slice(0, 50);
+  data = sortRowsByGenId(data, 'desc').slice(0, 50);
 
   if (data.length) {
     const visibleCols = GLOBAL_SEARCH_COLS.filter(c=>COL_LABELS[c]&&COL_LABELS[c].trim());
     const ths = visibleCols.map(c=>`<th class="${getColClass(c)}" style="background:rgba(79,70,229,.04);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1.5px solid var(--pb);text-align:left;white-space:nowrap;border-right:1px solid var(--pb)">${COL_LABELS[c]}</th>`).join('');
-    const trs = data.map(r=>`<tr>${visibleCols.map(c=>{
+    const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
       const v = r[c]||'';
       const cls = getColClass(c);
-      if (c==='name') return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+      if (c==='name') {
+        const nameColor = statusNameColor(getStatus(r));
+        return `<td class="${cls} col-name" style="padding:10px 14px;border-right:1px solid var(--pb)${nameColor ? `;color:${nameColor}` : ''}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+      }
       if (c==='test'||c==='client') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
-      if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(v):'—'}</td>`;
+      if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
       if (c==='gen_id'||c==='and_id') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
       if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)">${badgeHtml(st)}</td>`; }
-      if (c==='rel_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
+      if (c==='report_release_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
       return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
     }).join('')}</tr>`).join('');
 
@@ -4069,6 +4644,31 @@ document.addEventListener('click', (e) => {
     document.getElementById('global-search-results').style.display = 'none';
   }
 });
+
+function openColorGuideModal() {
+  document.getElementById('qmodal-title').textContent = 'Color Guide';
+  document.getElementById('qmodal-count').textContent = '';
+  document.getElementById('qmodal-body').innerHTML = `
+    <div style="padding:18px 24px 24px;overflow-y:auto">
+      <p style="margin:0 0 14px;font-size:12.5px;color:var(--muted)">What the colors and symbols on this tracker mean.</p>
+      <div class="legend-grid">
+        <div class="legend-row"><span class="legend-sample" style="color:#047857">Sample Name</span><span class="legend-desc">Green font — Released</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#ca8a04">Sample Name</span><span class="legend-desc">Yellow font — Ongoing</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#b91c1c">Sample Name</span><span class="legend-desc">Red font — TAT overdue</span></div>
+        <div class="legend-row"><span class="legend-sample" style="color:#4b5563">Sample Name</span><span class="legend-desc">Black font — Yet to start</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:rgba(255,235,59,.35);border-color:rgba(202,138,4,.4)"></span><span class="legend-desc">Yellow fill — Priority sample</span></div>
+        <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}</span><span class="legend-desc">Blue &amp; pink icons — Couple (male &amp; female tagged with the same Couple #)</span></div>
+        <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}${GENDER_ICON_LEGEND('P')}</span><span class="legend-desc">Blue, pink &amp; dark blue icons — Trio (adds the baby/POC sample)</span></div>
+        <div class="legend-row"><span class="legend-sample"><span class="name-cancelled">Sample Name</span></span><span class="legend-desc">Struck-through name — Cancelled</span></div>
+      </div>
+    </div>`;
+  document.getElementById('qmodal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function GENDER_ICON_LEGEND(g) {
+  return `<span class="couple-gender couple-gender-${g.toLowerCase()}">${GENDER_ICON[g]}</span>`;
+}
 
 function openQModal(title, data, cols) {
   document.getElementById('qmodal-title').textContent = title;
@@ -4100,16 +4700,183 @@ function toggleQModalMaximize() {
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeQModal(null); });
 
+let _maximizedTable = null;
+
+function setTableMaximized(wrapId, btnId, on) {
+  document.getElementById(wrapId)?.classList.toggle('tbl-maximized', on);
+  document.getElementById('tbl-max-backdrop')?.classList.toggle('show', on);
+  document.body.style.overflow = on ? 'hidden' : '';
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.title = on ? 'Restore table size' : 'Maximize table';
+    const label = btn.querySelector('.tbl-max-label');
+    if (label) label.textContent = on ? 'Restore' : 'Maximize';
+    const svg = btn.querySelector('svg');
+    if (svg) svg.innerHTML = on
+      ? '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>'
+      : '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+  }
+  _maximizedTable = on ? { wrapId, btnId } : null;
+}
+
+function toggleTableMaximize(wrapId, btnId) {
+  setTableMaximized(wrapId, btnId, !document.getElementById(wrapId)?.classList.contains('tbl-maximized'));
+}
+
+function exitTableMaximize() {
+  if (_maximizedTable) setTableMaximized(_maximizedTable.wrapId, _maximizedTable.btnId, false);
+}
+
+document.addEventListener('keydown', e => { if (e.key==='Escape') exitTableMaximize(); });
+
+// Custom floating tooltip for truncated table cells (data-tip attr) — instant,
+// and not clipped by the scrolling table containers the way native title would be.
+(function() {
+  const tip = document.createElement('div');
+  tip.id = 'hover-tip';
+  document.body.appendChild(tip);
+  let activeEl = null;
+
+  function place(e) {
+    const pad = 14;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    const r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - pad;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - pad;
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top = Math.max(8, y) + 'px';
+  }
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-tip]');
+    if (!el || el === activeEl) return;
+    activeEl = el;
+    tip.textContent = el.getAttribute('data-tip');
+    tip.classList.add('show');
+    place(e);
+  });
+  document.addEventListener('mousemove', e => {
+    if (activeEl) place(e);
+  });
+  document.addEventListener('mouseout', e => {
+    if (activeEl && (!e.relatedTarget || !activeEl.contains(e.relatedTarget))) {
+      activeEl = null;
+      tip.classList.remove('show');
+    }
+  });
+})();
+
+let _empModalAll = [];
+let _empModalName = '';
+
 function openEmpModal(empName) {
   let empRows = rows.filter(r =>
     getStatus(r) === 'Ongoing' &&
     normalizeAnalystName(r.pri_rev) === empName
   );
-  empRows = empRows.slice().sort((a,b) => {
-    const da = parseDate(a.tat), db = parseDate(b.tat);
-    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-  });
-  openQModal(`${empName}'s Reviews`, empRows, MODAL_COLS.assigned);
+  empRows = sortRowsByGenId(empRows, _sortDir.empModal);
+  _empModalAll = empRows;
+  _empModalName = empName;
+
+  document.getElementById('qmodal-title').textContent = `${empName}'s Reviews`;
+  document.getElementById('qmodal-count').textContent = ` · ${empRows.length} record${empRows.length!==1?'s':''}`;
+
+  const runs = [...new Set(empRows.map(r => r.run_text).filter(Boolean))]
+    .sort((a,b) => (extractRunNumber(b)||0) - (extractRunNumber(a)||0));
+  const counts = teamWorkloadBreakdown(empRows);
+  const filterHtml = `
+    <div style="padding:12px 22px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="rel-filter-toggle back-btn" onclick="openTeamWorkloadModal()" style="height:34px;font-size:11px;padding:0 10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <select id="emp-modal-run" class="sel" style="height:34px;max-width:220px" onchange="filterEmpModal()" title="One run at a time — keeps a repeat sample's earlier entry from being counted twice">
+        <option value="">All Runs</option>
+        ${runs.map(r => `<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('')}
+      </select>
+      <select id="emp-modal-type" class="sel" style="height:34px;max-width:180px" onchange="filterEmpModal()" title="Filter by sample type">
+        <option value="">All Sample Types</option>
+        ${SAMPLE_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      </select>
+      <button class="rel-filter-toggle" id="sort-btn-empModal" onclick="toggleSortDir('empModal')" style="height:34px;font-size:11px;padding:0 10px"></button>
+      <button class="btn btn-sm btn-pri" onclick="downloadEmpModalExcel()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Excel
+      </button>
+      <span id="emp-modal-count" style="font-size:12px;color:var(--pri);font-weight:700">${empRows.length} samples</span>
+      <div class="emp-type-counts emp-type-counts-lg" style="margin:0">
+        <span class="etc-pill etc-af" id="emp-modal-af">AF ${counts.AF}</span>
+        <span class="etc-pill etc-single" id="emp-modal-single">Single ${counts.Single}</span>
+        <span class="etc-pill etc-couple" id="emp-modal-couple">Couple ${counts.Couple}</span>
+      </div>
+    </div>`;
+
+  document.getElementById('qmodal-body').innerHTML =
+    '<div class="modal-filters-wrap">' + filterHtml + '</div>' +
+    '<div class="modal-table-wrap" id="emp-modal-table-wrap">' + buildModalTable(empRows, MODAL_COLS.assigned) + '</div>';
+  document.getElementById('qmodal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateSortToggleBtn('empModal');
+}
+
+function filterEmpModal() {
+  const run = document.getElementById('emp-modal-run')?.value || '';
+  const type = document.getElementById('emp-modal-type')?.value || '';
+  const runFiltered = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+  let data = type ? runFiltered.filter(r => sampleTypeOf(r) === type) : runFiltered;
+  data = sortRowsByGenId(data, _sortDir.empModal);
+  document.getElementById('qmodal-count').textContent = ` · ${data.length} record${data.length!==1?'s':''}`;
+  document.getElementById('emp-modal-table-wrap').innerHTML = buildModalTable(data, MODAL_COLS.assigned);
+  const countEl = document.getElementById('emp-modal-count');
+  if (countEl) countEl.textContent = `${data.length} samples`;
+
+  // AF/Single/Couple breakdown follows the selected run, same as the record
+  // count — but stays independent of the type filter so it's still a full
+  // reference for that run even while the table is narrowed to one type.
+  const counts = teamWorkloadBreakdown(runFiltered);
+  const afEl = document.getElementById('emp-modal-af');
+  const singleEl = document.getElementById('emp-modal-single');
+  const coupleEl = document.getElementById('emp-modal-couple');
+  if (afEl) afEl.textContent = `AF ${counts.AF}`;
+  if (singleEl) singleEl.textContent = `Single ${counts.Single}`;
+  if (coupleEl) coupleEl.textContent = `Couple ${counts.Couple}`;
+}
+
+function downloadEmpModalExcel() {
+  try {
+    const run = document.getElementById('emp-modal-run')?.value || '';
+    const type = document.getElementById('emp-modal-type')?.value || '';
+    let data = run ? _empModalAll.filter(r => r.run_text === run) : _empModalAll;
+    if (type) data = data.filter(r => sampleTypeOf(r) === type);
+    data = sortRowsByGenId(data, _sortDir.empModal);
+    if (!data.length) { toast('No samples to download', 'warn'); return; }
+    const cols = MODAL_COLS.assigned;
+
+    const excelData = [];
+    excelData.push([`${_empModalName} - Allocated Samples${run ? ' (' + run + ')' : ''}`]);
+    excelData.push(['']);
+    excelData.push(cols.map(c => COL_LABELS[c] || c));
+    data.forEach(r => excelData.push(cols.map(c => cellExportValue(r, c))));
+    excelData.push(['']);
+    excelData.push(['Summary']);
+    excelData.push(['Total Allocated Samples', data.length]);
+    excelData.push(['Export Date', ddmmyyyy(new Date())]);
+
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    ws['!cols'] = cols.map((c,i) => {
+      let max = (COL_LABELS[c]||c).length;
+      excelData.forEach(row => { if (row[i] && String(row[i]).length > max) max = String(row[i]).length; });
+      return { wch: Math.min(max + 2, 40) };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, _empModalName.replace(/[\\/?*[\]:]/g, '_').slice(0, 31));
+
+    const filename = `${_empModalName.replace(/[^a-zA-Z0-9]/g, '_')}-allocated-${todayDDMMYYYY()}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast(`Downloaded: ${filename}`, 'info');
+  } catch(e) {
+    toast('Download failed: ' + e.message, 'err');
+    console.error('[downloadEmpModalExcel]', e);
+  }
 }
 
 function renderQuickCards(containerId, data, status) {
@@ -4129,18 +4896,18 @@ function renderQuickCards(containerId, data, status) {
 const TABLE_CFG = {
   assigned:  { status:'Ongoing',      q:'q-asgn', test:'f-asgn-test', run:'f-asgn-run', reviewer:'f-asgn-employee', tat:'f-asgn-tat', relMonth:null,          relYear:null,
                cnv:'f-asgn-cnv',
-               cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','mito_status','rep_exp','cnv_status','ana_date','remark'] },
+               cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','rep_exp','cnv_status','ana_date','remarks'] },
   released:  { status:'Released',     q:'q-rel',  test:'f-rel-test',  run:'f-rel-run',  analyst:'f-rel-analyst', team:'f-rel-team', client:'f-rel-client', tat:null,
                relMonth:'f-rel-month', relYear:'f-rel-year', relDate:'f-rel-date', clientNorm:true, selfFilter:true,
                cnv:'f-rel-cnv',
-               cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','mito_status','rep_exp','cnv_status','rel_date','remark'] },
+               cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','rep_exp','pri_rev','final','cnv_status','report_release_date','remarks'] },
 };
 
 const COL_LABELS = {
   name:'Sample Name', test:'Test', gen_id:'Gen. ID', and_id:'And. ID', run_text: 'Run',
-  client:'Client', tat:'TAT', rep_exp:'Repeat Exp', cnv_status:'CNV Status', mito_status:'MITO Status',
+  client:'Client', tat:'TAT', rep_exp:'Repeat Exp', cnv_status:'CNV Status',
   analyst:'Assigned To', analyst_raw:'Analyze By', analyst_txt:'Analyst', assign_date:'Assigned Date', ana_date:'Analyze Date', pri_rev:'Reviewer',
-  final:'Clinical Reviewer', remark:'Remark', rel_date:'Release Date', history:'History',
+  final:'Clinical Reviewer', remarks:'Remark', report_release_date:'Release Date', history:'History',
   bioinfo_time:'Bioinfo Time', is_priority:'Priority', is_reanalysis:'Re-analysis',
   last_updated_by:'Updated By', last_updated_at:'Updated At',
   _status:'Status', _rel:'Release Date', _overdue_days:'Days Overdue',
@@ -4176,9 +4943,9 @@ function getFilteredTableData(key) {
   if (reviewer) data = data.filter(r=>r.pri_rev===reviewer);
   if (tat)      data = data.filter(r=>r.tat===tat);
   if (cnv)      data = data.filter(r=>r.cnv_status===cnv);
-  if (relMonth) data = data.filter(r=>{ const d=parseDate(r.rel_date); return d&&String(d.getMonth()+1)===relMonth; });
-  if (relYear)  data = data.filter(r=>{ const d=parseDate(r.rel_date); return d&&String(d.getFullYear())===relYear; });
-  if (relDate)  data = data.filter(r=>{ const d=parseDate(r.rel_date); const pick=parseDate(relDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
+  if (relMonth) data = data.filter(r=>{ const d=parseDate(r.report_release_date); return d&&String(d.getMonth()+1)===relMonth; });
+  if (relYear)  data = data.filter(r=>{ const d=parseDate(r.report_release_date); return d&&String(d.getFullYear())===relYear; });
+  if (relDate)  data = data.filter(r=>{ const d=parseDate(r.report_release_date); const pick=parseDate(relDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
   if (tatMonth) data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getMonth()+1)===tatMonth; });
   if (tatYear)  data = data.filter(r=>{ const d=parseDate(r.tat); return d&&String(d.getFullYear())===tatYear; });
   if (tatDate)  data = data.filter(r=>{ const d=parseDate(r.tat); const pick=parseDate(tatDate); if(!d||!pick) return false; return d.getFullYear()===pick.getFullYear()&&d.getMonth()===pick.getMonth()&&d.getDate()===pick.getDate(); });
@@ -4194,8 +4961,8 @@ function getFilteredTableData(key) {
     (r.cnv_status||'').toLowerCase().includes(q)
   );
 
-  if (key === 'assigned')  data = sortRowsByDate(data, r => parseDate(r.assign_date), _sortDir.assigned);
-  if (key === 'released')  data = sortRowsByDate(data, r => parseDate(fmtRelDate(r.rel_date, r)), _sortDir.released);
+  if (key === 'assigned')  data = sortRowsByGenId(data, _sortDir.assigned);
+  if (key === 'released')  data = sortRowsByGenId(data, _sortDir.released);
 
   return data;
 }
@@ -4219,14 +4986,14 @@ function renderTable(key) {
   const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='analyst') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='analyst_raw') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='analyst_txt') { const av = r.analyst||''; return `<td class="${cls}" data-col="${c}" style="font-size:13px;color:var(--text)" title="${esc(av)}">${esc(av)||'<span class="muted-val">—</span>'}</td>`; }
     if (c==='assign_date') return `<td class="${cls} col-date" data-col="${c}">${v?fmtDate(v):'<span class="muted-val">—</span>'}</td>`;
-    if (c==='rel_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
+    if (c==='report_release_date') return `<td class="${cls} col-date" data-col="${c}">${fmtRelDate(v, r)}</td>`;
     if (c==='ana_date') return `<td class="${cls} col-date" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='pri_rev'||c==='final') return `<td class="${cls}" data-col="${c}">${v?`<span class="badge b-cmp">${IC.check} ${esc(fmtDate(v))}</span>`:`<span class="muted-val">—</span>`}</td>`;
     if (c==='tat') return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
@@ -4277,7 +5044,7 @@ const OVERDUE_COLS = ['name','test','gen_id','and_id','run_text', 'client','tat'
 function getOverdueRows() {
   const today = new Date(); today.setHours(0,0,0,0);
   return applySelfFilter(rows).filter(r => {
-    if (getStatus(r) === 'Released') return false;
+    if (!isPending(r)) return false;
     const td = parseTatDate(r);
     if (!td) return false;
     td.setHours(0,0,0,0);
@@ -4349,13 +5116,13 @@ function renderOverdue() {
   const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${OVERDUE_COLS.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
-    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
+    if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
     if (c==='gen_id'||c==='and_id') return `<td class="${cls}" data-col="${c}" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
     if (c==='tat')     return `<td class="${cls} muted-val" data-col="${c}">${fmtDate(v)}</td>`;
     if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" data-col="${c}">${badgeHtml(st)}</td>`; }
     if (c==='_overdue_days') return `<td class="${cls}" data-col="${c}"><span style="background:rgba(239,68,68,.15);color:#b91c1c;padding:2px 8px;border-radius:6px;font-weight:600;font-size:12px">${r._overdue_days}d</span></td>`;
     if (c==='pri_rev') return `<td class="${cls}" data-col="${c}">${v?`<span class="analyst-pill">${IC.user} ${esc(v)}</span>`:`<span class="muted-val">—</span>`}</td>`;
-    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(v):'—'}</td>`;
+    if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
     return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${esc(v)||'—'}</td>`;
   }).join('')}</tr>`).join('');
 
@@ -4383,8 +5150,8 @@ function clearOverdueFilters() {
 
 function cellExportValue(r, c) {
   if (c === '_status') return getStatus(r);
-  if (c === '_rel') return getStatus(r) === 'Released' ? (fmtRelDate(r.rel_date, r) === '—' ? '' : fmtRelDate(r.rel_date, r)) : '';
-  if (c === 'rel_date') { const s = fmtRelDate(r.rel_date, r); return s === '—' ? '' : s; }
+  if (c === '_rel') return getStatus(r) === 'Released' ? (fmtRelDate(r.report_release_date, r) === '—' ? '' : fmtRelDate(r.report_release_date, r)) : '';
+  if (c === 'report_release_date') { const s = fmtRelDate(r.report_release_date, r); return s === '—' ? '' : s; }
   if (c === 'tat' || c === 'ana_date' || c === 'assign_date') { const s = fmtDate(r[c]); return s === '—' ? '' : s; }
   if (c === 'run_text') return r.run_text || '';
   if (c === '_overdue_days') return r._overdue_days != null ? r._overdue_days : '';
@@ -4613,7 +5380,7 @@ function loadFromStorage() {
 }
 
 let _priorityRows = [];
-const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','mito_status','pri_rev'];
+const PRIORITY_COLS = ['name','test', 'run_text', 'gen_id','and_id','client','tat','pri_rev'];
 
 function openPriorityModal() {
   _priorityRows = getPriorityRows();
@@ -4625,6 +5392,10 @@ function openPriorityModal() {
   )].sort((a,b) => a - b);
 
   const filterHtml = `<div class="pm-filters">
+    <button class="rel-filter-toggle back-btn" onclick="closeQModal(null)" style="height:30px;font-size:11px;padding:0 10px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
     <button class="pm-fbtn active" onclick="filterPriority('')">All (${_priorityRows.length})</button>
     ${displayMonths.map(m => {
       const cnt = _priorityRows.filter(r => { const d = parseTatDate(r); return d && d.getMonth() === m; }).length;
@@ -4663,13 +5434,28 @@ let anChart2 = null;
 const TEAM_MEMBERS = [
   { key: 'naveen',   label: 'Naveen',    color: '#ef4444' },
   { key: 'vignesh',  label: 'Vignesh',   color: '#10b981' },
-  { key: 'sudha',    label: 'Dr. Sudha', color: '#4f46e5' },
+  { key: 'sudha',    label: 'Dr. Sudha', color: '#4f46e5', retiredAfter: { year: 2026, month: 'Sep' } },
   { key: 'diwakar',  label: 'Diwakar',   color: '#06b6d4' },
   { key: 'gayathri', label: 'Gayathri',  color: '#ec4899' },
   { key: 'vamshi',   label: 'Vamshi',    color: '#f97316' },
   { key: 'nikhil',   label: 'Nikhil',    color: '#8b5cf6' },
+  { key: 'priya',    label: 'Priya',     color: '#800000' },
+  { key: 'raghavi',  label: 'Raghavi',   color: '#eab308' },
 ];
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// A specific month/year view hides a retired member's ring once their team ends;
+// "All" (year or month) still shows them so their historical released totals stay visible.
+function isMemberActiveForPeriod(member, year, month) {
+  if (!member.retiredAfter) return true;
+  if (year === 'All' || month === 'All') return true;
+  const yearNum = parseInt(year, 10);
+  const monthIdx = MONTH_LABELS.indexOf(month);
+  const retiredYear = member.retiredAfter.year;
+  const retiredMonthIdx = MONTH_LABELS.indexOf(member.retiredAfter.month);
+  if (yearNum !== retiredYear) return yearNum < retiredYear;
+  return monthIdx <= retiredMonthIdx;
+}
 
 function normalizeTest(name) {
   if (!name) return null;
@@ -4744,7 +5530,7 @@ function anToggleAll(chartPrefix, checked) {
 
 function anInitFilters() {
   const years = [...new Set(rows.map(r => {
-    const d = parseDate(r.tat) || parseDate(r.rel_date);
+    const d = parseDate(r.tat) || parseDate(r.report_release_date);
     return d ? d.getFullYear() : null;
   }).filter(Boolean))].sort((a, b) => b - a);
 
@@ -4821,10 +5607,10 @@ function anDrawChart1() {
   const checkedTests = Array.from(document.querySelectorAll('#an-f1-test-list input:checked')).map(i => i.value);
 
   const filtered = rows.filter(r => {
-    const d = parseDate(r.tat) || parseDate(r.rel_date);
+    const d = parseDate(r.tat) || parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch = year === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     
     const normTest = normalizeTest(r.test);
     if (!normTest) return false;
@@ -4851,10 +5637,10 @@ function anDrawChart2() {
   const checkedClients = Array.from(document.querySelectorAll('#an-f2-client-list input:checked')).map(i => i.value);
 
   const filtered = rows.filter(r => {
-    const d = parseDate(r.tat) || parseDate(r.rel_date);
+    const d = parseDate(r.tat) || parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch = year === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     
     const normClient = normalizeClient(r.client);
     if (!normClient) return false;
@@ -4875,7 +5661,7 @@ function anDrawChart2() {
 
 function _relOrTat(r) {
   const today = new Date();
-  const rd = parseDate(r.rel_date);
+  const rd = parseDate(r.report_release_date);
   if (rd && rd <= today) return rd;
   return parseDate(r.tat);
 }
@@ -4959,8 +5745,8 @@ function buildHelixRing(color, pct, uid) {
 
 const TARGET_BADGE_HTML = `<div class="ata-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>TARGET ACHIEVED</div>`;
 
-function buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, highlightKey) {
-  return TEAM_MEMBERS.map(t => {
+function buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, highlightKey, year) {
+  return TEAM_MEMBERS.filter(t => isMemberActiveForPeriod(t, year, month)).map(t => {
     const cnt = teamCount[t.key] || 0;
     const pct = month !== 'All' ? Math.min(cnt / 100, 1) : (total > 0 ? cnt / total : 0);
     const celebrate = inThresholdWindow && cnt > 40;
@@ -4990,7 +5776,7 @@ function _chart0Data(year, month) {
     const d = _relOrTat(r);
     if (!d) return false;
     const yearMatch  = year  === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     return yearMatch && monthMatch;
   });
 
@@ -5022,27 +5808,27 @@ function anDrawChart0() {
 
   chartBody.innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:space-evenly;align-items:flex-start;padding:24px 16px">
-      ${buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, null)}
+      ${buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, null, year)}
     </div>`;
 
   const legendEl = document.getElementById('an-legend-0');
   if (legendEl) legendEl.innerHTML = '';
 }
 
-const REVIEWER_RELEASED_COLS = ['name','test','gen_id','and_id','run_text','client','tat','mito_status','rep_exp','cnv_status','rel_date','analyst','remark'];
+const REVIEWER_RELEASED_COLS = ['name','test','gen_id','and_id','run_text','client','tat','rep_exp','cnv_status','report_release_date','analyst','remarks'];
 
 function reviewerReleasedSamples(key) {
   const year  = document.getElementById('an-f0-year').value;
   const month = document.getElementById('an-f0-month').value;
   return rows.filter(r => {
     if (getStatus(r) !== 'Released') return false;
-    const d = parseDate(r.rel_date);
+    const d = parseDate(r.report_release_date);
     if (!d) return false;
     const yearMatch  = year  === 'All' || String(d.getFullYear()) === year;
-    const monthMatch = month === 'All' || d.toLocaleString('default', { month: 'short' }) === month;
+    const monthMatch = month === 'All' || MONTH_LABELS[d.getMonth()] === month;
     return yearMatch && monthMatch && String(r.pri_rev || '').toLowerCase().trim().includes(key);
   }).sort((a, b) => {
-    const da = parseDate(a.rel_date), db = parseDate(b.rel_date);
+    const da = parseDate(a.report_release_date), db = parseDate(b.report_release_date);
     return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
   });
 }
@@ -5091,7 +5877,7 @@ function openReviewerRingModal_BackToTeams() {
   document.getElementById('qmodal-count').textContent = ` · all teams`;
   document.getElementById('qmodal-body').innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start;padding:28px;overflow:auto">
-      ${buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, null)}
+      ${buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, null, year)}
     </div>`;
   document.getElementById('qmodal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -5175,6 +5961,10 @@ function downloadChart0Data() {
   }
 }
 
+// The reviewer/re-analysis "donut" charts are hand-drawn inline SVG inside a
+// div, not a <canvas> or <img> — browsers don't offer "Save image as" on
+// that, unlike the Chart.js canvases elsewhere on this page. This rasterizes
+// the card into a real PNG so it can be saved the normal way.
 const CHART_COLORS = [
   '#4f46e5',
   '#10b981',
@@ -5331,6 +6121,7 @@ function anExportPNG() {
 
 (async function boot() {
   readCurrentUser();
+  populateTatReviewerFilters();
 
   const saved = loadFromStorage();
   if (saved && saved.length) {

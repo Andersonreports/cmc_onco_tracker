@@ -276,7 +276,7 @@ def me(anderson_session: str | None = Cookie(default=None)):
     return JSONResponse({"authenticated": True, "role": sess["role"],
                          "accesses": sess["acc"],
                          "is_admin": access.is_admin(sess["acc"]),
-                         "sections": access.visible_sections(sess["acc"], parent=None),
+                         "sections": access.open_sections(sess["acc"]),
                          "trackers": access.tracker_keys(sess["acc"]),
                          "mobile": sess["sub"]})
 

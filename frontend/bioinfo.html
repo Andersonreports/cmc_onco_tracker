@@ -7,6 +7,7 @@
   <title>Bioinfo Trackers · Anderson Trackings</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="/access-gate.js"></script>
   <style>
     :root {
       --header-bg: #2f3b4d;
@@ -272,9 +273,9 @@
     }
 
     .card .icon img {
-      width: 68%;
-      height: 68%;
-      object-fit: contain;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .card h3 {
@@ -366,9 +367,9 @@
     </section>
 
     <main class="grid">
-      <a class="card active" href="/exome-tracker/">
-        <div class="icon"><img src="/exome-logo.png" alt="Exome Sample Tracker" /></div>
-        <h3>Exome Sample Tracker</h3>
+      <a class="card active" href="/exome-tracker/" data-tracker="exome">
+        <div class="icon"><img src="/exome-logo.png" alt="Germline Exome Sample Tracker" /></div>
+        <h3>Germline Exome Sample Tracker</h3>
         <div class="underline"></div>
         <div class="desc">Genetics exome sample and report tracking — analyst assignment, TAT, review stages, and release status.</div>
         <span class="badge live"><i data-lucide="check-circle"></i> Live</span>

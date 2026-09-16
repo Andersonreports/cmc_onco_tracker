@@ -8,8 +8,8 @@ Two layers of coverage in every report:
 
 1. **Panel coverage** — is the gene / region / variant in the capture design, and
    how much of it (from the BED target intervals).
-2. **Sample read-depth coverage** *(always included)* — real sequencing depth over
-   those targets, read from the precomputed coverage DB: mean / min depth and
+2. **Sample read-depth coverage** *(always included)* — real sequencing depth from
+   reference BAM files over those targets: mean / median / min depth and
    **% of target bases ≥ 1× / 10× / 20× / 30× / 50× / 100×**, plus a **Combined**
    (average across all reference samples) row.
 
@@ -38,19 +38,19 @@ pip install -r requirements.txt
 That's it — the committed **`coverage.db`** holds the precomputed reference
 coverage, so the tool runs straight from the repo **with no BAM files**.
 
-Requires Python 3 with Flask and requests. rs-ID lookups call
-`rest.ensembl.org` (needs internet).
+Requires Python 3 with Flask, requests, numpy (and pysam only for the optional
+BAM/server mode). rs-ID lookups call `rest.ensembl.org` (needs internet).
 
-### Sample coverage source
+### Two modes
 
-Sample read-depth coverage comes entirely from the precomputed **coverage DBs**
-(`coverage.db`, plus any other `*.db` alongside it — one panel per DB). Values
-are exact for mean and every `% ≥ Nx`. A panel with no matching DB reports panel
-coverage only.
+| Mode | When | Sample coverage source |
+|------|------|------------------------|
+| **DB (default)** | `coverage.db` present (committed) | precomputed — exact mean & every % ≥ Nx; no BAMs needed |
+| **BAM (server)** | set `BED_DIR` / `BAM_DIR` to local data, no DB | computed live from BAMs (adds median + per-replicate SD) |
 
-The DBs are built offline from BAMs with mosdepth — see [build/](build/)
-(`run_mosdepth.sh` then `build_db.py`). That build step is the only thing that
-ever touches BAM files; the running app never reads them.
+`coverage.db` is built offline from BAMs with mosdepth — see
+[build/](build/) (`run_mosdepth.sh` then `build_db.py`). It is exact for mean and
+all `% ≥ Nx`; per-region median and per-replicate SD are available only in BAM mode.
 
 ## Server control
 
@@ -62,39 +62,48 @@ ever touches BAM files; the running app never reads them.
 
 ## Panels (BED files)
 
-The reference (Twist Spikein) panel comes from `coverage.db`. In addition, every
-`*.bed` under `BED_DIR` is auto-discovered and selectable (panel coverage only,
-unless a matching `*.db` is present).
+In DB mode the reference (Twist Spikein) panel comes from `coverage.db`. In BAM/
+server mode, every `*.bed` under `BED_DIR` is also auto-discovered and selectable.
 Mixed vendor annotation styles are supported (Twist `Gene;NM_…`, Roche
 `gene_symbol=…`, Sophia `Gene:NM:exon`, comma / tab / plain). Region and rs-ID queries work on any BED; gene /
 transcript search needs an annotated 4th column.
 
 ## Reference samples
 
-The reference sample types (Normal Male, Normal Female, Male/Female Infertility,
-AF, POC) and their replicate counts are stored in the coverage DB, built offline
-from the reference BAMs. No BAMs or sample identifiers are committed to the repo.
+Reference samples live as **one sub-directory per type** under `BAM_DIR`, each
+holding one or more replicate BAMs (indexed `.bai` required). No BAMs or sample
+identifiers are committed to the repo — only the directory layout matters:
+
+```
+BAM_DIR/
+  Normal-Male/    *.bam   # +.bai
+  Normal-Female/  *.bam
+  Male-Inf/       *.bam
+  Female-Inf/     *.bam
+  AF/             *.bam
+  POC/            *.bam
+```
 
 Every report also includes a **Case vs reference** panel: each case type
 (Male/Female Infertility, AF, POC) is flagged when its mean depth falls below the
-sex-matched Normal reference range (20% under the reference mean, with a 20×
-absolute floor).
+sex-matched Normal reference range (mean − 2·SD, with a 20% / 20× floor).
 Male Infertility → Normal Male, Female Infertility → Normal Female, AF/POC →
 pooled Normal. Regions not covered in the reference (e.g. chrY in females) show
 **n/a** instead of a false flag.
 
-> **Note:** the reference BAMs are **not** in this repository (too large, and
-> private) — and are not needed to run the tool, since `coverage.db` carries the
-> precomputed depth. The published GitHub Pages site is an informational landing
-> page only.
+> **Note:** BAM files and the reference data are **not** in this repository (too
+> large, and private). The published GitHub Pages site is an informational landing
+> page only — the tool must run on a server that has the BED panels and BAMs.
 
-Replicates of a type are aggregated into one row when the DB is built: **mean of
-replicate means**, worst-case min, and mean %≥threshold. Replicate count shows as
-`n=…`.
+The dir → label/slug mapping is in `samples.py` (`DIR_MAP`). For each query, every
+replicate's depth is computed in parallel (process pool) and the replicates of a
+type are aggregated to one row: **mean of replicate means (± SD)**, mean median,
+worst-case min, and mean %≥threshold. Replicate count shows as `n=…`.
 
-**To add or update samples:** rebuild the DB against the new reference BAMs
-(`build/run_mosdepth.sh` + `build/build_db.py`), commit the refreshed
-`coverage.db`, then `./restart.sh`.
+**To add samples** (BAM/server mode): drop more indexed `*.bam` into the matching
+type folder and `./restart.sh`. To add a new type, create a folder and add a
+`DIR_MAP` row. Then rebuild `coverage.db` (`build/run_mosdepth.sh` + `build_db.py`)
+and commit it to refresh the DB-mode deployment.
 
 Sample read-depth is **mandatory** (always shown for all types) so every report
 shows both BED coverage and real sample coverage.
@@ -121,6 +130,6 @@ behind gunicorn/uwsgi.
 
 - `app.py` — Flask server + single-page UI (Anderson-branded)
 - `coverage_index.py` — in-memory BED index (bisect overlap + token map)
-- `coverage_db.py` — reads the precomputed coverage DBs (sample depth source)
+- `samples.py` — reference sample-type registry (directory groups) + pysam depth engine
 - `static/anderson.png` — brand logo (header + PDF)
 - `start.sh` / `stop.sh` / `status.sh` / `restart.sh` / `server.conf`
