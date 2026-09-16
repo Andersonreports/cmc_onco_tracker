@@ -990,7 +990,7 @@
       --sc-rel-bd:  #6ee7b7;  --sc-rel-bg:  #ecfdf5;  --sc-rel-tx:  #059669;
       --sc-pri-bd:  #fcd34d;  --sc-pri-bg:  #fffbeb;  --sc-pri-tx:  #b45309;
     }
-    body{background:var(--canvas);color:var(--ink-2)}
+    body{background:var(--sc-total-bg);color:var(--ink-2)}
 
     .glass{
       background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -1047,11 +1047,17 @@
 
     .stats{gap:18px;padding-top:0;margin-bottom:26px}
     .scard{
-      position:relative;padding:18px 20px 20px;border-radius:12px;
-      border:2px solid var(--line);border-left-width:2px;
-      background:var(--surface);box-shadow:none;
+      position:relative;padding:18px 20px 20px;border-radius:16px;
+      border:1.5px solid rgba(67,56,202,.35);
+      background:linear-gradient(160deg,rgba(255,255,255,.72) 0%,rgba(255,255,255,.42) 100%);
+      backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+      box-shadow:0 8px 32px rgba(67,56,202,.10),inset 0 1px 0 rgba(255,255,255,.7);
     }
-    .scard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(16,24,40,.09)}
+    .scard:hover{
+      transform:translateY(-3px);
+      border-color:rgba(67,56,202,.55);
+      box-shadow:0 12px 36px rgba(67,56,202,.16),inset 0 1px 0 rgba(255,255,255,.8);
+    }
     .scard .s-icon{
       position:absolute;top:17px;right:18px;margin:0;display:block;opacity:.85;
     }
@@ -1060,18 +1066,13 @@
       font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;
       color:var(--ink-2);margin:0 0 10px;padding-right:30px;
     }
-    .scard .s-val{font-size:39px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+    .scard .s-val{font-size:39px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:#4338ca}
     .scard .s-sub{font-size:11px;color:var(--ink-3);margin-top:9px;min-height:14px}
-    .sc-all{border-color:var(--sc-total-bd);background:var(--sc-total-bg)}
-    .sc-all .s-val,.sc-all .s-icon,.sc-all .s-lbl{color:var(--sc-total-tx)}
-    .sc-yet{border-color:var(--sc-yet-bd);background:var(--sc-yet-bg)}
-    .sc-yet .s-val,.sc-yet .s-icon,.sc-yet .s-lbl{color:var(--sc-yet-tx)}
-    .sc-ong{border-color:var(--sc-ong-bd);background:var(--sc-ong-bg)}
-    .sc-ong .s-val,.sc-ong .s-icon,.sc-ong .s-lbl{color:var(--sc-ong-tx)}
-    .sc-rel{border-color:var(--sc-rel-bd);background:var(--sc-rel-bg)}
-    .sc-rel .s-val,.sc-rel .s-icon,.sc-rel .s-lbl{color:var(--sc-rel-tx)}
-    .sc-pri{border-color:var(--sc-pri-bd);background:var(--sc-pri-bg)}
-    .sc-pri .s-val,.sc-pri .s-icon,.sc-pri .s-lbl{color:var(--sc-pri-tx)}
+    .sc-all .s-icon{color:var(--sc-total-tx)}
+    .sc-yet .s-icon{color:var(--sc-yet-tx)}
+    .sc-ong .s-icon{color:var(--sc-ong-tx)}
+    .sc-rel .s-icon{color:var(--sc-rel-tx)}
+    .sc-pri .s-icon{color:var(--sc-pri-tx)}
 
     .rf-check{
       display:flex;align-items:flex-start;gap:10px;cursor:pointer;
@@ -1101,6 +1102,13 @@
 
     .name-cancelled{text-decoration:line-through;opacity:.6}
     .name-priority{color:#2563eb}
+    /* Priority marks the whole row blue, not just the name — needs to beat the
+       id-scoped !important status-color rules above (row-status-*, #tbl-overdue
+       .col-name), so it's repeated with matching/higher specificity per scope. */
+    tr.row-priority td,
+    tr.row-priority .col-mono{color:#2563eb !important}
+    #qmodal-body tr.row-priority td{color:#2563eb !important}
+    #tbl-overdue tbody tr.row-priority td{color:#2563eb !important}
 
     .legend-grid{display:flex;flex-direction:column;width:100%;max-width:340px;margin:0 auto}
     .legend-row{display:flex;align-items:center;gap:14px;padding:9px 2px;border-bottom:1px solid var(--pb)}
@@ -1140,7 +1148,7 @@
     }
     .panel-over .ptable tbody td{border-bottom-color:#f8dcdc}
     .panel-over .ptable tbody tr.prow:hover{background:#f9dede !important}
-    .panel-soon{border-left:4px solid #f59e0b;background:#fdf8ef}
+    .panel-soon{border-left:4px solid #f59e0b}
     .panel-soon .panel-hd{background:#fbf0dc}
     .panel-soon .ph-icon svg{stroke:#b45309}
     .panel-soon .ph-name{color:#b45309}
@@ -1193,6 +1201,7 @@
     .ptable thead th.ctr{text-align:center}
     .ptable .cell-date{text-align:center;white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums}
     .panel-over .ptable .cell-date{color:#b91c1c}
+    .panel-over .ptable .cell-right{font-weight:700}
     .panel-soon .ptable .cell-num{color:#b45309}
     .ptable .cell-right{text-align:right;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ptable .cell-mute{color:var(--ink-3)}
@@ -1212,10 +1221,16 @@
     .tat-release-row{border-top-color:var(--line)}
     .tat-release-row input,.tat-release-row select{border:1px solid var(--line);background:var(--surface)}
 
-    .prail{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+    .prail{
+      border-radius:16px;padding:20px;
+      border:1.5px solid rgba(67,56,202,.35);
+      background:linear-gradient(160deg,rgba(255,255,255,.72) 0%,rgba(255,255,255,.42) 100%);
+      backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+      box-shadow:0 8px 32px rgba(67,56,202,.10),inset 0 1px 0 rgba(255,255,255,.7);
+    }
     .prail-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
-    .prail-title{font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--c-ong)}
-    .prail-star{color:var(--c-ong);display:inline-flex}
+    .prail-title{font-size:20px;font-weight:800;letter-spacing:-.5px;color:#4338ca}
+    .prail-star{color:#4338ca;display:inline-flex}
     .prail-list{
       display:flex;flex-direction:column;gap:8px;
       max-height:392px;overflow-y:auto;padding-right:4px;
@@ -1226,11 +1241,11 @@
     }
     .pcard:hover{border-color:#d1d5db;box-shadow:0 4px 14px rgba(16,24,40,.07);transform:translateY(-1px)}
     .pcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-    .pcard-id{font-size:11.5px;font-weight:700;letter-spacing:-.1px;line-height:1.25}
+    .pcard-id{font-size:11.5px;font-weight:700;line-height:1.25}
     .pcard-ic{flex-shrink:0;display:inline-flex}
     .pcard-ic svg{width:13px;height:13px}
     .pcard-name{
-      font-size:13.5px;font-weight:700;color:var(--ink);margin-top:3px;letter-spacing:-.3px;line-height:1.3;
+      font-size:13.5px;font-weight:700;color:var(--ink);margin-top:3px;line-height:1.3;
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
     .pcard-meta{font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1238,18 +1253,18 @@
     .pcard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
     .prail-run-group{
       display:flex;flex-direction:column;gap:8px;
-      border:1.5px solid var(--pri, #6366f1);border-radius:12px;
-      background:rgba(99,102,241,.04);padding:10px 10px 11px;
+      border:1px solid rgba(67,56,202,.25);border-radius:12px;
+      background:rgba(67,56,202,.04);padding:10px 10px 11px;
     }
     .prail-run-group + .prail-run-group{margin-top:12px}
     .prail-run-hd{
       display:flex;align-items:center;justify-content:space-between;gap:8px;
-      font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--pri, #6366f1);
-      padding-bottom:8px;border-bottom:1px dashed rgba(99,102,241,.3);
+      font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#4338ca;
+      padding-bottom:8px;border-bottom:1px dashed rgba(67,56,202,.25);
     }
     .prail-run-hd span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .prail-run-count{
-      flex-shrink:0;background:rgba(99,102,241,.14);color:var(--pri, #6366f1);border-radius:20px;
+      flex-shrink:0;background:rgba(67,56,202,.12);color:#4338ca;border-radius:20px;
       padding:1px 8px;font-size:10.5px;font-weight:700;
     }
     .prail-run-cards{display:flex;flex-direction:column;gap:8px}
@@ -1257,7 +1272,7 @@
     .prail-foot{text-align:center;margin-top:16px}
     .prail-foot button{
       background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;
-      color:var(--c-ong);cursor:pointer;padding:6px 10px;border-radius:7px;
+      color:#4338ca;cursor:pointer;padding:6px 10px;border-radius:7px;
     }
     .prail-foot button:hover{background:#f5f3ff}
 
@@ -2101,6 +2116,12 @@ function sortRowsByGenId(list, dir) {
   return list.slice().sort((a, b) => {
     const runA = parseInt(a.run_number || 0, 10);
     const runB = parseInt(b.run_number || 0, 10);
+    // Rows with no parseable run (sentinel DEFAULT_RUN_NUMBER) always sort last —
+    // "Newest first" must not let them outrank every real run just because the
+    // sentinel is numerically the largest value.
+    const noRunA = runA === DEFAULT_RUN_NUMBER;
+    const noRunB = runB === DEFAULT_RUN_NUMBER;
+    if (noRunA !== noRunB) return noRunA ? 1 : -1;
     let cmp;
     if (runA !== runB) {
       cmp = runA - runB;
@@ -2644,7 +2665,7 @@ function renderTatAlerts() {
   const overEl = document.getElementById('tat-over-list');
   overEl.innerHTML = overdueFiltered.length ? overdueFiltered.map((r,i) => {
     const days = Math.abs(r.diff);
-    return `<tr class="prow"${rowEditAttrs(r)}>
+    return `<tr class="prow ${priorityRowClass(r)}"${rowEditAttrs(r)}>
       <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-date">${fmtDate(r.tat)}</td>
@@ -2744,7 +2765,7 @@ function renderTatSoonList(data) {
   const el = document.getElementById('tat-soon-list');
   el.innerHTML = data.length ? data.map((r,i) => {
     const remaining = r.diff === 0 ? 'TODAY' : `${r.diff}d`;
-    return `<tr class="prow"${rowEditAttrs(r)}>
+    return `<tr class="prow ${priorityRowClass(r)}"${rowEditAttrs(r)}>
       <td class="cell-id" title="${esc(r.name||r.gen_id||'')}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(r.name||r.gen_id||'—'))}${coupleNumberTag(r)}</td>
       <td class="cell-type" title="${esc(r.test||'')}">${esc(r.test||'—')}</td>
       <td class="cell-num">${remaining}</td>
@@ -2866,7 +2887,7 @@ function renderBulkReleaseList() {
       const checked = _bulkReleaseSelected.has(r.id) ? 'checked' : '';
       const reviewer = normalizeAnalystName(r.pri_rev);
       const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
-      return `<tr${rowEditAttrs(r)}>
+      return `<tr class="${priorityRowClass(r)}"${rowEditAttrs(r)}>
         <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkReleaseCheck(this)" /></td>
         <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
         ${cell(r.test, 'ba-test')}
@@ -3080,7 +3101,7 @@ function renderBulkAssignList() {
       const reviewer = normalizeAnalystName(r.pri_rev);
       const checked = _bulkAssignSelected.has(r.id) ? 'checked' : '';
       const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
-      return `<tr${rowEditAttrs(r)}>
+      return `<tr class="${priorityRowClass(r)}"${rowEditAttrs(r)}>
         <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
         <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
         ${cell(r.test, 'ba-test')}
@@ -3235,6 +3256,12 @@ function coupleRowBg(r) {
 
 function rowHighlightBg(r) {
   return coupleRowBg(r);
+}
+
+// Marks the whole row so every column (not just the name) renders in the
+// priority blue — see the CSS rules keyed off tr.row-priority.
+function priorityRowClass(r) {
+  return (r.is_priority && isPending(r)) ? 'row-priority' : '';
 }
 
 function coupleTitleSuffix(r) {
@@ -4395,7 +4422,7 @@ function buildModalTable(data, cols, applyStatusColors = false) {
       else if (st === 'Ongoing') rowClass = 'row-status-ongoing';
       else if (st === 'Yet to Start') rowClass = 'row-status-yet';
     }
-    return `<tr class="${rowClass}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
+    return `<tr class="${rowClass} ${priorityRowClass(r)}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
     if (c==='run_text') return `<td class="${cls}" data-col="${c}">${v?esc(formatRunText(v)):'—'}</td>`;
@@ -4594,7 +4621,7 @@ function performGlobalSearch() {
   if (data.length) {
     const visibleCols = GLOBAL_SEARCH_COLS.filter(c=>COL_LABELS[c]&&COL_LABELS[c].trim());
     const ths = visibleCols.map(c=>`<th class="${getColClass(c)}" style="background:rgba(79,70,229,.04);padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1.5px solid var(--pb);text-align:left;white-space:nowrap;border-right:1px solid var(--pb)">${COL_LABELS[c]}</th>`).join('');
-    const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
+    const trs = data.map(r=>`<tr class="${priorityRowClass(r)}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
       const v = r[c]||'';
       const cls = getColClass(c);
       if (c==='name') {
@@ -4966,7 +4993,7 @@ function renderTable(key) {
 
   const visibleCols = cfg.cols.filter(c=>COL_LABELS[c]&&COL_LABELS[c].trim());
   const ths = visibleCols.map(c=>`<th class="${getColClass(c)}" data-col="${c}">${COL_LABELS[c]}</th>`).join('');
-  const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${visibleCols.map(c=>{
+  const trs = data.map(r=>`<tr class="${priorityRowClass(r)}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
     if (c==='run_text') return `<td class="${cls}" data-col="${c}" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
@@ -5096,7 +5123,7 @@ function renderOverdue() {
   }
 
   const ths = OVERDUE_COLS.map(c=>`<th class="${getColClass(c)}" data-col="${c}">${COL_LABELS[c]||c}</th>`).join('');
-  const trs = data.map(r=>`<tr${rowEditAttrs(r)}>${OVERDUE_COLS.map(c=>{
+  const trs = data.map(r=>`<tr class="${priorityRowClass(r)}"${rowEditAttrs(r)}>${OVERDUE_COLS.map(c=>{
     const v = r[c]||'';
     const cls = getColClass(c);
     if (c==='name')    return `<td class="${cls} col-name" data-col="${c}" title="${esc(v)}${coupleTitleSuffix(r)}">${priorityIconHtml(r)}${coupleGenderIcon(r)}${nameTextHtml(r, esc(v)||'—')}${r.is_reanalysis ? ' <span class="ra-tag" title="Re-analysis sample">RE-AN</span>' : ''}</td>`;
