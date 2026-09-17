@@ -6,6 +6,7 @@ venv/
 
 *.postman_collection*.json
 
+.env
 backend/.env
 backend/.auth_secret
 backend/roles.json
