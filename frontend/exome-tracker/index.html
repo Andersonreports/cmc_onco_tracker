@@ -5750,6 +5750,22 @@ function buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, high
   }).join('');
 }
 
+// From Sep 2026 released samples onward, an AL-prefixed sample (e.g. "AL82",
+// "AL90 - Z -09...") billed to CMC / Christian Medical College is one half of
+// a partner pair submitted together as one case, so two of them count as one
+// released sample under Gayathri. Analytics-only — the reviewer-workload
+// counts elsewhere are unaffected.
+const AL_CMC_HALF_COUNT_START = new Date(2026, MONTH_LABELS.indexOf('Sep'), 1);
+function isGayathriHalfCountSample(r) {
+  const name = String(r.name || '').trim().toUpperCase();
+  if (!/^AL\d/.test(name)) return false;
+  const client = String(r.client || '').toLowerCase();
+  // Word-boundary match: "cmc" alone, not e.g. "CMCHIS" (a different client).
+  if (!/\bcmc\b/.test(client) && !client.includes('christian medical college')) return false;
+  const d = parseDate(r.report_release_date);
+  return !!d && d >= AL_CMC_HALF_COUNT_START;
+}
+
 function _chart0Data(year, month) {
   const filtered = rows.filter(r => {
     if (getStatus(r) !== 'Released') return false;
@@ -5761,11 +5777,20 @@ function _chart0Data(year, month) {
   });
 
   const teamCount = {};
+  const gayathriHalfCount = { count: 0 };
   TEAM_MEMBERS.forEach(t => { teamCount[t.key] = 0; });
   filtered.forEach(r => {
     const rv = String(r.pri_rev || '').toLowerCase().trim();
-    TEAM_MEMBERS.forEach(t => { if (rv.includes(t.key)) teamCount[t.key]++; });
+    TEAM_MEMBERS.forEach(t => {
+      if (!rv.includes(t.key)) return;
+      if (t.key === 'gayathri' && isGayathriHalfCountSample(r)) {
+        gayathriHalfCount.count++;
+      } else {
+        teamCount[t.key]++;
+      }
+    });
   });
+  teamCount.gayathri += Math.floor(gayathriHalfCount.count / 2);
 
   const THRESHOLD_YEAR = 2026, THRESHOLD_MONTH_IDX = MONTH_LABELS.indexOf('Jun');
   const yearNum = parseInt(year, 10);
