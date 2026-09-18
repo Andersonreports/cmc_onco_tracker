@@ -3273,9 +3273,16 @@ function priorityRowClass(r) {
   return (r.is_priority && isPending(r)) ? 'row-priority' : '';
 }
 
+// The couple_id field holds whatever text was entered ("Couple 1", "Trio 2",
+// ...) — label it by what it actually says instead of always calling it a
+// couple case.
+function coupleCaseLabel(tag) {
+  return /trio/i.test(tag) ? 'Trio case' : 'Couple case';
+}
+
 function coupleTitleSuffix(r) {
   const tag = coupleTag(r.couple_id);
-  return tag ? ` · Couple case: ${tag}` : '';
+  return tag ? ` · ${coupleCaseLabel(tag)}: ${tag}` : '';
 }
 
 // Visible "Couple 1"/"Trio-1" badge — used in compact list views (TAT Due,
@@ -3314,11 +3321,11 @@ function coupleGenderIcon(r) {
   const tag = coupleTag(r.couple_id);
   if (!tag) return '';
   if (isPocName(r.name)) {
-    return `<span class="couple-gender couple-gender-p" title="Couple case: ${esc(tag)}">${GENDER_ICON.P}</span> `;
+    return `<span class="couple-gender couple-gender-p" title="${coupleCaseLabel(tag)}: ${esc(tag)}">${GENDER_ICON.P}</span> `;
   }
   const g = genderFromName(r.name);
   if (!g) return '';
-  return `<span class="couple-gender couple-gender-${g.toLowerCase()}" title="Couple case: ${esc(tag)}">${GENDER_ICON[g]}</span> `;
+  return `<span class="couple-gender couple-gender-${g.toLowerCase()}" title="${coupleCaseLabel(tag)}: ${esc(tag)}">${GENDER_ICON[g]}</span> `;
 }
 
 // Stable-sorts so every row sharing a couple tag lands right after that tag's
