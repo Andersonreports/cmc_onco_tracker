@@ -4603,7 +4603,7 @@ function clearAllSamplesFilters() {
   filterAllSamples();
 }
 
-const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','pri_rev','_status','report_release_date'];
+const GLOBAL_SEARCH_COLS = ['name','test','run_text','gen_id','and_id','client','pri_rev','_status','tat','report_release_date'];
 function performGlobalSearch() {
   const input = document.getElementById('global-search');
   const resultsEl = document.getElementById('global-search-results');
@@ -4641,6 +4641,7 @@ function performGlobalSearch() {
       if (c==='run_text') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${v?esc(formatRunText(v)):'—'}</td>`;
       if (c==='gen_id'||c==='and_id') return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}"><span class="col-mono">${esc(v)||'—'}</span></td>`;
       if (c==='_status') { const st=getStatus(r); return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)">${badgeHtml(st)}</td>`; }
+      if (c==='tat') return `<td class="${cls} muted-val" style="padding:10px 14px;border-right:1px solid var(--pb)" data-col="${c}">${fmtDate(v)}</td>`;
       if (c==='report_release_date') return `<td class="${cls} col-date" style="padding:10px 14px">${fmtRelDate(v, r)}</td>`;
       return `<td class="${cls}" style="padding:10px 14px;border-right:1px solid var(--pb)" title="${esc(v)}">${esc(v)||'—'}</td>`;
     }).join('')}</tr>`).join('');
