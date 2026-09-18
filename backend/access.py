@@ -90,6 +90,16 @@ ROLES = {
         "home": "/anderson/",
         "duty": "member",
     },
+    # Named by tracker rather than section, for people who need only this one
+    # tracker and nothing else the bioinfo section would otherwise bundle in.
+    "clinical-history-only": {
+        "label": "Clinical History Tracker Only",
+        "trackers": ("clinical-history",),
+        # Lands on the Anderson Trackers hub, same as the bioinfo roles, rather
+        # than straight into the one tracker — access-gate.js masks Coverage
+        # Checker for them there, and Exome once they open Bioinfo Trackers.
+        "home": "/anderson/",
+    },
     ADMIN: {
         "label": "Admin",
         "everything": True,
@@ -124,6 +134,8 @@ def role_trackers(role_key: str) -> list[str]:
         return []
     if spec.get("everything"):
         return list(TRACKERS)
+    if spec.get("trackers"):
+        return list(spec["trackers"])
     reaches = set(spec.get("sections", ()))
     without = set(spec.get("without", ()))
     keys = []
