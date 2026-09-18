@@ -2,6 +2,8 @@
 # Starts the CMC-ONCO Tracker server and opens it in the default browser (macOS/Linux).
 set -e
 
+PORT="${PORT:-8010}"
+
 cd "$(dirname "$0")/backend"
 
 if [ ! -d ".venv" ]; then
@@ -15,15 +17,15 @@ echo "Installing/checking dependencies..."
 pip install -q -r requirements.txt
 
 echo "Starting server..."
-uvicorn backend:app --host 127.0.0.1 --port 8010 &
+uvicorn backend:app --host 127.0.0.1 --port "$PORT" &
 SERVER_PID=$!
 
 sleep 3
 
 if command -v open >/dev/null 2>&1; then
-    open http://127.0.0.1:8010/
+    open "http://127.0.0.1:$PORT/"
 elif command -v xdg-open >/dev/null 2>&1; then
-    xdg-open http://127.0.0.1:8010/
+    xdg-open "http://127.0.0.1:$PORT/"
 fi
 
 echo "Tracker is running (PID $SERVER_PID). Press Ctrl+C to stop it."
