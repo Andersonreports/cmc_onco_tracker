@@ -122,12 +122,14 @@
       cursor: pointer; transition: var(--tr);
     }
     .access-item:hover { border-color: var(--border-strong); }
-    /* Typed selector so the .field input width:100% below cannot claim the radio. */
-    .access-item input[type="radio"] {
+    /* Typed selector so the .field input width:100% below cannot claim the radio/checkbox. */
+    .access-item input[type="radio"], .access-item input[type="checkbox"] {
       flex: none; width: 15px; height: 15px; padding: 0;
       accent-color: var(--accent); cursor: pointer;
     }
     .access-item .t { font-size: 13.5px; font-weight: 600; }
+    .field-or { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--text-muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field-or::before, .field-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
     .empty-row { text-align: center; padding: 44px 16px; color: var(--text-muted); font-size: 13.5px; }
 
@@ -224,9 +226,15 @@
           <div class="field-hint">Must match the mobile number IT has for this person — that's what verifies their identity at login.</div>
         </div>
         <div class="field">
-          <label>Role</label>
-          <div class="access-list" id="f_access"></div>
-          <div class="field-hint">Pick one role. It decides which trackers open and which page they land on after signing in.</div>
+          <label for="f_role">Role</label>
+          <select id="f_role"></select>
+          <div class="field-hint">A role bundles the trackers a team normally needs, and decides which page they land on after signing in.</div>
+        </div>
+        <div class="field-or">or</div>
+        <div class="field">
+          <label>Grant specific modules</label>
+          <div class="access-list" id="f_modules"></div>
+          <div class="field-hint">Pick one or more individual trackers for someone who should only reach a few specific modules. Checking any module here overrides the role above.</div>
         </div>
         <div class="field">
           <label for="f_password">Local password (optional)</label>
@@ -283,17 +291,34 @@
       return d;
     }
 
-    function accessCheckboxes(selected) {
-      return ROLES.map(r => `
+    function moduleKeys() {
+      // Modules are individual trackers, granted directly — "admin" stays role-only.
+      return GRANTABLE.filter(k => k !== 'admin');
+    }
+
+    function roleOptions(selected) {
+      const opts = ['<option value="">— Select a role —</option>']
+        .concat(ROLES.map(r => `<option value="${esc(r.key)}" ${r.key === selected ? 'selected' : ''}>${esc(r.label)}</option>`));
+      return opts.join('');
+    }
+
+    function moduleCheckboxes(selectedKeys) {
+      return moduleKeys().map(k => `
         <label class="access-item">
-          <input type="radio" name="role" value="${esc(r.key)}" ${r.key === selected ? 'checked' : ''}>
-          <span class="t">${esc(r.label)}</span>
+          <input type="checkbox" name="module" value="${esc(k)}" ${selectedKeys.includes(k) ? 'checked' : ''}>
+          <span class="t">${esc(LABELS[k] || k)}</span>
         </label>`).join('');
     }
 
+    function checkedModules() {
+      return Array.from(document.querySelectorAll('#f_modules input[name="module"]:checked')).map(el => el.value);
+    }
+
     function selectedAccess() {
-      const picked = document.querySelector('#f_access input[name="role"]:checked');
-      return picked ? picked.value : '';
+      // Checking any module overrides the role dropdown — the two are mutually exclusive.
+      const modules = checkedModules();
+      if (modules.length) return modules;
+      return $('f_role').value;
     }
 
     function accessPills(roleKey, list) {
@@ -301,7 +326,7 @@
       if (role) {
         return `<span class="pill ${roleKey === 'admin' ? 'pill-admin' : 'pill-access'}">${esc(role.label)}</span>`;
       }
-      // Assigned before roles existed — show the individual trackers instead.
+      // No single role covers this user — either legacy pre-role data, or specific modules granted directly.
       if (!list || !list.length) return '<span class="muted">none</span>';
       return list.map(k => `<span class="pill ${k === 'admin' ? 'pill-admin' : 'pill-access'}">${esc(LABELS[k] || k)}</span>`).join('');
     }
@@ -352,7 +377,8 @@
       $('f_name').value = '';
       $('f_mobile').value = '';
       $('f_mobile').disabled = false;
-      $('f_access').innerHTML = accessCheckboxes('');
+      $('f_role').innerHTML = roleOptions('');
+      $('f_modules').innerHTML = moduleCheckboxes([]);
       $('f_password').value = '';
       $('passwordHint').textContent = "Only for people who aren't in IT's system. Set this and they sign in with just this password — no OTP, no contacting IT at all.";
       $('clearPassBtn').style.display = 'none';
@@ -368,7 +394,8 @@
       $('f_name').value = u.name || '';
       $('f_mobile').value = u.mobile;
       $('f_mobile').disabled = true;
-      $('f_access').innerHTML = accessCheckboxes(u.role);
+      $('f_role').innerHTML = roleOptions(u.role || '');
+      $('f_modules').innerHTML = moduleCheckboxes(u.role ? [] : (u.accesses || []));
       $('f_password').value = '';
       $('passwordHint').textContent = u.local_password
         ? 'A local password is already set — this user signs in without IT. Leave blank to keep it, enter a new one to change it.'
@@ -395,6 +422,14 @@
     $('cancelBtn').addEventListener('click', closeModal);
     $('userModal').addEventListener('click', e => { if (e.target.id === 'userModal') closeModal(); });
     $('f_mobile').addEventListener('input', e => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); });
+    $('f_role').addEventListener('change', () => {
+      if ($('f_role').value) {
+        document.querySelectorAll('#f_modules input[name="module"]').forEach(el => el.checked = false);
+      }
+    });
+    $('f_modules').addEventListener('change', e => {
+      if (e.target.name === 'module' && e.target.checked) $('f_role').value = '';
+    });
 
     $('userForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -403,7 +438,7 @@
       const role = selectedAccess();
       const password = $('f_password').value;
       if (!/^[0-9]{10}$/.test(mobile)) { toast('Enter a valid 10-digit mobile number.', 'error'); return; }
-      if (!role) { toast('Pick a role for this user.', 'error'); return; }
+      if (!role || (Array.isArray(role) && !role.length)) { toast('Pick a role or at least one module for this user.', 'error'); return; }
       if (password && password.length < 6) { toast('Local password must be at least 6 characters.', 'error'); return; }
       try {
         await api('POST', '/admin/users', { mobile, name, role });
