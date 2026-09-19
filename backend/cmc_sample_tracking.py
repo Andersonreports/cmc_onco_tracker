@@ -209,12 +209,10 @@ _all_data_cache_at = 0.0
 
 
 def get_all_data() -> dict:
-    """The Apps Script exec URL path (Code.gs's getAllData()) reads every
-    monthly sheet serially with no batching, on top of the Web App's own
-    cold-start lag, so a fresh call is slow. A short cache absorbs repeat
-    loads (page opens, tab switches) within that window without going stale
-    for long; the Sheets API path below is already fast enough not to need
-    it, but caching it too is harmless.
+    """Even with apps_script/Code.gs's getAllData() batching every sheet into
+    one request, a Web App call still has some fixed round-trip/cold-start
+    cost. A short cache absorbs repeat loads (page opens, tab switches)
+    within that window without going stale for long.
     """
     global _all_data_cache, _all_data_cache_at
     now = time.monotonic()
