@@ -110,11 +110,17 @@ _DATE_FIELDS = (
 )
 
 
+def _norm_header(s: str) -> str:
+    # Collapse runs of whitespace, not just strip the ends — some sheets have
+    # stray double spaces inside a header (e.g. "Report  released date").
+    return re.sub(r"\s+", " ", str(s or "").strip()).lower()
+
+
 def _find_col(headers: list, *names: str) -> int:
-    lowered = [str(h or "").strip().lower() for h in headers]
+    normed = [_norm_header(h) for h in headers]
     for name in names:
         try:
-            return lowered.index(name.lower())
+            return normed.index(_norm_header(name))
         except ValueError:
             continue
     return -1
