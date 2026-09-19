@@ -14,6 +14,7 @@ import json
 import os
 import re
 import smtplib
+import time
 from datetime import datetime, timezone
 from email.message import EmailMessage
 
@@ -189,7 +190,32 @@ def _fetch_from_apps_script(action: str):
     return payload
 
 
+CACHE_SECONDS = float(os.getenv("CMC_ST_CACHE_SECONDS", "12"))
+
+_all_data_cache: dict | None = None
+_all_data_cache_at = 0.0
+
+
 def get_all_data() -> dict:
+    """The Apps Script exec URL path (Code.gs's getAllData()) reads every
+    monthly sheet serially with no batching, on top of the Web App's own
+    cold-start lag, so a fresh call is slow. A short cache absorbs repeat
+    loads (page opens, tab switches) within that window without going stale
+    for long; the Sheets API path below is already fast enough not to need
+    it, but caching it too is harmless.
+    """
+    global _all_data_cache, _all_data_cache_at
+    now = time.monotonic()
+    if _all_data_cache is not None and (now - _all_data_cache_at) < CACHE_SECONDS:
+        return _all_data_cache
+
+    data = _get_all_data_uncached()
+    _all_data_cache = data
+    _all_data_cache_at = now
+    return data
+
+
+def _get_all_data_uncached() -> dict:
     if APPS_SCRIPT_EXEC_URL:
         return _fetch_from_apps_script("getAllData")
 

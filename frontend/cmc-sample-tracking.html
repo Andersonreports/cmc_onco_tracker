@@ -708,10 +708,10 @@
             color: #1f2937;
         }
 
-        tbody tr:nth-child(odd):not(.tat-overdue):not(.tat-pending):not(.tat-completed) td {
+        tbody tr:nth-child(odd) td {
             background: #ffffff;
         }
-        tbody tr:nth-child(even):not(.tat-overdue):not(.tat-pending):not(.tat-completed) td {
+        tbody tr:nth-child(even) td {
             background: #f3f5fa;
         }
         tr:hover td {
@@ -745,20 +745,10 @@
             margin: 20px;
         }
 
-        /* Overdue — red/rose */
-        .tat-overdue td  { background: #fde2e2 !important; color: #7f1d1d; }
-        .tat-overdue td:first-child  { border-left: 5px solid #dc2626 !important; }
-        .tat-overdue:hover td { background: #fbd0d0 !important; }
-
-        /* Ongoing — amber/yellow */
-        .tat-pending td  { background: #fdf0c9 !important; color: #78350f; }
-        .tat-pending td:first-child  { border-left: 5px solid #d97706 !important; }
-        .tat-pending:hover td { background: #fbe6a8 !important; }
-
-        /* Completed/Released — green */
-        .tat-completed td { background: #d7f5e3 !important; color: #064e3b; }
-        .tat-completed td:first-child { border-left: 5px solid #059669 !important; }
-        .tat-completed:hover td { background: #bff0d3 !important; }
+        /* Status is shown by font color only, no row fill (matches exome tracker's row-status-* convention) */
+        .tat-overdue td   { color: #b91c1c !important; }
+        .tat-pending td   { color: #ca8a04 !important; }
+        .tat-completed td { color: #047857 !important; }
 
         .status-badge {
             display: inline-block; padding: 4px 12px; border-radius: 20px;
