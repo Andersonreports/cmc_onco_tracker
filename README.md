@@ -88,23 +88,6 @@ automatically.
 
 ## Run locally
 
-### Windows — one-click start
-
-Double-click `start.bat` in the repo root. It creates a virtual environment
-on first run, installs dependencies, starts the server, and opens the
-tracker in your default browser automatically. Close the "CMC-ONCO Tracker
-Server" window to stop it.
-
-### macOS/Linux — one-click start
-
-Double-click `start.command` in the repo root (macOS may require
-right-click → Open the first time, since it's from an unidentified
-developer). It creates a virtual environment on first run, installs
-dependencies, starts the server, and opens the tracker in your default
-browser automatically. Press Ctrl+C in the terminal window to stop it.
-
-### Manual (any OS)
-
 ```bash
 cd backend
 pip install -r requirements.txt
