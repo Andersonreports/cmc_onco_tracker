@@ -100,6 +100,8 @@ def bulk_apply(payload: BulkApplyIn, request: Request):
         return JSONResponse({"error": "Fill in at least one field to apply"}, status_code=400)
 
     count = reports_client.bulk_apply(payload.id, changes, username_for(request))
+    if "report_release_date" in changes:
+        _trigger_cmc_release_sync()
     return {"ok": True, "count": count}
 
 
@@ -122,6 +124,20 @@ def bulk_reviewer(payload: BulkReviewerIn, request: Request):
     return {"ok": True, "count": count}
 
 
+def _trigger_cmc_release_sync() -> None:
+    """CMC Sample Tracking shows a subset of these same samples (by Anderson
+    ID) and would otherwise need this same release date entered a second
+    time; let it pick this one up right away instead of waiting for its own
+    periodic poll. Best-effort — never lets a CMC-side problem affect this
+    tracker's own save.
+    """
+    try:
+        import cmc_sample_tracking
+        cmc_sample_tracking.trigger_exome_sync_async()
+    except Exception as e:
+        print(f"[exome_api] CMC release-date sync not triggered ({type(e).__name__}: {e})")
+
+
 @router.put("/reports/{report_id}")
 def update_report(
     report_id: str,
@@ -134,6 +150,8 @@ def update_report(
     print(f"[exome_api] PUT /reports/{report_id} returning: {doc}")
     if doc is None:
         return JSONResponse({"error": "Report not found"}, status_code=404)
+    if report.report_release_date.strip():
+        _trigger_cmc_release_sync()
     return doc
 
 

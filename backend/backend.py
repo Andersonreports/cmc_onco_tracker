@@ -325,6 +325,10 @@ def _start_cmc_sample_tracking_alerts() -> None:
         cmc_sample_tracking.schedule_tat_alerts()
     except Exception as e:
         print(f"[cmc-sample-tracking] TAT alert job not started ({type(e).__name__}: {e})")
+    try:
+        cmc_sample_tracking.schedule_exome_release_sync()
+    except Exception as e:
+        print(f"[cmc-sample-tracking] exome sync job not started ({type(e).__name__}: {e})")
 
 
 _start_cmc_sample_tracking_alerts()

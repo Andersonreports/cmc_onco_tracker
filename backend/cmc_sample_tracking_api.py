@@ -50,6 +50,9 @@ async def exec_post(request: Request):
 
         if action == "sendEmail":
             return tracking.send_email_action(body)
+        if action == "updateReportReleasedDateBulk":
+            return tracking.update_report_released_date_bulk(
+                body.get("items") or [], body.get("value") or "")
         return JSONResponse({"error": "Invalid action"}, status_code=400)
     except Exception as exc:  # noqa: BLE001 - surfaced to the frontend as an error toast
         print(f"[cmc-sample-tracking] POST /exec error: {exc}")

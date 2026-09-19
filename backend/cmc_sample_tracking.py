@@ -43,7 +43,12 @@ TAT_ALERT_CRON = os.getenv("CMC_ST_TAT_ALERT_CRON", "0 9 * * *")
 TZ_NAME = os.getenv("CMC_ST_TZ", "Asia/Kolkata")
 ENABLE_TAT_ALERTS = os.getenv("CMC_ST_ENABLE_TAT_ALERTS", "true").strip().lower() != "false"
 
-SHEETS_SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+ENABLE_EXOME_SYNC = os.getenv("CMC_ST_ENABLE_EXOME_SYNC", "true").strip().lower() != "false"
+EXOME_SYNC_MINUTES = int(os.getenv("CMC_ST_EXOME_SYNC_MINUTES", "20"))
+
+# Read-write, not read-only: the bulk release-date edit writes back to the
+# sheet through this same client when the Apps Script exec URL isn't set.
+SHEETS_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 _sheets_client = None
 
@@ -164,7 +169,7 @@ def _process_sheet(data: list[list], sheet_name: str) -> dict:
     idx = {key: _find_col(headers, *names) for key, names in _COLUMN_ALIASES.items()}
 
     rows = []
-    for r in data[1:]:
+    for sheet_row_number, r in enumerate(data[1:], start=2):
         if all((c == "" or c is None) for c in r):
             continue
         row = {key: _get_string(r, i) for key, i in idx.items()
@@ -173,6 +178,7 @@ def _process_sheet(data: list[list], sheet_name: str) -> dict:
             i = idx[key]
             row[key] = _format_date(r[i]) if 0 <= i < len(r) else ""
         row["_sourceSheet"] = sheet_name
+        row["_rowIndex"] = sheet_row_number
         rows.append(row)
 
     return {"headers": headers, "rows": rows, "sheetInfo": _parse_sheet_name(sheet_name)}
@@ -282,6 +288,204 @@ def get_registration_rows() -> list[dict]:
     ]
 
 
+# --- Writing edits back to the sheet ------------------------------------
+
+def _col_letter(index: int) -> str:
+    """0-based column index -> A1 column letters (0 -> 'A', 26 -> 'AA')."""
+    index += 1
+    letters = ""
+    while index > 0:
+        index, remainder = divmod(index - 1, 26)
+        letters = chr(65 + remainder) + letters
+    return letters
+
+
+def _update_report_released_date_bulk_via_sheets_api(items: list[dict], default_value: str) -> dict:
+    if not SPREADSHEET_ID:
+        return {"success": False, "error": "CMC_ST_SPREADSHEET_ID is not configured"}
+
+    sheets = _sheets_client_cached().spreadsheets()
+    col_by_sheet: dict[str, int] = {}
+    data_updates = []
+    errors = []
+
+    for item in items:
+        sheet_name = item.get("sheetName")
+        row_index = item.get("rowIndex")
+        value = item.get("value") or default_value
+        if not sheet_name or not row_index:
+            errors.append("Invalid row reference")
+            continue
+        try:
+            if sheet_name not in col_by_sheet:
+                header_row = sheets.values().get(
+                    spreadsheetId=SPREADSHEET_ID, range=f"'{sheet_name}'!1:1").execute()
+                headers = (header_row.get("values") or [[]])[0]
+                col_by_sheet[sheet_name] = _find_col(headers, "Report released date")
+            col = col_by_sheet[sheet_name]
+            if col < 0:
+                errors.append(f"Report released date column not found in {sheet_name}")
+                continue
+            rng = f"'{sheet_name}'!{_col_letter(col)}{row_index}"
+            data_updates.append({"range": rng, "values": [[value]]})
+        except Exception as exc:  # noqa: BLE001 - one bad row shouldn't abort the batch
+            errors.append(str(exc))
+
+    if data_updates:
+        sheets.values().batchUpdate(
+            spreadsheetId=SPREADSHEET_ID,
+            body={"valueInputOption": "USER_ENTERED", "data": data_updates},
+        ).execute()
+
+    return {"success": len(data_updates) > 0, "updated": len(data_updates), "errors": errors}
+
+
+def update_report_released_date_bulk(items: list[dict], value: str = "") -> dict:
+    """Fill "Report released date" for every {sheetName, rowIndex} pair given.
+
+    Two callers share this: the UI's "select samples, fill the release date
+    once" bulk action (every item shares `value`), and the exome-tracker sync
+    (each item carries its own `value`, since each Anderson ID has its own
+    release date there — an item's own value wins over the shared one).
+    """
+    if not items:
+        return {"success": False, "error": "No rows selected"}
+
+    if APPS_SCRIPT_EXEC_URL:
+        result = _post_to_apps_script("updateReportReleasedDateBulk", {
+            "items": items, "value": value,
+        })
+    else:
+        result = _update_report_released_date_bulk_via_sheets_api(items, value)
+
+    if result.get("success"):
+        global _all_data_cache
+        _all_data_cache = None  # next getAllData() reflects the edit instead of a stale cache
+    return result
+
+
+# --- Exome tracker sync ---------------------------------------------------
+#
+# The exome tracker (backend/exome_api.py, via reports_client.py) tracks
+# every WES/WGS/Mito sample — a superset that includes CMC's own samples,
+# keyed by the same Anderson ID. Once a sample's report is released there,
+# the team no longer has to enter that same date a second time in the CMC
+# sheet: this pulls it across automatically, matched by Anderson ID.
+
+_EXOME_DATE_RE = re.compile(r"^(\d{1,2})-(\d{1,2})-(\d{4})$")
+
+
+def _exome_date_to_iso(value: str) -> str:
+    """reports_client normalizes exome dates to DD-MM-YYYY; the sheet
+    stores/expects YYYY-MM-DD (see _format_date above)."""
+    m = _EXOME_DATE_RE.match(str(value or "").strip())
+    if not m:
+        return ""
+    d, mo, y = m.groups()
+    return f"{y}-{mo.zfill(2)}-{d.zfill(2)}"
+
+
+def _exome_release_dates_by_anderson_id() -> dict[str, str]:
+    import reports_client
+
+    if not reports_client.is_configured():
+        return {}
+
+    dates: dict[str, str] = {}
+    for rec in reports_client.list_reports():
+        and_id = str(rec.get("and_id") or "").strip().upper()
+        iso = _exome_date_to_iso(rec.get("report_release_date"))
+        if and_id and iso:
+            dates[and_id] = iso
+    return dates
+
+
+def sync_release_dates_from_exome_tracker() -> dict:
+    """Auto-fill CMC's "Report released date" from the exome tracker's own
+    release date for any CMC sample that already has one there but not here,
+    matched by Anderson ID. Best-effort: any failure is returned, never
+    raised, since this runs opportunistically (after an exome edit, and on
+    a periodic timer) and must never disrupt its caller.
+    """
+    try:
+        exome_dates = _exome_release_dates_by_anderson_id()
+    except Exception as exc:  # noqa: BLE001 - reports API being down shouldn't break the caller
+        return {"success": False, "error": str(exc)}
+
+    if not exome_dates:
+        return {"success": True, "updated": 0}
+
+    try:
+        all_data = get_all_data()
+    except Exception as exc:  # noqa: BLE001
+        return {"success": False, "error": str(exc)}
+
+    items = []
+    for sheet_name, sheet in all_data.get("sheets", {}).items():
+        for row in sheet.get("rows", []):
+            if row.get("reportReleasedDate"):
+                continue  # already filled — exome isn't the only way this gets set
+            and_id = str(row.get("andersonId") or "").strip().upper()
+            row_index = row.get("_rowIndex")
+            released = exome_dates.get(and_id)
+            if and_id and row_index and released:
+                items.append({"sheetName": sheet_name, "rowIndex": row_index, "value": released})
+
+    if not items:
+        return {"success": True, "updated": 0}
+
+    result = update_report_released_date_bulk(items)
+    result.setdefault("updated", len(items) if result.get("success") else 0)
+    return result
+
+
+_exome_sync_scheduler = None
+
+
+def schedule_exome_release_sync() -> None:
+    """Periodic safety-net poll, catching anything the after-edit trigger in
+    exome_api.py missed (a transient failure, or an edit path it doesn't
+    hook). Runs every CMC_ST_EXOME_SYNC_MINUTES minutes."""
+    global _exome_sync_scheduler
+    if not ENABLE_EXOME_SYNC or _exome_sync_scheduler is not None:
+        return
+
+    from apscheduler.schedulers.background import BackgroundScheduler
+    from apscheduler.triggers.interval import IntervalTrigger
+
+    def _run():
+        try:
+            result = sync_release_dates_from_exome_tracker()
+            if result.get("updated"):
+                print(f"[cmc_sample_tracking] exome sync filled {result['updated']} release date(s)")
+        except Exception as exc:  # noqa: BLE001 - keep the scheduler alive
+            print(f"[cmc_sample_tracking] exome sync job failed: {exc}")
+
+    _exome_sync_scheduler = BackgroundScheduler(timezone=TZ_NAME)
+    _exome_sync_scheduler.add_job(_run, IntervalTrigger(minutes=EXOME_SYNC_MINUTES))
+    _exome_sync_scheduler.start()
+    print(f"[cmc_sample_tracking] exome release-date sync scheduled every {EXOME_SYNC_MINUTES} min")
+
+
+def trigger_exome_sync_async() -> None:
+    """Fire-and-forget sync, called right after an exome report's release
+    date is set/edited, so the CMC sheet picks it up within seconds instead
+    of waiting for the next periodic poll. Runs off-thread so a slow or
+    failing sync never delays the exome tracker's own response.
+    """
+    import threading
+
+    def _run():
+        try:
+            result = sync_release_dates_from_exome_tracker()
+            if result.get("updated"):
+                print(f"[cmc_sample_tracking] exome sync (post-edit) filled {result['updated']} release date(s)")
+        except Exception as exc:  # noqa: BLE001 - never let this affect the exome save
+            print(f"[cmc_sample_tracking] exome sync (post-edit) failed: {exc}")
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
 # --- Mail ---------------------------------------------------------------
 
 _DATA_URL_RE = re.compile(r"^data:([^;]+);base64,(.+)$", re.S)
@@ -322,17 +526,21 @@ def _send_via_smtp(msg: EmailMessage) -> None:
         server.send_message(msg)
 
 
-def _send_via_apps_script(params: dict) -> dict:
+def _post_to_apps_script(action: str, params: dict) -> dict:
     try:
         resp = requests.post(
             APPS_SCRIPT_EXEC_URL,
-            data=json.dumps({"action": "sendEmail", **params}),
+            data=json.dumps({"action": action, **params}),
             headers={"Content-Type": "text/plain"},
             timeout=30,
         )
         return resp.json()
     except Exception as exc:  # noqa: BLE001 - mirrors the Node fallback's catch-all
         return {"success": False, "error": str(exc)}
+
+
+def _send_via_apps_script(params: dict) -> dict:
+    return _post_to_apps_script("sendEmail", params)
 
 
 def send_email_action(params: dict) -> dict:

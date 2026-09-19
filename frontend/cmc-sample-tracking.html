@@ -606,6 +606,59 @@
         .stat-item.stat-overdue   { background: rgba(220,38,38,0.92);  border-color: rgba(252,165,165,0.85); color: #fff; }
         .stat-item.stat-completed { background: rgba(5,150,105,0.92);  border-color: rgba(110,231,183,0.85); color: #fff; }
 
+        .bulk-release-bar {
+            align-items: center;
+            gap: 12px;
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .bulk-release-bar #bulkReleaseCount {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        .bulk-release-bar input[type="date"] {
+            padding: 7px 10px;
+            border: 1.5px solid #93c5fd;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .bulk-release-bar button {
+            padding: 7px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bulk-release-bar #bulkReleaseApplyBtn {
+            background: linear-gradient(135deg, #1e40af, #2563eb);
+            color: white;
+        }
+        .bulk-release-bar #bulkReleaseApplyBtn:hover { filter: brightness(1.08); }
+        .bulk-release-bar #bulkReleaseApplyBtn:disabled { opacity: 0.6; cursor: default; }
+        .bulk-release-bar .bulk-release-clear {
+            background: white;
+            border: 1.5px solid #d1d5db;
+            color: #374151;
+        }
+        .bulk-release-bar .bulk-release-clear:hover { background: #f9fafb; }
+
+        th.col-select, td.col-select {
+            min-width: 34px;
+            width: 34px;
+            padding: 6px;
+        }
+        .row-select-cb { width: 16px; height: 16px; cursor: pointer; }
+        .row-select-cb:disabled { cursor: not-allowed; opacity: 0.35; }
+
         .stat-label {
             font-size: 11px;
             opacity: 0.88;
@@ -1241,6 +1294,7 @@
         let activeFilterLabel = '';
         let activeTATFilter = null;
         const _mailPreviewCache = {};
+        const selectedReleaseRows = new Map(); // key `${sheetName}::${rowIndex}` -> {sheetName, rowIndex}
 
         // Column mapping patterns - will auto-detect from actual headers
         const COLUMN_PATTERNS = {
@@ -1365,6 +1419,91 @@
             let h = 0;
             for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
             return sheet + '_' + (h >>> 0).toString(36);
+        }
+
+        // --- Bulk "fill release date for selected samples" -----------------
+
+        function _relKey(sheetName, rowIndex) { return sheetName + '::' + rowIndex; }
+
+        function toggleReleaseRowSelection(checkbox, sheetEnc, rowIndex) {
+            const sheetName = decodeURIComponent(sheetEnc);
+            const key = _relKey(sheetName, rowIndex);
+            if (checkbox.checked) selectedReleaseRows.set(key, { sheetName, rowIndex });
+            else selectedReleaseRows.delete(key);
+            _updateBulkReleaseBar();
+        }
+
+        function toggleSelectAllReleaseRows(checkbox) {
+            document.querySelectorAll('#tableBody .row-select-cb:not(:disabled)').forEach(cb => {
+                if (cb.checked !== checkbox.checked) {
+                    cb.checked = checkbox.checked;
+                    cb.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function clearReleaseSelection() {
+            selectedReleaseRows.clear();
+            document.querySelectorAll('.row-select-cb').forEach(cb => cb.checked = false);
+            _updateBulkReleaseBar();
+        }
+
+        function _updateBulkReleaseBar() {
+            const bar = document.getElementById('bulkReleaseBar');
+            const countEl = document.getElementById('bulkReleaseCount');
+            if (!bar || !countEl) return;
+            const n = selectedReleaseRows.size;
+            countEl.textContent = `${n} sample${n === 1 ? '' : 's'} selected`;
+            bar.style.display = n > 0 ? 'flex' : 'none';
+        }
+
+        function _applyReleaseDateLocally(sheetName, rowIndex, value) {
+            ((allData[sheetName] || {}).rows || []).forEach(r => {
+                if (String(r._rowIndex) === String(rowIndex)) r.reportReleasedDate = value;
+            });
+            (currentView || []).forEach(r => {
+                if ((r._sourceSheet || currentSheet) === sheetName && String(r._rowIndex) === String(rowIndex)) {
+                    r.reportReleasedDate = value;
+                }
+            });
+        }
+
+        async function applyBulkReleaseDate() {
+            const dateInput = document.getElementById('bulkReleaseDate');
+            const value = dateInput.value;
+            if (!value) { showToast('Pick a date first', 'error'); return; }
+            if (selectedReleaseRows.size === 0) { showToast('No samples selected', 'error'); return; }
+
+            const items = Array.from(selectedReleaseRows.values());
+            const btn = document.getElementById('bulkReleaseApplyBtn');
+            const original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'updateReportReleasedDateBulk', items, value })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    items.forEach(it => _applyReleaseDateLocally(it.sheetName, it.rowIndex, value));
+                    showToast(`✓ Release date saved for ${items.length} sample${items.length === 1 ? '' : 's'}`, 'success');
+                    selectedReleaseRows.clear();
+                    const inFilteredMonthsView = activeFilterFn && !document.querySelector('.tab.active');
+                    if (inFilteredMonthsView) showAllFilteredMonths();
+                    else if (currentSheet) displaySheet(currentSheet);
+                    else showAllFilteredMonths();
+                } else {
+                    showToast('❌ Save failed: ' + (json.error || (json.errors || []).join('; ') || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                showToast('❌ Save failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = original;
+            }
         }
 
         function _rptGet()  { try { return JSON.parse(localStorage.getItem(_RPT_STORE) || '{}'); } catch { return {}; } }
@@ -2772,10 +2911,17 @@ Anderson Diagnostics`;
                         ${getTATStats(statRows || rows)}
                     </div>
                 </div>
+                <div class="bulk-release-bar" id="bulkReleaseBar" style="display:${selectedReleaseRows.size ? 'flex' : 'none'}">
+                    <span id="bulkReleaseCount">${selectedReleaseRows.size} sample${selectedReleaseRows.size === 1 ? '' : 's'} selected</span>
+                    <input type="date" id="bulkReleaseDate">
+                    <button type="button" id="bulkReleaseApplyBtn" onclick="applyBulkReleaseDate()">Apply Release Date</button>
+                    <button type="button" class="bulk-release-clear" onclick="clearReleaseSelection()">Clear</button>
+                </div>
             `;
-            
+
             html += '<div class="table-container"><table><thead><tr>';
-            
+            html += `<th class="col-select"><input type="checkbox" id="selectAllReleaseRows" class="row-select-cb" onchange="toggleSelectAllReleaseRows(this)" title="Select all rows shown"></th>`;
+
             const wideCols = new Set(['Sample Name', 'Test', 'Client Department', 'Client Doctor Name', 'Remarks']);
             cols.forEach((col, index) => {
                 if (col.noSort) {
@@ -2793,6 +2939,14 @@ Anderson Diagnostics`;
             rows.forEach(row => {
                 const rowClass = getTATClass(row);
                 html += `<tr class="${rowClass}" data-rowkey="${encodeURIComponent(_rowKey(row))}">`;
+
+                const relSheet = row._sourceSheet || currentSheet;
+                const relKey = row._rowIndex ? _relKey(relSheet, row._rowIndex) : '';
+                const relChecked = relKey && selectedReleaseRows.has(relKey) ? ' checked' : '';
+                const relDisabled = row._rowIndex ? '' :
+                    ' disabled title="This row has no sheet position yet — redeploy the Apps Script to enable bulk date fill"';
+                html += `<td class="col-select"><input type="checkbox" class="row-select-cb"${relChecked}${relDisabled} `
+                     + `onchange="toggleReleaseRowSelection(this,'${encodeURIComponent(relSheet)}',${row._rowIndex || 0})"></td>`;
 
                 cols.forEach(col => {
                     const value = col.getValue(row);
