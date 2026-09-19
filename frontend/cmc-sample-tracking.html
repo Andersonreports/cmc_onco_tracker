@@ -3171,8 +3171,9 @@ Anderson Diagnostics`;
         }
 
         function searchTable() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase().trim();
-            
+            const searchBox = document.getElementById('searchBox');
+            const searchTerm = searchBox.value.toLowerCase().trim();
+
             if (!searchTerm) {
                 const currentTitle = document.querySelector('.result-header h3');
                 if (currentTitle) {
@@ -3181,17 +3182,53 @@ Anderson Diagnostics`;
                 }
                 return;
             }
-            
-            const filtered = currentView.filter(row => {
-                return Object.values(row).some(val => {
-                    if (val === null || val === undefined) return false;
-                    return String(val).toLowerCase().includes(searchTerm);
+
+            const matchesTerm = row => Object.values(row).some(val => {
+                if (val === null || val === undefined) return false;
+                return String(val).toLowerCase().includes(searchTerm);
+            });
+
+            // A global search: the point is finding a sample when you don't know
+            // which month it's in, so this searches every sheet, not just the
+            // one currently open.
+            const allMatches = [];
+            Object.keys(allData).forEach(sheetName => {
+                (allData[sheetName].rows || []).forEach(row => {
+                    const rowWithSource = { ...row, _sourceSheet: sheetName };
+                    if (matchesTerm(rowWithSource)) allMatches.push(rowWithSource);
                 });
             });
-            
-            const currentTitle = document.querySelector('.result-header h3');
-            const baseTitle = currentTitle ? currentTitle.textContent.replace(' (Filtered)', '') : '';
-            renderTable(filtered, baseTitle + ` (Filtered)`);
+
+            const rawTerm = searchBox.value;
+
+            if (allMatches.length === 0) {
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="result-header"><h3>Search: "${rawTerm}"</h3></div>
+                    <div class="no-data">No samples match "${rawTerm}" in any month</div>`;
+                return;
+            }
+
+            const sheetsWithMatches = [...new Set(allMatches.map(r => r._sourceSheet))];
+
+            if (sheetsWithMatches.length === 1) {
+                // Every match lives in one month — jump to that tab (like clicking
+                // it) so the sample is shown in its normal context, filtered down.
+                const sheetName = sheetsWithMatches[0];
+                currentSheet = sheetName;
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.textContent === sheetName);
+                });
+                const sheetData = allData[sheetName];
+                currentView = (sheetData.rows || []).map(row => ({ ...row, _sourceSheet: sheetName }));
+                const filtered = currentView.filter(matchesTerm);
+                renderTable(filtered, `${sheetName} - Search: "${rawTerm}"`, sheetData.headers, currentView);
+            } else {
+                // Spread across months — show every match together instead of
+                // picking one tab arbitrarily.
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                renderTable(allMatches, `Search: "${rawTerm}" (${sheetsWithMatches.length} months)`);
+            }
         }
 
         function applyTopFilter() {
