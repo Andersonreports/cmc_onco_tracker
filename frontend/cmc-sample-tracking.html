@@ -2772,7 +2772,7 @@ Anderson Diagnostics`;
             
             html += '<div class="table-container"><table><thead><tr>';
             
-            const wideCols = new Set(['Test', 'Client Department', 'Client Doctor Name', 'Remarks']);
+            const wideCols = new Set(['Sample Name', 'Test', 'Client Department', 'Client Doctor Name', 'Remarks']);
             cols.forEach((col, index) => {
                 if (col.noSort) {
                     const cls = col.title === 'Reports' ? 'col-report' : col.title === 'Choose Department' ? 'col-dept' : 'col-mail';
