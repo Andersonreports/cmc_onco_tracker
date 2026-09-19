@@ -42,6 +42,12 @@ TRACKERS = {
         "page": "clinical-history.html",
         "section": "bioinfo",
     },
+    "cmc-sample-tracking": {
+        "label": "CMC Sample Tracking",
+        "path": "/cmc-sample-tracking/",
+        "page": "cmc-sample-tracking.html",
+        "section": "bioinfo",
+    },
     "coverage": {
         "label": "Coverage Checker",
         "path": "/anderson-coverage/",

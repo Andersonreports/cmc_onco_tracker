@@ -1,0 +1,3103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMC Sample Tracking | Anderson Reports</title>
+    <link rel="icon" type="image/png" href="/and-logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f1f4f9;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 15% 20%, rgba(99,102,241,0.07) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 40% at 85% 75%, rgba(79,70,229,0.06) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .sidebar {
+            width: 195px;
+            background: linear-gradient(175deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+            padding: 18px 14px;
+            overflow-y: auto;
+            box-shadow: 6px 0 32px rgba(15,23,42,0.6);
+            border-right: 1px solid rgba(99,102,241,0.18);
+            position: relative;
+        }
+        .sidebar::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 1px; height: 100%;
+            background: linear-gradient(180deg, transparent, rgba(99,102,241,0.5), rgba(79,70,229,0.35), transparent);
+        }
+        .back-to-home {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.25);
+            color: rgba(255,255,255,.85); text-decoration: none;
+            transition: all .2s ease;
+        }
+        .back-to-home:hover { background: #4f46e5; border-color: #4f46e5; color: #fff; transform: translateX(-2px); box-shadow: 0 0 14px rgba(79,70,229,0.6); }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            background: linear-gradient(90deg, #a5b4fc, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 1px solid rgba(99,102,241,0.25);
+            padding-bottom: 10px;
+        }
+
+        .menu-item {
+            background: rgba(255,255,255,0.04);
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(.4,0,.2,1);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .menu-item:hover {
+            background: rgba(99,102,241,0.22);
+            transform: translateX(5px);
+            border-color: rgba(99,102,241,0.5);
+            box-shadow: 0 3px 16px rgba(79,70,229,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(100deg, rgba(79,70,229,0.5) 0%, rgba(99,102,241,0.4) 100%);
+            border-color: rgba(99,102,241,0.65);
+            box-shadow: 0 4px 18px rgba(79,70,229,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
+            color: white;
+            font-weight: 600;
+        }
+
+        .filter-section {
+            display: none;
+            margin-top: 12px;
+            padding: 13px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-section.active {
+            display: block;
+        }
+
+        .filter-section label {
+            display: block;
+            margin-bottom: 5px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #ecf0f1;
+            font-weight: 500;
+        }
+
+        .filter-section select, .filter-section button {
+            width: 100%;
+            padding: 10px 15px; /* Increased side padding */
+            margin-bottom: 12px;
+            border: 1px solid #dcdde1;
+            border-radius: 6px;
+            font-size: 14px;
+            height: 44px; /* Increased height slightly */
+            outline: none;
+            box-sizing: border-box; /* Ensure padding doesn't affect width */
+        }
+
+        .filter-section select {
+            background: white;
+            cursor: pointer;
+            color: #2c3e50;
+            font-weight: 500;
+            min-width: 200px; /* Ensure a minimum width */
+        }
+
+        .filter-section button {
+            background: #27ae60;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-section button:hover {
+            background: #2ecc71;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .filter-section button.reset-btn {
+            background: #e74c3c;
+            margin-top: 6px;
+        }
+
+        .filter-section button.reset-btn:hover {
+            background: #c0392b;
+        }
+
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-bar-group label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-bar-group select {
+            padding: 7px 12px;
+            border: 1.5px solid #c7d2fe;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            background: linear-gradient(135deg, #f5f3ff, white);
+            cursor: pointer;
+            min-width: 165px;
+            height: 38px;
+            box-shadow: 0 1px 6px rgba(79,70,229,0.08);
+            transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .filter-bar-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+        }
+
+        .apply-filter-btn, .reset-filter-btn {
+            padding: 0 20px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            height: 38px;
+            letter-spacing: 0.2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .apply-filter-btn:hover, .reset-filter-btn:hover { transform: translateY(-2px); }
+        .apply-filter-btn:active, .reset-filter-btn:active { transform: scale(0.97); }
+
+        .apply-filter-btn {
+            background: linear-gradient(135deg, #3730a3, #4f46e5);
+            color: white;
+            box-shadow: 0 3px 12px rgba(79,70,229,0.4);
+        }
+        .apply-filter-btn:hover {
+            background: linear-gradient(135deg, #312e81, #3730a3);
+            box-shadow: 0 6px 20px rgba(79,70,229,0.5);
+        }
+        .reset-filter-btn {
+            background: white;
+            color: #374151;
+            border: 1.5px solid #d1d5db;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .reset-filter-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            color: #111827;
+        }
+
+        /* Filter section relocated into the dark sidebar */
+        .sidebar-filter {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            margin: 6px 0 14px;
+            padding: 12px;
+            border-top: none;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(99,102,241,0.25);
+            border-radius: 12px;
+        }
+        .sidebar-filter-title {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #a5b4fc;
+        }
+        .sidebar-filter .filter-bar-group {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 5px;
+        }
+        .sidebar-filter .filter-bar-group label {
+            color: #cbd5e1;
+        }
+        .sidebar-filter .filter-bar-group select {
+            width: 100%;
+            min-width: 0;
+        }
+        .sidebar-filter .apply-filter-btn,
+        .sidebar-filter .reset-filter-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            min-width: 0;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(12px);
+            padding: 12px 24px;
+            box-shadow: 0 2px 16px rgba(15,23,42,0.08);
+            border-bottom: 2px solid rgba(79,70,229,0.18);
+        }
+
+        .header-title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .header-title-row h1 {
+            background: linear-gradient(90deg, #1e293b, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 8px 16px 8px 36px;
+            border: 1.5px solid #c7d2fe;
+            border-radius: 24px;
+            font-size: 14px;
+            background: #f5f3ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%234f46e5' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E") no-repeat 12px center;
+            transition: all 0.2s;
+            box-shadow: inset 0 1px 4px rgba(79,70,229,0.07);
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15), inset 0 1px 4px rgba(79,70,229,0.07);
+        }
+
+        .send-mail-btn {
+            flex-shrink: 0;
+            padding: 9px 20px;
+            border: none;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #4338ca, #6366f1);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            box-shadow: 0 3px 12px rgba(79,70,229,0.35);
+            transition: all 0.2s;
+        }
+        .send-mail-btn:hover {
+            background: linear-gradient(135deg, #312e81, #4f46e5);
+            box-shadow: 0 5px 18px rgba(79,70,229,0.5);
+            transform: translateY(-1px);
+        }
+        .send-mail-btn:active { transform: scale(0.97); }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 13px;
+            margin-bottom: 7px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.22s cubic-bezier(.4,0,.2,1);
+            letter-spacing: 0.2px;
+            border-right: 1px solid transparent;
+            border-top: 1px solid transparent;
+            border-bottom: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .sidebar-btn:active { transform: scale(0.97); }
+
+        .total-samples-btn {
+            justify-content: space-between;
+            background: rgba(99,102,241,0.18);
+            border: 1px solid rgba(129,140,248,0.5);
+            color: #e0e7ff;
+            margin-bottom: 12px;
+        }
+        .total-samples-btn:hover {
+            background: rgba(99,102,241,0.3);
+            border-color: rgba(165,180,252,0.8);
+        }
+        .total-samples-btn .ts-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .total-samples-btn .ts-count {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+            background: #4f46e5;
+            border-radius: 8px;
+            padding: 1px 11px;
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .sidebar-btn-config {
+            background: rgba(99,102,241,0.12);
+            border-left: 3px solid #6366f1;
+            border-color: rgba(99,102,241,0.25) rgba(99,102,241,0.12) rgba(99,102,241,0.12) #6366f1;
+            color: #c7d2fe;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.15);
+        }
+        .sidebar-btn-config:hover {
+            background: rgba(99,102,241,0.25);
+            border-color: rgba(99,102,241,0.5) rgba(99,102,241,0.25) rgba(99,102,241,0.25) #818cf8;
+            color: #e0e7ff;
+            transform: translateX(3px);
+            box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+        }
+        .sidebar-btn-refresh {
+            background: rgba(14,165,233,0.12);
+            border-left: 3px solid #0ea5e9;
+            border-color: rgba(14,165,233,0.25) rgba(14,165,233,0.12) rgba(14,165,233,0.12) #0ea5e9;
+            color: #bae6fd;
+            box-shadow: 0 2px 8px rgba(14,165,233,0.15);
+        }
+        .sidebar-btn-refresh:hover {
+            background: rgba(14,165,233,0.25);
+            border-color: rgba(14,165,233,0.5) rgba(14,165,233,0.25) rgba(14,165,233,0.25) #38bdf8;
+            color: #e0f2fe;
+            transform: translateX(3px);
+            box-shadow: 0 4px 16px rgba(14,165,233,0.3);
+        }
+        .sidebar-btn-reset {
+            background: rgba(239,68,68,0.1);
+            border-left: 3px solid #ef4444;
+            border-color: rgba(239,68,68,0.22) rgba(239,68,68,0.1) rgba(239,68,68,0.1) #ef4444;
+            color: #fca5a5;
+            box-shadow: 0 2px 8px rgba(239,68,68,0.12);
+        }
+        .sidebar-btn-reset:hover {
+            background: rgba(239,68,68,0.22);
+            border-color: rgba(239,68,68,0.45) rgba(239,68,68,0.22) rgba(239,68,68,0.22) #f87171;
+            color: #fee2e2;
+            transform: translateX(3px);
+            box-shadow: 0 4px 16px rgba(239,68,68,0.28);
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(79,70,229,0.15);
+            overflow-x: auto;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+        }
+
+        .tab {
+            padding: 12px 18px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .tab:hover {
+            color: #4f46e5;
+            background: rgba(79,70,229,0.07);
+        }
+
+        .tab.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+            font-weight: 700;
+            background: rgba(79,70,229,0.06);
+        }
+
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 60%, #475569 100%);
+            color: white;
+            padding: 10px 18px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            box-shadow: 0 6px 24px rgba(15,23,42,0.3), 0 1px 4px rgba(15,23,42,0.15);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            flex-shrink: 0;
+        }
+
+        .result-header h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            flex: 1;
+            min-width: 150px;
+            letter-spacing: -0.2px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .result-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(6px);
+            padding: 5px 14px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        .stat-item.clickable {
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .stat-item.clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            filter: brightness(1.12);
+        }
+
+        .stat-item.clickable.active-filter {
+            border-color: rgba(255,255,255,0.95);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.75), 0 4px 12px rgba(0,0,0,0.2);
+            filter: brightness(1.12);
+        }
+
+        /* Status-based button colors */
+        .stat-item.stat-total     { background: rgba(99,102,241,0.85); border-color: rgba(165,180,252,0.75); color: #fff; }
+        .stat-item.stat-ongoing   { background: rgba(217,119,6,0.92);  border-color: rgba(252,211,77,0.85);  color: #fff; }
+        .stat-item.stat-overdue   { background: rgba(220,38,38,0.92);  border-color: rgba(252,165,165,0.85); color: #fff; }
+        .stat-item.stat-completed { background: rgba(5,150,105,0.92);  border-color: rgba(110,231,183,0.85); color: #fff; }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.88;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .table-container {
+            background: #ffffff;
+            border-radius: 8px;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-width: 100%;
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            border: 1px solid #d6dbe7;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+        }
+        
+        .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #eef2ff; border-radius: 8px; }
+        .table-container::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #4f46e5, #6366f1); border-radius: 8px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #3730a3, #4f46e5); }
+
+        /* Scroll hint */
+        .scroll-hint {
+            text-align: center;
+            padding: 8px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            font-size: 12px;
+            border-radius: 5px 5px 0 0;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .scroll-hint.show {
+            display: block;
+        }
+
+        .scroll-hint::before {
+            content: '← ';
+        }
+
+        .scroll-hint::after {
+            content: ' →';
+        }
+
+        th {
+            background: #3730a3;
+            color: white;
+            padding: 9px 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12.5px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+            min-width: 150px;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255,255,255,0.15);
+            border-bottom: 2px solid #312e81;
+        }
+
+        th:hover {
+            background: #312e81;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.5;
+        }
+
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        td {
+            padding: 7px 14px;
+            border-bottom: 1px solid #e2e6ef;
+            border-right: 1px solid #eceef4;
+            font-size: 13px;
+            min-width: 150px;
+            max-width: 350px;
+            white-space: normal;
+            word-wrap: break-word;
+            vertical-align: middle;
+            line-height: 1.35;
+            text-align: center;
+            color: #1f2937;
+        }
+
+        tbody tr:nth-child(odd):not(.tat-overdue):not(.tat-pending):not(.tat-completed) td {
+            background: #ffffff;
+        }
+        tbody tr:nth-child(even):not(.tat-overdue):not(.tat-pending):not(.tat-completed) td {
+            background: #f3f5fa;
+        }
+        tr:hover td {
+            background: #e8ebf5 !important;
+        }
+
+        .col-history {
+            min-width: 500px;
+            max-width: 600px;
+        }
+
+        /* Wider text-heavy columns (Test, Client Department, Client Doctor Name, Remarks) */
+        .col-wide {
+            min-width: 280px;
+            max-width: 600px;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        .warning {
+            background: #f39c12;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        /* Overdue — red/rose */
+        .tat-overdue td  { background: #fde2e2 !important; color: #7f1d1d; }
+        .tat-overdue td:first-child  { border-left: 5px solid #dc2626 !important; }
+        .tat-overdue:hover td { background: #fbd0d0 !important; }
+
+        /* Ongoing — amber/yellow */
+        .tat-pending td  { background: #fdf0c9 !important; color: #78350f; }
+        .tat-pending td:first-child  { border-left: 5px solid #d97706 !important; }
+        .tat-pending:hover td { background: #fbe6a8 !important; }
+
+        /* Completed/Released — green */
+        .tat-completed td { background: #d7f5e3 !important; color: #064e3b; }
+        .tat-completed td:first-child { border-left: 5px solid #059669 !important; }
+        .tat-completed:hover td { background: #bff0d3 !important; }
+
+        .status-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+        }
+        .badge-released { background: linear-gradient(135deg,#d1fae5,#a7f3d0); color:#065f46; border:1px solid #6ee7b7; box-shadow:0 1px 6px rgba(16,185,129,0.2); }
+        .badge-overdue  { background: linear-gradient(135deg,#ffe4e6,#fecdd3); color:#9f1239; border:1px solid #fca5a5; box-shadow:0 1px 6px rgba(244,63,94,0.2); }
+        .badge-ongoing  { background: linear-gradient(135deg,#fef9c3,#fde68a); color:#92400e; border:1px solid #fcd34d; box-shadow:0 1px 6px rgba(245,158,11,0.2); }
+
+        .month-year-picker {
+            display: none;
+        }
+
+        .month-year-picker.active {
+            display: block;
+        }
+
+        .date-picker-group {
+            display: none;
+        }
+
+        .date-picker-group.active {
+            display: block;
+            margin-top: 10px;
+        }
+
+        .available-data-info {
+            background: rgba(15,23,42,0.5);
+            padding: 12px 13px;
+            border-radius: 12px;
+            margin: 14px 0 0;
+            font-size: 12px;
+            border: 1px solid rgba(99,102,241,0.2);
+            backdrop-filter: blur(6px);
+        }
+
+        .available-data-info h4 {
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #a5b4fc;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0;
+            font-size: 11.5px;
+        }
+
+        .info-label {
+            color: rgba(148,163,184,0.8);
+            padding: 4px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .info-value {
+            color: #e2e8f0;
+            font-weight: 700;
+            padding: 4px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+            font-size: 17px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.7);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(79,70,229,0.07);
+            border: 1px dashed rgba(79,70,229,0.2);
+            letter-spacing: -0.1px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+            box-shadow: 0 30px 70px rgba(15,23,42,0.2), 0 8px 24px rgba(79,70,229,0.15);
+            border: 1px solid rgba(255,255,255,0.9);
+            animation: modalIn 0.2s cubic-bezier(.4,0,.2,1);
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:scale(0.96) translateY(8px); }
+            to   { opacity:1; transform:scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background: #c0392b;
+        }
+
+        /* ── Email modal ───────────────────────────────────── */
+        .email-form-group { margin-bottom: 14px; }
+        .email-form-group label { display: block; font-weight: 600; font-size: 12px; margin-bottom: 5px; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; }
+        .email-form-group input,
+        .email-form-group textarea {
+            width: 100%; padding: 9px 13px; font-family: inherit;
+            border: 1.5px solid #c7d2fe; border-radius: 9px;
+            font-size: 13px; box-sizing: border-box; color: #374151;
+            background: #f5f3ff;
+            transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .email-form-group input:focus,
+        .email-form-group textarea:focus {
+            outline: none; border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+            background: white;
+        }
+        .email-form-group textarea { height: 160px; resize: vertical; line-height: 1.55; }
+        .email-send-btn {
+            background: linear-gradient(135deg,#059669,#10b981); color:white; border:none;
+            padding:10px 26px; border-radius:9px; cursor:pointer; font-weight:700; font-size:14px;
+            box-shadow: 0 3px 12px rgba(5,150,105,0.35); transition: all 0.2s;
+        }
+        .email-send-btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(5,150,105,0.45); }
+        .email-cancel-btn {
+            background:#f3f4f6; color:#374151; border:1.5px solid #e5e7eb;
+            padding:10px 20px; border-radius:9px; cursor:pointer; font-size:14px; font-weight:500;
+            transition: all 0.2s;
+        }
+        .email-cancel-btn:hover { background:#e5e7eb; }
+
+        .config-section {
+            margin-bottom: 20px;
+        }
+
+        .config-section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .config-label {
+            font-weight: 500;
+            padding: 8px;
+            background: #ecf0f1;
+            border-radius: 3px;
+        }
+
+        .config-value {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .mapping-detected {
+            color: #27ae60;
+        }
+
+        .mapping-missing {
+            color: #e74c3c;
+        }
+
+        .col-report { min-width: 160px; }
+        .col-mail   { min-width: 100px; text-align: center; }
+        .col-dept   { min-width: 220px; }
+
+        .dept-select {
+            width: 100%; min-width: 200px;
+            border: 1.5px solid #c4b5fd; border-radius: 8px;
+            padding: 6px 9px; font-size: 12px;
+            background: linear-gradient(135deg,#f0f9fb,white); cursor: pointer; color: #374151;
+            box-shadow: 0 1px 6px rgba(124,58,237,0.1);
+            transition: border-color 0.18s, box-shadow 0.18s;
+            font-family: inherit;
+        }
+        .dept-select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
+        .dept-select.selected {
+            background: linear-gradient(135deg,#faf5ff,#f3e8ff); border-color: #8b5cf6;
+            font-weight: 600; color: #6d28d9;
+            box-shadow: 0 2px 8px rgba(139,92,246,0.25);
+        }
+
+        .report-file-chip {
+            display: flex; align-items: center; gap: 5px;
+            background: linear-gradient(135deg,#eff6ff,#dbeafe); border-radius: 6px;
+            padding: 3px 8px; margin-bottom: 4px; font-size: 11px;
+            border: 1px solid #bfdbfe;
+        }
+        .report-file-chip a {
+            color: #1d4ed8; text-decoration: none; font-weight: 500;
+            overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; max-width: 120px;
+        }
+        .report-file-chip a:hover { text-decoration: underline; color: #1e40af; }
+        .report-file-remove {
+            cursor: pointer; color: #ef4444; font-weight: bold; flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .report-file-remove:hover { color: #b91c1c; }
+
+        .report-upload-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: linear-gradient(135deg,#1d4ed8,#3b82f6); color: white; border-radius: 8px;
+            padding: 5px 11px; font-size: 11px; cursor: pointer; font-weight: 600;
+            white-space: nowrap; margin-top: 4px;
+            box-shadow: 0 2px 8px rgba(29,78,216,0.35);
+            transition: all 0.18s; border: none;
+        }
+        .report-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(29,78,216,0.45); filter: brightness(1.08); }
+
+        .mail-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: linear-gradient(135deg,#6d28d9,#8b5cf6); color: white; border-radius: 8px;
+            padding: 6px 13px; font-size: 11px; text-decoration: none; font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(109,40,217,0.35);
+            transition: all 0.18s;
+        }
+        .mail-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(109,40,217,0.45); filter: brightness(1.08); }
+
+        .mail-sent-wrap { text-align:center; line-height:1.5; }
+        .mail-sent-label { color:#059669; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; gap:3px; }
+        .mail-sent-time  { font-size:10px; color:#9ca3af; margin-top:1px; }
+        .resend-btn {
+            margin-top:5px; font-size:11px; padding:3px 10px;
+            background: linear-gradient(135deg,#6d28d9,#8b5cf6);
+            color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;
+            box-shadow: 0 2px 6px rgba(109,40,217,0.3);
+            transition: all 0.18s; display:inline-block;
+        }
+        .resend-btn:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(109,40,217,0.4); }
+
+        /* ── Mail preview button ───────────────────────────────── */
+        .mail-action-btns { display:flex; gap:4px; justify-content:center; margin-top:5px; }
+        .mail-icon-btn {
+            font-size:10px; padding:2px 8px; border:none; border-radius:5px; cursor:pointer;
+            font-weight:600; transition: all 0.18s; display:inline-flex; align-items:center; gap:2px;
+            white-space:nowrap;
+        }
+        .mail-preview-btn { background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; box-shadow:0 1px 5px rgba(79,70,229,0.35); }
+        .mail-preview-btn:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(79,70,229,0.5); filter:brightness(1.08); }
+
+        /* ── Mail preview modal (editable fields) ──────────────── */
+        .mp-field { display:flex; gap:0; margin-bottom:10px; align-items:flex-start; }
+        .mp-label {
+            flex-shrink:0; width:72px; font-weight:700; font-size:11px; text-transform:uppercase;
+            letter-spacing:0.5px; color:#4f46e5; padding:9px 0 0;
+        }
+        .mp-input {
+            flex:1; width:100%; background:#f5f3ff; border:1.5px solid #c7d2fe; border-radius:8px;
+            padding:7px 11px; font-size:13px; color:#374151; font-family:inherit; box-sizing:border-box;
+            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s; cursor:text;
+        }
+        .mp-input:focus {
+            outline:none; border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,0.15); background:white;
+        }
+        .mp-body-input {
+            flex:1; width:100%; background:#f5f3ff; border:1.5px solid #c7d2fe; border-radius:8px;
+            padding:10px 12px; font-size:12px; color:#374151; font-family:inherit; box-sizing:border-box;
+            line-height:1.6; resize:vertical; height:165px;
+            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s; cursor:text;
+        }
+        .mp-body-input:focus {
+            outline:none; border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,0.15); background:white;
+        }
+        .mp-sent-badge {
+            display:inline-flex; align-items:center; gap:5px; background:#d1fae5;
+            border:1px solid #6ee7b7; border-radius:6px; padding:4px 10px;
+            font-size:11px; font-weight:700; color:#065f46; margin-bottom:12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(99,102,241,0.3);">
+            <a href="/bioinfo/" class="back-to-home" title="Back to Bioinfo Trackers">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+        </div>
+
+
+        <button class="sidebar-btn total-samples-btn" onclick="resetTopFilter()" title="Show all samples">
+            <span class="ts-label">Total Samples</span>
+            <span class="ts-count" id="totalSamplesCount">–</span>
+        </button>
+        <button class="sidebar-btn sidebar-btn-refresh" onclick="loadAllData(true)">Refresh Data</button>
+        <button class="sidebar-btn sidebar-btn-reset" onclick="resetLocalData()">Reset Mail & Files</button>
+
+        <div class="filter-bar sidebar-filter">
+            <h4 class="sidebar-filter-title">🔎 Filters</h4>
+            <div class="filter-bar-group">
+                <label for="clientSelect">Client:</label>
+                <select id="clientSelect">
+                    <option value="">All Clients</option>
+                </select>
+            </div>
+            <div class="filter-bar-group">
+                <label for="topYearSelect">Year:</label>
+                <select id="topYearSelect">
+                    <option value="">All Years</option>
+                </select>
+            </div>
+            <button class="apply-filter-btn" onclick="applyTopFilter()">📈 Apply Filter</button>
+            <button class="reset-filter-btn" onclick="resetTopFilter()">🔄 Refresh Filter</button>
+        </div>
+
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="header-title-row">
+                <h1>CMC Sample Management System</h1>
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search in current view..." onkeyup="searchTable()">
+                <button class="send-mail-btn" onclick="openComposeMail()" title="Compose a new email">✉️ Send Mail</button>
+            </div>
+        </div>
+
+        <div class="tabs" id="sheetTabs"></div>
+
+        <div class="content-area" id="contentArea">
+            <div class="loading">Initializing system</div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Column Mapping Configuration</h2>
+                <button class="close-btn" onclick="closeConfigModal()">Close</button>
+            </div>
+            <div id="configContent"></div>
+        </div>
+    </div>
+
+    <!-- Mail Preview Modal -->
+    <div id="mailPreviewModal" class="modal">
+        <div class="modal-content" style="max-width:640px;">
+            <div class="modal-header">
+                <h2>Mail Preview</h2>
+                <button class="close-btn" onclick="closeMailPreview()">Close</button>
+            </div>
+            <div style="padding:6px 0 0;">
+                <div id="mailPreviewSentBadge" style="display:none;" class="mp-sent-badge"></div>
+                <div class="mp-field"><span class="mp-label">From</span><input class="mp-input" id="mpFrom" type="email" placeholder="sender@example.com"></div>
+                <div class="mp-field"><span class="mp-label">To</span><input class="mp-input" id="mpTo" type="email" placeholder="recipient@example.com"></div>
+                <div class="mp-field"><span class="mp-label">CC</span><input class="mp-input" id="mpCC" type="text" placeholder="cc@example.com"></div>
+                <div class="mp-field"><span class="mp-label">Subject</span><input class="mp-input" id="mpSubject" type="text" placeholder="Subject"></div>
+                <div class="mp-field"><span class="mp-label">Body</span>
+                    <textarea class="mp-body-input" id="mpBody"></textarea>
+                    <div id="mpRichBody" contenteditable="true" style="display:none;flex:1;width:100%;min-height:260px;max-height:440px;overflow:auto;background:#f5f3ff;border:1.5px solid #c7d2fe;border-radius:8px;padding:12px;font-size:13px;color:#374151;line-height:1.6;box-sizing:border-box;"></div>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px;">
+                    <button class="email-cancel-btn" onclick="closeMailPreview()">Cancel</button>
+                    <button class="email-send-btn" id="mailPreviewSendBtn">✉️ Send Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Compose Modal -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content" style="max-width:660px;">
+            <div class="modal-header">
+                <h2>✉️ Send Report Email</h2>
+                <button class="close-btn" onclick="closeEmailModal()">Close</button>
+            </div>
+            <div style="padding:4px 0 0;">
+                <div class="email-form-group">
+                    <label>To:</label>
+                    <input type="email" id="emailTo" placeholder="recipient@example.com">
+                </div>
+                <div class="email-form-group">
+                    <label>From:</label>
+                    <input type="email" id="emailFrom" placeholder="your@email.com">
+                </div>
+                <div class="email-form-group">
+                    <label>CC:</label>
+                    <input type="text" id="emailCC" placeholder="cc1@email.com, cc2@email.com">
+                </div>
+                <div class="email-form-group">
+                    <label>Subject:</label>
+                    <input type="text" id="emailSubject">
+                </div>
+                <div class="email-form-group">
+                    <label>Content:</label>
+                    <textarea id="emailBody"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
+                    <button class="email-cancel-btn" onclick="closeEmailModal()">Cancel</button>
+                    <button class="email-send-btn" onclick="sendEmailFromModal()">✉️ Send Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Points at this project's own Node/Express backend (see /backend), which replaced
+        // the old Google Apps Script Web App. Same-origin by default when served by the
+        // backend; override at build/deploy time if the frontend is hosted separately.
+        const APPS_SCRIPT_URL = window.API_BASE_URL || '/api/exec';
+        
+        let allData = {};
+        let metadata = {};
+        let currentView = [];
+        let currentSheet = '';
+        let sortColumn = null;
+        let sortDirection = 'asc';
+        let columnMappings = {};
+        let activeFilterFn = null;
+        let activeFilterLabel = '';
+        let activeTATFilter = null;
+        const _mailPreviewCache = {};
+
+        // Column mapping patterns - will auto-detect from actual headers
+        const COLUMN_PATTERNS = {
+            // Priority 1: Client/Source identification
+            clientName: ['client department', 'department', 'client name', 'client', 'center name', 'source', 'referral', 'ref by', 'hospital', 'clinic', 'account', 'customer'],
+            
+            // Priority 2: TAT/Due Dates (Crucial for Overdue calculation)
+            tatReport: ['tat report', 'tat date', 'tat', 'due date', 'target date', 'promised date', 'dispatch date'],
+            tatRawData: ['tat raw data', 'tat raw date', 'tat data raw', 'raw data tat', 'tat raw', 'tat data', 'tattodataraw'],
+            
+            // Priority 3: Completion/Release Dates
+            reportReleasedDate: ['released date', 'release date', 'report released', 'dispatched date', 'completion date', 'final report', 'issued date'],
+            rawDataSent: ['raw data sent', 'raw data date', 'data sent date', 'raw data sent date', 'raw data sent to'],
+            
+            // Priority 4: Inward/Received Dates (Used for Month/Year filtering)
+            receivedDate: ['received date', 'received', 'reg date', 'registration date', 'entry date', 'inward date', 'date of receipt', 'booking date'],
+            
+            // Others
+            sampleId: ['sample id', 'sample number', 'sample no', 'lab id', 'id', 'barcode', 'uhid'],
+            sampleName: ['sample name', 'patient name', 'name', 'patient', 'patient/sample name'],
+            testType: ['test name', 'test type', 'test', 'analysis', 'assay', 'procedure'],
+            sampleType: ['sample type', 'specimen type', 'type of sample', 'sample', 'specimen'],
+            remarks: ['remarks', 'remark', 'comments', 'comment', 'notes', 'history'],
+            status: ['status', 'stat', 'report status', 'sample status', 'process status', 'current status']
+        };
+
+        // Initialize
+        if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+            // Clear any cache written by older code versions to avoid structure mismatches
+            try { sessionStorage.removeItem('lab_tracker_data'); } catch(e) {}
+            loadAllData();
+        } else {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="error">
+                    <h3>⚠️ Configuration Required</h3>
+                    <p>Please update the <code>APPS_SCRIPT_URL</code> in the code with your deployed Apps Script URL.</p>
+                    <p>Follow the setup instructions to deploy the Apps Script first.</p>
+                </div>
+            `;
+        }
+
+        const CACHE_KEY = 'cmc_tracker_data';
+        const CACHE_TTL = 0; // Always fetch fresh — ensures clientName is populated
+
+        function showError(msg) {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="error">
+                    <h3>⚠️ Could Not Load Data</h3>
+                    <p>${msg}</p>
+                    <button onclick="loadAllData(true)" style="margin-top:12px;padding:10px 22px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;font-size:14px;font-weight:600;">🔄 Retry</button>
+                </div>`;
+        }
+
+        function readCache() {
+            try {
+                const raw = sessionStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed || !parsed.data || !parsed.data.sheets) return null;
+                if (Date.now() - parsed.ts >= CACHE_TTL) return null;
+                return parsed.data;
+            } catch (e) { return null; }
+        }
+
+        async function loadAllData(forceRefresh = false) {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = '<div class="loading">Loading data from Google Sheets</div>';
+
+            try {
+                let data = forceRefresh ? null : readCache();
+
+                if (!data) {
+                    contentArea.innerHTML = '<div class="loading">Fetching from server</div>';
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 45000);
+                    try {
+                        const url = `${APPS_SCRIPT_URL}?action=getAllData&_t=${Date.now()}`;
+                        const response = await fetch(url, { signal: controller.signal });
+                        clearTimeout(timeout);
+                        const text = await response.text();
+                        try { data = JSON.parse(text); }
+                        catch (e) { throw new Error('Server returned non-JSON response. Check Apps Script deployment.'); }
+                    } catch (err) {
+                        clearTimeout(timeout);
+                        if (err.name === 'AbortError') throw new Error('Request timed out (45s). The server may be starting — please retry in a moment.');
+                        throw err;
+                    }
+
+                    if (!data || data.error) throw new Error(data ? data.error : 'Empty response from server.');
+                    if (!data.sheets) throw new Error('Response missing sheet data. Check Apps Script.');
+                    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
+                }
+
+                allData = data.sheets;
+                metadata = data.metadata || {};
+
+                if (!allData || Object.keys(allData).length === 0) {
+                    throw new Error('No sheets found in the data. The spreadsheet may be empty.');
+                }
+
+                contentArea.innerHTML = '<div class="loading">Parsing data</div>';
+                detectColumnMappings();
+                initFiltersAndInfo();
+                renderSheetTabs();
+                showAllSheets();
+                setTimeout(() => validateColumnMappings(), 300);
+
+            } catch (error) {
+                showError(error.message || 'Unknown error. Open the browser console for details.');
+                console.error('[CMC Tracker] loadAllData error:', error);
+            }
+        }
+
+        // ── Report upload & Mail helpers ─────────────────────────────────────────
+        const _RPT_STORE = 'cmc_report_files';
+
+        function _rowKey(row) {
+            const sheet = row._sourceSheet || currentSheet;
+            const s = JSON.stringify(
+                Object.entries(row).filter(([k]) => k !== '_sourceSheet').sort(([a],[b]) => a.localeCompare(b))
+            );
+            let h = 0;
+            for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+            return sheet + '_' + (h >>> 0).toString(36);
+        }
+
+        function _rptGet()  { try { return JSON.parse(localStorage.getItem(_RPT_STORE) || '{}'); } catch { return {}; } }
+        function _rptSave(s){ try { localStorage.setItem(_RPT_STORE, JSON.stringify(s)); } catch { alert('Storage full.'); } }
+
+        const _DEPT_STORE = 'cmc_dept_selection';
+        function _deptGet()  { try { return JSON.parse(localStorage.getItem(_DEPT_STORE) || '{}'); } catch { return {}; } }
+        function _deptSave(s){ try { localStorage.setItem(_DEPT_STORE, JSON.stringify(s)); } catch { alert('Storage full.'); } }
+
+        const DEPT_OPTIONS = [
+            'CHRISTIAN MEDICAL COLLEGE - MEDICAL GENETICS',
+            'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Poonkuzhali',
+            'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Eunice',
+            'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Shaji',
+            'CHRISTIAN MEDICAL COLLEGE - CYTOGENETICS',
+            'CHRISTIAN MEDICAL COLLEGE - MOLECULAR ENDOCRINOLOGY',
+            'CHRISTIAN MEDICAL COLLEGE - NEPHROLOGY'
+        ];
+
+        function renderDepartmentCell(row) {
+            const key  = _rowKey(row);
+            const enc  = encodeURIComponent(key);
+            const saved = (_deptGet()[key] || '');
+            const selClass = saved ? ' selected' : '';
+            let opts = '<option value="">-- Select Department --</option>';
+            DEPT_OPTIONS.forEach(d => {
+                opts += `<option value="${d}"${saved === d ? ' selected' : ''}>${d}</option>`;
+            });
+            return `<select class="dept-select${selClass}" onchange="saveDepartment('${enc}',this.value,this)">${opts}</select>`;
+        }
+
+        function saveDepartment(enc, value, el) {
+            const key = decodeURIComponent(enc);
+            const store = _deptGet();
+            if (value) { store[key] = value; el.classList.add('selected'); }
+            else        { delete store[key]; el.classList.remove('selected'); }
+            _deptSave(store);
+            _updateRowCells(key);
+        }
+
+        function handleFileUpload(event, enc) {
+            const key   = decodeURIComponent(enc);
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            const store = _rptGet();
+            const list  = store[key] || [];
+            let done = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    list.push({ name: file.name, dataUrl: e.target.result });
+                    if (++done === files.length) {
+                        store[key] = list;
+                        _rptSave(store);
+                        _updateRowCells(key);
+                        showToast(`✓ ${files.length} file(s) uploaded — use Preview to review and send`, 'success');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeReportFile(enc, idx) {
+            const key = decodeURIComponent(enc);
+            const store = _rptGet();
+            if (store[key]) {
+                store[key].splice(idx, 1);
+                if (!store[key].length) delete store[key];
+                _rptSave(store);
+                _updateRowCells(key);
+            }
+        }
+
+        function _updateRowCells(key) {
+            const enc  = encodeURIComponent(key);
+            let   tr   = null;
+            document.querySelectorAll('tr[data-rowkey]').forEach(el => { if (el.dataset.rowkey === enc) tr = el; });
+            const row  = tr && (currentView || []).find(r => _rowKey(r) === key);
+            if (!tr || !row) { displaySheet(currentSheet); return; }
+            const rIdx = currentTableCols.findIndex(c => c.title === 'Reports');
+            const mIdx = currentTableCols.findIndex(c => c.title === 'Mail');
+            const tds  = tr.querySelectorAll('td');
+            if (rIdx >= 0 && tds[rIdx]) tds[rIdx].innerHTML = renderReportCell(row, '');
+            if (mIdx >= 0 && tds[mIdx]) tds[mIdx].innerHTML = renderMailCell(row);
+        }
+
+        function renderReportCell(row, sheetValue) {
+            const key  = _rowKey(row);
+            const enc  = encodeURIComponent(key);
+            const files = (_rptGet()[key] || []);
+            const existing = String(sheetValue || '').trim();
+            let html = '<div>';
+            if (existing) html += `<div style="font-size:11px;color:#555;margin-bottom:3px;">${existing}</div>`;
+            files.forEach((f, i) => {
+                const safeName = f.name.replace(/"/g, '');
+                html += `<div class="report-file-chip">
+                    <a href="${f.dataUrl}" download="${safeName}" title="${safeName}">${f.name}</a>
+                    <span class="report-file-remove" onclick="removeReportFile('${enc}',${i})">×</span>
+                </div>`;
+            });
+            html += `<label class="report-upload-btn" title="Upload report files">
+                📎✉ ${files.length ? 'Add' : 'Upload'}
+                <input type="file" multiple style="display:none"
+                       onchange="handleFileUpload(event,'${enc}')">
+            </label></div>`;
+            return html;
+        }
+
+        // ── Email helpers ─────────────────────────────────────────────────────────
+        const _MAIL_STORE = 'cmc_mail_sent';
+        function _mailGet()  { try { return JSON.parse(localStorage.getItem(_MAIL_STORE)||'{}'); } catch { return {}; } }
+        function _mailSave(s){ try { localStorage.setItem(_MAIL_STORE, JSON.stringify(s)); } catch {} }
+
+        function resetLocalData() {
+            if (!confirm('This will clear all uploaded report files, mail sent records, and department selections.\n\nContinue?')) return;
+            localStorage.removeItem(_RPT_STORE);
+            localStorage.removeItem(_MAIL_STORE);
+            localStorage.removeItem(_DEPT_STORE);
+            showToast('✓ Reset complete — files, mail records & departments cleared', 'success');
+            if (currentSheet) displaySheet(currentSheet);
+        }
+
+        function showToast(message, type) {
+            const el = document.createElement('div');
+            const bg = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db';
+            el.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:99999;padding:14px 22px;
+                border-radius:8px;color:white;font-size:14px;font-weight:600;
+                box-shadow:0 4px 14px rgba(0,0,0,0.25);background:${bg};max-width:340px;`;
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 5000);
+        }
+
+        function isMedGeneticsRow(row) {
+            // 1. Dedicated client field (works after Apps Script fix + fresh data)
+            const dept = String(row.clientName || row.clientDepartment || '').toUpperCase();
+            if (dept.includes('MEDICAL GENET') && (dept.includes('CHRISTIAN') || dept.includes('CMC'))) return true;
+
+            // 2. Scan every field value (fallback when clientName is still empty)
+            const all = Object.entries(row)
+                .filter(([k]) => k !== '_sourceSheet')
+                .map(([, v]) => String(v || '')).join(' ').toUpperCase();
+            return all.includes('MEDICAL GENET') && all.includes('CHRISTIAN MEDICAL');
+        }
+
+        async function sendEmailViaScript(rowKey, to, cc, subject, body, htmlOverride) {
+            showToast('📧 Sending email…', 'info');
+            try {
+                const rawKey     = decodeURIComponent(rowKey);
+                const attachments = (_rptGet()[rawKey] || []).map(f => ({ name: f.name, dataUrl: f.dataUrl }));
+                const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                const htmlBody = htmlOverride || ('<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#222;max-width:700px;">'
+                    + esc(body).replace(/\n/g,'<br>').replace(/<br>(Thanks\b.*)$/, '<div style="margin-top:1em;">$1</div>')
+                    + '</div>');
+                const payload    = JSON.stringify({ action: 'sendEmail', to, cc, subject, body, htmlBody, attachments });
+                const res  = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: payload,
+                    redirect: 'follow'
+                });
+                const text = await res.text();
+                let json;
+                try { json = JSON.parse(text); } catch { json = { success: false, error: text }; }
+                if (json.success) {
+                    const store = _mailGet();
+                    store[rawKey] = { sentAt: new Date().toISOString(), to };
+                    _mailSave(store);
+                    showToast('✓ Email sent to ' + to + (attachments.length ? ` with ${attachments.length} attachment(s)` : ''), 'success');
+                    setTimeout(() => displaySheet(currentSheet), 300);
+                    return true;
+                }
+                showToast('❌ Email failed: ' + (json.error || 'Unknown error'), 'error');
+                console.error('Email send failed:', json);
+                return false;
+            } catch (e) {
+                showToast('❌ Email error: ' + e.message, 'error');
+                console.error('Email error:', e);
+                return false;
+            }
+        }
+
+        function openEmailModal(row, rowKey) {
+            const cached = rowKey ? _mailPreviewCache[rowKey] : null;
+            const p = cached ? cached.preview : null;
+            document.getElementById('emailTo').value      = p ? p.to      : '';
+            document.getElementById('emailFrom').value    = p ? p.from    : '';
+            document.getElementById('emailCC').value      = p ? p.cc      : '';
+            document.getElementById('emailSubject').value = p ? p.subject : '';
+            document.getElementById('emailBody').value    = p ? p.body    : '';
+            document.getElementById('emailModal').dataset.rowKey = rowKey || '';
+            document.getElementById('emailModal').classList.add('active');
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').classList.remove('active');
+        }
+
+        async function sendEmailFromModal() {
+            const to      = document.getElementById('emailTo').value.trim();
+            const cc      = document.getElementById('emailCC').value.trim();
+            const subject = document.getElementById('emailSubject').value.trim();
+            const body    = document.getElementById('emailBody').value.trim();
+            const rowKey  = document.getElementById('emailModal').dataset.rowKey || '';
+            const btn     = document.querySelector('.email-send-btn');
+            btn.textContent = 'Sending…'; btn.disabled = true;
+            const ok = await sendEmailViaScript(rowKey, to, cc, subject, body);
+            btn.textContent = '✉️ Send Email'; btn.disabled = false;
+            if (ok) {
+                closeEmailModal();
+                alert('✓ Email sent successfully!');
+            } else {
+                alert('❌ Failed to send. Check Apps Script deployment and try again.');
+            }
+        }
+
+        function renderMailCell(row) {
+            const key     = _rowKey(row);
+            const sent    = _mailGet()[key];
+            const encKey  = encodeURIComponent(key);
+            const medGen  = isMedGeneticsRow(row);
+            const rowJson = JSON.stringify({clientName: row.clientName||'', _sourceSheet: row._sourceSheet||''});
+            const sheet   = row._sourceSheet || currentSheet;
+            const entries = Object.entries(row).filter(([k]) => k !== '_sourceSheet');
+            const firstVal= entries.length ? String(entries[0][1]||'').trim() : '';
+
+            // Build dept-aware email template (same logic as handleFileUpload auto-send)
+            const HAEM_DEPTS = new Set([
+                'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Poonkuzhali',
+                'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Eunice',
+                'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Shaji',
+                'CHRISTIAN MEDICAL COLLEGE - MEDICAL GENETICS'
+            ]);
+            const JEEVA_DEPTS = new Set([
+                'CHRISTIAN MEDICAL COLLEGE - CYTOGENETICS',
+                'CHRISTIAN MEDICAL COLLEGE - MOLECULAR ENDOCRINOLOGY',
+                'CHRISTIAN MEDICAL COLLEGE - NEPHROLOGY'
+            ]);
+            const dept        = _deptGet()[key] || '';
+            const patientName = _getPatientName(row);
+            const subject     = `Regarding Whole Exome Sequencing Results` + (patientName ? ` - ${patientName}` : '');
+            const signOff     = `\nThanks and Regards\nDr. S. Muthukumaran PhD\nAnderson Diagnostics`;
+            // Patient name placed AFTER "WES results" to prevent Gmail splitting "Whole Exome | Sequencing"
+            const bodyCore    = `Greetings of the day,\n\nPlease find the Whole Exome Sequencing (WES) results of ${patientName}. The detailed results are provided in the attached Excel sheet for your reference.`;
+            const buildBody   = (greeting) => `Subject: ${subject}\n\n${greeting ? greeting + '\n\n' : ''}${bodyCore}${signOff}`;
+            let previewData;
+            const ANDERSON_CC = 'sachin@andersondiagnostics.com, sivasankar@andersondiagnostics.in, genetics@andersondiagnostics.in';
+            if (medGen) {
+                previewData = {
+                    to: 'medgen@cmcvellore.ac.in, noel.deep@cmcvellore.ac.in, rekha.athiyarath@gmail.com',
+                    from: 'andersonbioinfo@gmail.com',
+                    cc: ANDERSON_CC,
+                    subject,
+                    body: buildBody(`Dear CMC-Clinical Genetics team,`)
+                };
+            } else if (dept && (HAEM_DEPTS.has(dept) || JEEVA_DEPTS.has(dept))) {
+                const deptSuffix = dept.replace('CHRISTIAN MEDICAL COLLEGE - ', '').trim();
+                const drMatch    = deptSuffix.match(/^HAEMOTOLOGY (Dr\.\w+)$/);
+                const greeting   = drMatch ? `Dear ${drMatch[1]},` : `Dear CMC-${deptSuffix} team,`;
+                let to;
+                if (dept === 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Poonkuzhali') {
+                    to = 'kapadia.alpeshkumar.pg@cmcvellore.ac.in, bpoonkuzhali@cmcvellore.ac.in';
+                } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Eunice') {
+                    to = 'eunice@cmcvellore.ac.in, kgsankaridevi@gmail.com, phaneendra.dv@cmcvellore.ac.in, mariya.tomy@cmcvellore.ac.in';
+                } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Shaji') {
+                    to = 'rvshaji@cmcvellore.ac.in, jesina.samuel@cmcvellore.ac.in, sowmya.b@cmcvellore.ac.in, sweety.priyanka@cmcvellore.ac.in';
+                } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - NEPHROLOGY') {
+                    to = 'rajan.babu@cmcvellore.ac.in, nephrologylab@cmcvellore.ac.in';
+                } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - CYTOGENETICS') {
+                    to = 'cytogen@cmcvellore.ac.in';
+                } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - MOLECULAR ENDOCRINOLOGY') {
+                    to = 'endolabcmcvellore@gmail.com, aaronchapla@gmail.com, sathish.loganathan@cmcvellore.ac.in, ruchika.goel@cmcvellore.ac.in';
+                } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - MEDICAL GENETICS') {
+                    to = 'medgen@cmcvellore.ac.in, noel.deep@cmcvellore.ac.in, rekha.athiyarath@gmail.com';
+                } else {
+                    to = '';
+                }
+                previewData = {
+                    to, from: 'andersonbioinfo@gmail.com',
+                    cc: ANDERSON_CC,
+                    subject,
+                    body: buildBody(greeting)
+                };
+            } else {
+                previewData = {
+                    to: '', from: 'andersonbioinfo@gmail.com',
+                    cc: ANDERSON_CC,
+                    subject,
+                    body: buildBody('')
+                };
+            }
+            // Cache preview data so onclick just passes the key
+            _mailPreviewCache[encKey] = {
+                sent: !!sent,
+                sentAt: sent ? sent.sentAt : null,
+                preview: previewData,
+                rowJson
+            };
+
+            const actionBtns = `<div class="mail-action-btns">
+                <button class="mail-icon-btn mail-preview-btn" onclick="openMailPreview('${encKey}')">👁 Preview</button>
+            </div>`;
+
+            if (sent) {
+                const t = new Date(sent.sentAt);
+                const label = `${t.getDate().toString().padStart(2,'0')}/${(t.getMonth()+1).toString().padStart(2,'0')} ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+                return `<div class="mail-sent-wrap">
+                    <span class="mail-sent-label">✓ Mail Sent</span>
+                    <div class="mail-sent-time">${label}</div>
+                    <button onclick='openEmailModal(${rowJson},"${encKey}")' class="resend-btn">Resend</button>
+                    ${actionBtns}
+                </div>`;
+            }
+            if (medGen) {
+                return `<div style="text-align:center">
+                    <button class="mail-btn" style="background:#8e44ad;"
+                        onclick='openEmailModal(${rowJson},"${encKey}")'>✉ Mail</button>
+                    ${actionBtns}
+                </div>`;
+            }
+            const subjectEnc = encodeURIComponent(`[${sheet}] Report: ${firstVal}`);
+            const bodyEnc    = encodeURIComponent(entries.map(([k,v]) => `${k}: ${v??'-'}`).join('\n'));
+            return `<div style="text-align:center">
+                <a class="mail-btn" href="mailto:?subject=${subjectEnc}&body=${bodyEnc}">✉ Mail</a>
+                ${actionBtns}
+            </div>`;
+        }
+        function openMailPreview(encKey) {
+            const cached = _mailPreviewCache[encKey];
+            if (!cached) { alert('Preview data not available — try scrolling the table to reload.'); return; }
+            const { preview, sent, sentAt } = cached;
+            const badge = document.getElementById('mailPreviewSentBadge');
+            if (sent && sentAt) {
+                const t = new Date(sentAt);
+                const ts = `${t.getDate().toString().padStart(2,'0')}/${(t.getMonth()+1).toString().padStart(2,'0')} ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+                badge.textContent = `✓ Mail sent on ${ts}`;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+            // Recalculate TO/CC live from current dept in case it was selected after last render
+            let toEmail = preview.to;
+            let ccEmail = preview.cc;
+            if (!toEmail) {
+                const rawKey = decodeURIComponent(encKey);
+                const dept   = _deptGet()[rawKey] || '';
+                if (dept) {
+                    ccEmail = 'sachin@andersondiagnostics.com, sivasankar@andersondiagnostics.in, genetics@andersondiagnostics.in';
+                    if (dept === 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Poonkuzhali') {
+                        toEmail = 'kapadia.alpeshkumar.pg@cmcvellore.ac.in, bpoonkuzhali@cmcvellore.ac.in';
+                    } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Eunice') {
+                        toEmail = 'eunice@cmcvellore.ac.in, kgsankaridevi@gmail.com, phaneendra.dv@cmcvellore.ac.in, mariya.tomy@cmcvellore.ac.in';
+                    } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Shaji') {
+                        toEmail = 'rvshaji@cmcvellore.ac.in, jesina.samuel@cmcvellore.ac.in, sowmya.b@cmcvellore.ac.in, sweety.priyanka@cmcvellore.ac.in';
+                    } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - NEPHROLOGY') {
+                        toEmail = 'rajan.babu@cmcvellore.ac.in, nephrologylab@cmcvellore.ac.in';
+                    } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - CYTOGENETICS') {
+                        toEmail = 'cytogen@cmcvellore.ac.in';
+                    } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - MOLECULAR ENDOCRINOLOGY') {
+                        toEmail = 'endolabcmcvellore@gmail.com, aaronchapla@gmail.com, sathish.loganathan@cmcvellore.ac.in, ruchika.goel@cmcvellore.ac.in';
+                    } else if (dept === 'CHRISTIAN MEDICAL COLLEGE - MEDICAL GENETICS') {
+                        toEmail = 'medgen@cmcvellore.ac.in, noel.deep@cmcvellore.ac.in, rekha.athiyarath@gmail.com';
+                    }
+                }
+            }
+            document.getElementById('mpFrom').value    = preview.from    || '';
+            document.getElementById('mpTo').value      = toEmail         || '';
+            document.getElementById('mpCC').value      = ccEmail         || '';
+            document.getElementById('mpSubject').value = preview.subject  || '';
+            document.getElementById('mpBody').value    = preview.body     || '';
+            // Plain per-row email: use the plain textarea body, hide the rich (table) editor
+            document.getElementById('mpBody').style.display = '';
+            document.getElementById('mpRichBody').style.display = 'none';
+            const btn = document.getElementById('mailPreviewSendBtn');
+            btn.onclick = async () => {
+                const to      = document.getElementById('mpTo').value.trim();
+                const cc      = document.getElementById('mpCC').value.trim();
+                const subject = document.getElementById('mpSubject').value.trim();
+                const body    = document.getElementById('mpBody').value.trim();
+                btn.textContent = '⏳ Sending…'; btn.disabled = true;
+                const ok = await sendEmailViaScript(encKey, to, cc, subject, body);
+                btn.textContent = '✉️ Send Email'; btn.disabled = false;
+                if (ok) closeMailPreview();
+            };
+            document.getElementById('mailPreviewModal').classList.add('active');
+        }
+
+        function closeMailPreview() {
+            document.getElementById('mailPreviewModal').classList.remove('active');
+        }
+
+        // ── "Acknowledge of order registration" compose (header Send Mail button) ──
+        const REGISTRATION_LIMIT  = 10;            // fallback row count when received dates can't be parsed
+        let   _latestRegistrations = [];           // rows fetched from the registration sheet
+        let   _regLoading          = false;        // true while fetching registrations
+
+        // Read a logical column from a registration row, matching header names flexibly.
+        function getRegVal(row, field) {
+            const aliases = {
+                'Sample name':   ['samplename','sample','samplecode','wesno','wesnumber','accession','accessionno'],
+                'Received date': ['receiveddate','received','regdate','registrationdate','dateofreceipt'],
+                'Anderson ID':   ['andersonid','andid','anderson','adkid','adk'],
+                'Sample type':   ['sampletype','specimen','specimentype','type'],
+                'Test name':     ['testname','test','testtype','assay'],
+                'Raw data TAT':  ['rawdatatat','rawdata','rawtat','rawdatadate','rawdatadue'],
+                'Report TAT':    ['reporttat','report','reportdate','tatreport','reportdue','tat']
+            };
+            const want = aliases[field] || [];
+            for (const k of Object.keys(row)) {
+                const nk = String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (want.includes(nk)) return row[k];
+            }
+            return '';
+        }
+
+        function _parseRegDate(v) {
+            const s = String(v || '').trim();
+            const m = s.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);   // d/m/yyyy
+            if (m) { let [, d, mo, y] = m; if (y.length === 2) y = '20' + y; return new Date(+y, +mo - 1, +d).getTime(); }
+            const t = Date.parse(s);
+            return isNaN(t) ? 0 : t;
+        }
+
+        // Fetch the registration rows, then keep only the samples received on the MOST RECENT
+        // received date (e.g. all of today's samples). Falls back gracefully if no dates parse.
+        async function fetchLatestRegistrations() {
+            const url = `${APPS_SCRIPT_URL}?action=getRegistrations&_t=${Date.now()}`;
+            const res = await fetch(url);
+            const text = await res.text();
+            let json;
+            try { json = JSON.parse(text); } catch { throw new Error('Registration sheet returned a non-JSON response. Check the Apps Script.'); }
+            if (!json || json.error) throw new Error((json && json.error) || 'No registration data returned.');
+            const rows = json.registrations || json.rows || [];
+
+            // Pair each row with its parsed received-date timestamp (midnight of that day).
+            const dated = rows
+                .map(r => ({ r, t: _parseRegDate(getRegVal(r, 'Received date')) }))
+                .filter(x => x.t > 0);
+
+            // No parseable received dates → fall back to the last N rows in sheet order.
+            if (!dated.length) return rows.slice(-REGISTRATION_LIMIT);
+
+            // Most recent received date present in the sheet.
+            const latestT = Math.max.apply(null, dated.map(x => x.t));
+
+            // Return every sample received on that latest date, in sheet order.
+            return dated.filter(x => x.t === latestT).map(x => x.r);
+        }
+
+        // Build the HTML registration table from the latest received samples.
+        function buildAckTableHTML() {
+            const rows = Array.isArray(_latestRegistrations) ? _latestRegistrations : [];
+            const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const val = (r, field) => { const v = getRegVal(r, field); return (v == null) ? '' : String(v).trim(); };
+            const headers = ['Sample name','Received date','Anderson ID','Sample type','Test name','Raw data TAT','Report TAT'];
+            let html = '<table contenteditable="false" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px;margin:14px 0;">';
+            html += '<thead><tr>' + headers.map(h =>
+                `<th style="border:1px solid #6b7280;background:#dbe2f1;padding:7px 9px;text-align:center;font-weight:bold;">${h}</th>`
+            ).join('') + '</tr></thead><tbody>';
+            let anyValue = false;
+            rows.forEach(r => {
+                const cells = [
+                    val(r,'Sample name'), val(r,'Received date'), val(r,'Anderson ID'),
+                    val(r,'Sample type') || 'DNA', val(r,'Test name'), val(r,'Raw data TAT'), val(r,'Report TAT')
+                ];
+                if (cells.some((c, i) => c && i !== 3)) anyValue = true;   // ignore the defaulted "DNA"
+                html += '<tr>' + cells.map((c, i) =>
+                    `<td style="border:1px solid #6b7280;padding:6px 9px;text-align:${i === 4 ? 'left' : 'center'};">${esc(c)}</td>`
+                ).join('') + '</tr>';
+            });
+            if (!rows.length) {
+                const msg = _regLoading ? 'Loading latest received samples…' : 'No registration data loaded';
+                html += `<tr><td colspan="7" style="border:1px solid #6b7280;padding:8px;text-align:center;color:#888;">${msg}</td></tr>`;
+            }
+            html += '</tbody></table>';
+            // Diagnostic: rows came back but none of the columns matched → show the real header names
+            if (rows.length && !anyValue) {
+                const keys = Object.keys(rows[0] || {}).filter(k => String(k).trim());
+                html += `<div contenteditable="false" style="font-size:12px;color:#b91c1c;margin-top:8px;line-height:1.5;">`
+                      + `⚠ Loaded ${rows.length} row(s) but couldn't match the columns. Your sheet's headers are:<br><b>${esc(keys.join('  |  '))}</b>`
+                      + `</div>`;
+            }
+            return html;
+        }
+
+        // Editable body text that sits before / after the inline table.
+        const ACK_BODY_BEFORE =
+`Dear CMC team,
+
+Greetings of the day,
+
+This is to inform you that the patient's samples have been received successfully and the registration has been completed. The registration details are as follows:`;
+        const ACK_BODY_AFTER =
+`While every effort will be made to ensure that the report is sent within TAT, in the case of unexpected delay an intimation will be sent prior to the delivery date.
+
+Thanks and Regards
+Dr. S. Muthukumaran PhD
+Anderson Diagnostics`;
+
+        // Build the editable rich-body HTML: text + the real registration table inline.
+        function buildAckRichBody() {
+            const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const toHtml = t => esc(t).replace(/\n/g, '<br>');
+            return toHtml(ACK_BODY_BEFORE) + '<br><br>' + buildAckTableHTML() + '<br><br>' + toHtml(ACK_BODY_AFTER);
+        }
+
+        function openComposeMail() {
+            document.getElementById('mailPreviewSentBadge').style.display = 'none';
+            document.getElementById('mpFrom').value    = 'andersonbioinfo@gmail.com';
+            document.getElementById('mpTo').value      = '';
+            document.getElementById('mpCC').value      = '';
+            document.getElementById('mpSubject').value = 'Acknowledge of order registration';
+
+            // Switch the Body to the rich (table-aware) editor.
+            const ta   = document.getElementById('mpBody');
+            const rich = document.getElementById('mpRichBody');
+            ta.style.display = 'none';
+            rich.style.display = 'block';
+            rich.innerHTML = buildAckRichBody();   // table area shows "loading…" until fetch resolves
+
+            const btn = document.getElementById('mailPreviewSendBtn');
+            btn.onclick = async () => {
+                const to      = document.getElementById('mpTo').value.trim();
+                const cc      = document.getElementById('mpCC').value.trim();
+                const subject = document.getElementById('mpSubject').value.trim();
+                if (!to)      { showToast('⚠ Please enter a recipient (To) address', 'error'); return; }
+                if (!subject) { showToast('⚠ Please enter a subject', 'error'); return; }
+                const htmlBody  = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.7;color:#222;max-width:900px;">'
+                    + rich.innerHTML + '</div>';
+                const plainBody = rich.innerText;
+                btn.textContent = '⏳ Sending…'; btn.disabled = true;
+                const ok = await sendEmailViaScript('', to, cc, subject, plainBody, htmlBody);
+                btn.textContent = '✉️ Send Email'; btn.disabled = false;
+                if (ok) closeMailPreview();
+            };
+
+            document.getElementById('mailPreviewModal').classList.add('active');
+            document.getElementById('mpTo').focus();
+
+            // Fetch the latest received samples from the registration sheet, then drop the table into the body.
+            _latestRegistrations = [];
+            _regLoading = true;
+            showToast('📥 Loading latest received samples…', 'info');
+            fetchLatestRegistrations()
+                .then(rows => {
+                    _latestRegistrations = rows;
+                    _regLoading = false;
+                    rich.innerHTML = buildAckRichBody();   // rebuild body with the real table
+                    const dateLabel = rows.length ? String(getRegVal(rows[0], 'Received date') || '').trim() : '';
+                    showToast(`✓ Loaded ${rows.length} sample${rows.length === 1 ? '' : 's'}${dateLabel ? ' received on ' + dateLabel : ''}`, 'success');
+                })
+                .catch(err => {
+                    _regLoading = false;
+                    rich.innerHTML = buildAckRichBody();   // shows the table with a "no data" note
+                    showToast('⚠ Could not load registration sheet: ' + err.message, 'error');
+                });
+        }
+
+        function _getPatientName(row) {
+            for (const [k, v] of Object.entries(row)) {
+                if (k === '_sourceSheet') continue;
+                const kl = k.toLowerCase().replace(/[\s_]/g, '');
+                if ((kl === 'name' || kl === 'patientname') && String(v||'').trim())
+                    return String(v).trim();
+            }
+            for (const [k, v] of Object.entries(row)) {
+                if (k === '_sourceSheet') continue;
+                const kl = k.toLowerCase();
+                if (kl.includes('name') && !kl.includes('client') && !kl.includes('doctor') && String(v||'').trim())
+                    return String(v).trim();
+            }
+            return '';
+        }
+
+        // ── End helpers ──────────────────────────────────────────────────────────
+
+        function detectColumnMappings() {
+            columnMappings = {};
+            
+            Object.keys(allData).forEach(sheetName => {
+                const sheetData = allData[sheetName];
+                if (!sheetData) return;
+
+                let headers = sheetData.headers || [];
+                const rows = sheetData.rows || [];
+                
+                // Deep Integration: Sometimes "headers" are actually the first row of data
+                // or the real headers are hidden a few rows down.
+                let bestHeaders = headers;
+                let maxMatches = 0;
+
+                // Test Header Row 0 (Standard)
+                const testRow = (h) => {
+                    let matches = 0;
+                    ['clientName', 'tatReport', 'sampleId', 'status'].forEach(f => {
+                        if (findMatchingHeader(h, COLUMN_PATTERNS[f])) matches++;
+                    });
+                    return matches;
+                };
+
+                maxMatches = testRow(headers);
+
+                // Scan first 10 rows of DATA to see if any look more like a header row
+                for (let i = 0; i < Math.min(10, rows.length); i++) {
+                    const rowKeys = Object.keys(rows[i]);
+                    const rowValues = Object.values(rows[i]).map(v => String(v));
+                    
+                    // Test keys
+                    const keyMatches = testRow(rowKeys);
+                    if (keyMatches > maxMatches) {
+                        maxMatches = keyMatches;
+                        bestHeaders = rowKeys;
+                    }
+                    
+                    // Test values (Sometimes values are the headers in raw exports)
+                    const valMatches = testRow(rowValues);
+                    if (valMatches > maxMatches) {
+                        maxMatches = valMatches;
+                        bestHeaders = rowValues;
+                    }
+                }
+
+                const sheetMapping = { _sheetName: sheetName, _allHeaders: bestHeaders, _indices: {} };
+
+                // Phase 1: Map headers to field names
+                for (const [field, patterns] of Object.entries(COLUMN_PATTERNS)) {
+                    const matchedHeader = findMatchingHeader(bestHeaders, patterns);
+                    sheetMapping[field] = matchedHeader;
+                    
+                    // Store the numerical INDEX for rigid extraction
+                    if (matchedHeader) {
+                        sheetMapping._indices[field] = bestHeaders.indexOf(matchedHeader);
+                    }
+                }
+
+                // Phase 2: Content-Based Identification (Fuzzy Guessing)
+                if (!sheetMapping.clientName && rows.length > 0) {
+                    const clientKeywords = ['CMC', 'CHRISTIAN', 'HAEMOTOL', 'HAEMATOL'];
+                    const sampleRow = rows[0];
+                    const keys = Object.keys(sampleRow);
+                    
+                    for (let idx = 0; idx < keys.length; idx++) {
+                        const colKey = keys[idx];
+                        const sampleValues = rows.slice(0, 15).map(r => String(r[colKey] || '').toUpperCase());
+                        if (sampleValues.some(val => clientKeywords.some(kw => val.includes(kw)))) {
+                            sheetMapping.clientName = colKey;
+                            sheetMapping._indices.clientName = idx;
+                            break;
+                        }
+                    }
+                }
+
+                columnMappings[sheetName] = sheetMapping;
+            });
+        }
+
+        function findMatchingHeader(headers, patterns) {
+            if (!headers || !headers.length) return null;
+            const normalize = (str) => String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const normalizedPatterns = patterns.map(p => normalize(p));
+
+            // 1. Exact Match
+            for (const h of headers) {
+                if (normalizedPatterns.includes(normalize(h))) return h;
+            }
+
+            // 2. Contains Match
+            for (const h of headers) {
+                const hn = normalize(h);
+                if (hn.length < 3) continue;
+                for (const p of normalizedPatterns) {
+                    if (p.length >= 6 && (hn.includes(p) || p.includes(hn))) return h;
+                }
+            }
+
+            return null;
+        }
+
+        function getNormalizedClientName(name) {
+            if (!name) return "";
+            let clean = String(name).trim().toUpperCase();
+            clean = clean.replace(/\s*\(.*?\)\s*/g, ' ').trim();
+            clean = clean.replace(/\bDR\.?\s*/g, 'DR ').trim();
+            clean = clean.replace(/\s{2,}/g, ' ');
+
+            // CMC sub-departments — kept separate so users can filter by department
+            if (clean.includes('HAEMOTOL') || clean.includes('HAEMATOL') || clean.includes('HEAMOTOL')) return 'HAEMOTOLOGY';
+            if (clean.includes('MEDICAL GENET') || clean.includes('MEDICAL GENTIC') ||
+                clean.includes('MEDICALGENETICS') || clean.includes('MEDICALGENTIC')) return 'MEDICAL GENETICS';
+            if (clean.includes('NEPHROL')) return 'NEPHROLOGY';
+            if (clean.includes('CYTOGENET')) return 'CYTOGENETICS';
+            if (clean.includes('MOLECULAR ENDOCRIN') || clean.includes('MOLECULARENDOCRIN')) return 'MOLECULAR ENDOCRINOLOGY';
+
+            // Generic CMC catch-all
+            if (clean.includes('CHRISTIAN MEDICAL COLLEGE') || clean.includes('CMC')) return 'CHRISTIAN MEDICAL COLLEGE';
+
+            return clean;
+        }
+
+        // Reads client/department from the row. Skips bare doctor names so that
+        // sheets where "Client Name" stores the referring doctor don't pollute the dept.
+        function getRowClientName(row, sheetName) {
+            const isDocName = v => /^Dr[\.\s]/i.test(String(v).trim());
+
+            // Apps Script sends the client/dept value under the 'clientName' key
+            const colCandidates = [
+                row.clientName,                          // Apps Script camelCase key (primary)
+                getFieldValue(row, 'clientName', sheetName),
+                row['Client Department'], row['clientDepartment'],
+                row['Client Name'], row['ClientName'],
+                row['Client'], row['client'],
+            ];
+            for (const v of colCandidates) {
+                const s = String(v || '').trim();
+                if (s && !isDocName(s)) return s;
+            }
+
+            // Fallback: remarks column often contains client info like "CMC VELLORE - ..."
+            const remarks = String(
+                row['remarks'] || row['Remarks'] || row['REMARKS'] ||
+                getFieldValue(row, 'remarks', sheetName) || ''
+            ).trim().toUpperCase();
+
+            if (remarks.includes('HAEMOTOL') || remarks.includes('HAEMATOL')) return 'CHRISTIAN MEDICAL COLLEGE - HAEMOTOLOGY Dr.Poonkuzhali';
+            if (remarks.includes('NEPHROL')) return 'CHRISTIAN MEDICAL COLLEGE - NEPHROLOGY';
+            if (remarks.includes('MEDICAL GENET') || remarks.includes('MEDICAL GENTIC')) return 'CHRISTIAN MEDICAL COLLEGE - MEDICAL GENETICS';
+            if (remarks.includes('CMC') || remarks.includes('CHRISTIAN MEDICAL COLLEGE')) return 'CMC';
+            return '';
+        }
+
+        function validateColumnMappings() {
+            const allMissingFields = {};
+            const requiredFields = ['clientName', 'reportReleasedDate', 'receivedDate'];
+
+            Object.keys(columnMappings).forEach(sheetName => {
+                const mapping = columnMappings[sheetName];
+                const missingFields = [];
+                
+                // Fields that have NO fallback
+                for (const field of requiredFields) {
+                    if (!mapping[field]) missingFields.push(field);
+                }
+                
+                // TAT Report has a fallback to receivedDate, so only warn if BOTH are missing
+                if (!mapping.tatReport && !mapping.receivedDate) {
+                    missingFields.push('tatReport');
+                }
+                
+                if (missingFields.length > 0) {
+                    allMissingFields[sheetName] = missingFields;
+                }
+            });
+
+            // Show warning if ANY sheet has NO way to track data
+            if (Object.keys(allMissingFields).length > 0) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'warning';
+                let warningHTML = '<h3>⚠️ Column Mapping Note</h3>';
+                
+                Object.keys(allMissingFields).forEach(sheetName => {
+                    const missing = allMissingFields[sheetName];
+                    warningHTML += `<p><strong>${sheetName}:</strong> Missing core columns: <strong>${missing.join(', ')}</strong></p>`;
+                });
+                
+                warningHTML += '<p>Note: Older sheets without a TAT column automatically use "Received Date" (Inward Date) as a fallback.</p>';
+                warningDiv.innerHTML = warningHTML;
+                
+                // Only show warning once
+                const existingWarning = document.querySelector('.warning');
+                if (!existingWarning) {
+                    document.getElementById('contentArea').insertAdjacentElement('afterbegin', warningDiv);
+                }
+            }
+        }
+
+        function getFieldValue(row, field, sheetName = null) {
+            const targetSheet = sheetName || currentSheet;
+            if (!targetSheet || !columnMappings[targetSheet]) return null;
+            
+            const mapping = columnMappings[targetSheet];
+            const colName = mapping[field];
+            const colIndex = mapping._indices[field];
+            
+            // Normalize for comparison
+            const normalize = (str) => String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+            
+            // 1. Try by Numerical Index if available (MOST RELIABLE)
+            if (colIndex !== undefined) {
+                // Try row[index] or row[String(index)]
+                if (row[colIndex] !== undefined && row[colIndex] !== null) return row[colIndex];
+                const keyByIndex = Object.keys(row)[colIndex];
+                if (keyByIndex && row[keyByIndex] !== undefined) return row[keyByIndex];
+            }
+
+            // 2. Try by Column Name Property
+            if (colName) {
+                if (row[colName] !== undefined && row[colName] !== null) return row[colName];
+                
+                // Case-insensitive/Normalized search through available keys
+                const rowKeys = Object.keys(row);
+                const targetNorm = normalize(colName);
+                for (const key of rowKeys) {
+                    if (normalize(key) === targetNorm) {
+                        return row[key];
+                    }
+                }
+            }
+
+            // 3. Last Resort: Client-specific keyword scan
+            if (field === 'clientName') {
+                const keywords = ['CMC', 'CHRISTIAN', 'HAEMOTOL', 'HAEMATOL'];
+                for (const key of Object.keys(row)) {
+                    const val = String(row[key] || '').toUpperCase();
+                    if (keywords.some(kw => val.includes(kw))) return row[key];
+                }
+            }
+
+            return null;
+        }
+
+        // Returns a Date for a sheet name like "Mar 2026", "AUG 2025", "July 2025"
+        function getSheetDate(name) {
+            const m = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
+            const parts = String(name).trim().toLowerCase().split(/\s+/);
+            if (parts.length < 2) return null;
+            const month = m[parts[0].substring(0, 3)];
+            const year  = parseInt(parts[1]);
+            return (month !== undefined && !isNaN(year)) ? new Date(year, month, 1) : null;
+        }
+
+        // A repeat/resequenced sample is always treated as Released (it isn't awaiting
+        // a fresh report), but it must NOT add a second unit to any sample count —
+        // see isRepeatSample() usages in getTATStats() and the Total Samples tallies.
+        function isRepeatSample(row, sheetName = null) {
+            const targetSheet = sheetName || row._sourceSheet || currentSheet;
+            const remarks = String(
+                row['remarks'] || row['Remarks'] || row['REMARKS'] ||
+                getFieldValue(row, 'remarks', targetSheet) || ''
+            ).toUpperCase();
+            return /REP(?:EAT|AET)\s*SAMPLE/.test(remarks);
+        }
+
+        function calculateStatus(row, sheetName = null) {
+            const targetSheet = sheetName || row._sourceSheet || currentSheet;
+
+            // Repeat/resequenced sample — treat as released regardless of TAT/raw-data state
+            if (isRepeatSample(row, targetSheet)) return 'Released';
+
+            // Sheets up to and including Mar 2026 → all Released
+            const sheetDate = getSheetDate(targetSheet);
+            if (sheetDate && sheetDate <= new Date(2026, 2, 1)) return 'Released';
+
+            // Apr 2026 onwards:
+            // Released only when BOTH rawDataReceived AND reportReleasedDate are filled
+            const isFilled = v => { const s = String(v || '').trim(); return s && s !== '-' && s !== '0'; };
+
+            const rawDate = row['rawDataReceived'] || row['rawDataSent'] || '';
+            const relDate = row['reportReleasedDate'] || '';
+
+            if (isFilled(rawDate) && isFilled(relDate)) return 'Released';
+
+            // Not released — use TAT report date to decide Ongoing vs Overdue
+            const tatText = row['tatReport'] || getFieldValue(row, 'tatReport', targetSheet) || '';
+            const tatDate = parseDate(tatText);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (tatDate && tatDate < today) return 'Overdue';
+            return 'Ongoing';
+        }
+
+        function isReportReleased(row, sheetName = null) {
+            return calculateStatus(row, sheetName) === 'Released';
+        }
+
+        function calculateDaysOverdue(row, sheetName = null) {
+            if (calculateStatus(row, sheetName) !== 'Overdue') return '';
+
+            const targetSheet = sheetName || row._sourceSheet || currentSheet;
+            const tatText = row['tatReport'] || getFieldValue(row, 'tatReport', targetSheet) || '';
+            const tatDate = parseDate(tatText);
+            if (!tatDate) return '';
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffDays = Math.round((today - tatDate) / (1000 * 60 * 60 * 24));
+            return diffDays > 0 ? diffDays : '';
+        }
+
+        function showConfigModal() {
+            const modal = document.getElementById('configModal');
+            const content = document.getElementById('configContent');
+
+            let html = '<div class="config-section">';
+
+            // ── Client Department Quick Finder ──────────────────────────────────────
+            html += '<h3 style="color:#e74c3c;">🔎 Client Department — What the data actually contains</h3>';
+            html += '<p style="font-size:13px;color:#555;margin-bottom:12px;">This shows the raw column key and first-row value for every column that could be the client department, per sheet.</p>';
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:24px;">';
+            html += '<thead><tr style="background:#3498db;color:white;">'
+                  + '<th style="padding:6px 8px;text-align:left;">Sheet</th>'
+                  + '<th style="padding:6px 8px;text-align:left;">Column Key in JSON</th>'
+                  + '<th style="padding:6px 8px;text-align:left;">Row 1 Value</th>'
+                  + '<th style="padding:6px 8px;text-align:left;">Row 2 Value</th>'
+                  + '</tr></thead><tbody>';
+
+            const clientRe = /client|department|dept|division/i;
+            Object.keys(allData).filter(n => getSheetDate(n)).forEach((sheetName, si) => {
+                const rows = allData[sheetName].rows || [];
+                if (!rows.length) return;
+                const rowKeys = Object.keys(rows[0]).filter(k => k !== '_sourceSheet');
+                const clientKeys = rowKeys.filter(k => clientRe.test(k));
+                if (!clientKeys.length) {
+                    html += `<tr style="background:${si%2?'#fff':'#f8f9fa'}"><td style="padding:5px 8px;">${sheetName}</td>`
+                          + `<td colspan="3" style="padding:5px 8px;color:#e74c3c;">⚠ No column with "client/dept" in its name found. All keys: ${rowKeys.join(', ')}</td></tr>`;
+                } else {
+                    clientKeys.forEach(k => {
+                        const v1 = String(rows[0][k] || '');
+                        const v2 = rows[1] ? String(rows[1][k] || '') : '—';
+                        html += `<tr style="background:${si%2?'#fff':'#f8f9fa'}">`
+                              + `<td style="padding:5px 8px;font-weight:600;">${sheetName}</td>`
+                              + `<td style="padding:5px 8px;font-family:monospace;color:#2980b9;">${k}</td>`
+                              + `<td style="padding:5px 8px;">${v1 || '<em style="color:#aaa">empty</em>'}</td>`
+                              + `<td style="padding:5px 8px;">${v2 || '<em style="color:#aaa">empty</em>'}</td></tr>`;
+                    });
+                }
+            });
+            html += '</tbody></table>';
+            // ────────────────────────────────────────────────────────────────────────
+
+            html += '<h3>🔍 Diagnostic Column Mapping</h3>';
+            html += '<p style="margin-bottom: 20px; color: #7f8c8d; font-size: 14px;">If dropdowns are empty, check if the columns are detected correctly (✓) below. The system automatically searches headers and data content to map your fields.</p>';
+            
+            Object.keys(columnMappings).forEach(sheetName => {
+                const mapping = columnMappings[sheetName];
+                const sheetData = allData[sheetName];
+                
+                html += `<div style="background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 25px;">`;
+                html += `<h4 style="color: #2c3e50; margin: 0 0 15px 0; border-bottom: 2px solid #3498db; display: inline-block;">📄 ${sheetName}</h4>`;
+                
+                // 1. Mapping Status
+                html += '<div class="config-grid" style="margin-bottom: 15px;">';
+                for (const [field, patterns] of Object.entries(COLUMN_PATTERNS)) {
+                    const detectedColumn = mapping[field];
+                    const statusClass = detectedColumn ? 'mapping-detected' : 'mapping-missing';
+                    const statusIcon = detectedColumn ? '✓' : '✗';
+                    
+                    html += `
+                        <div class="config-label" style="font-size: 12px;">${field}:</div>
+                        <div class="config-value ${statusClass}" style="font-size: 12px; font-weight: bold;">
+                            ${statusIcon} ${detectedColumn || 'Not found'}
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                
+                // 2. Raw Data Snippet (Crucial for debugging)
+                if (sheetData && sheetData.rows && sheetData.rows.length > 0) {
+                    const firstRow = sheetData.rows[0];
+                    html += '<h5 style="color: #7f8c8d; margin-top: 15px; font-size: 11px; text-transform: uppercase;">📊 Technical Row Inspector (Row 1):</h5>';
+                    html += '<div style="background: #2d3436; color: #fab1a0; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 10px; margin-top: 5px; overflow-x: auto;">';
+                    html += `JSON Keys: ${Object.keys(firstRow).join(', ')}<br><br>`;
+                    html += `JSON Data: ${JSON.stringify(firstRow)}`;
+                    html += '</div>';
+
+                    html += '<h5 style="color: #7f8c8d; margin-top: 15px; font-size: 11px; text-transform: uppercase;">📋 Formatted View (Top 3 Rows):</h5>';
+                    html += '<div style="overflow-x: auto; max-height: 200px; border: 1px solid #eee; margin-top: 5px;">';
+                    html += '<table style="font-size: 10px; min-width: 1000px; border-collapse: collapse; background: white;">';
+                    
+                    // Snippet Headers
+                    const snippetHeaders = sheetData.headers || Object.keys(sheetData.rows[0]);
+                    html += '<thead><tr>';
+                    snippetHeaders.forEach(h => html += `<th style="padding: 4px; background: #eee; color: #333; border: 1px solid #ddd;">${h}</th>`);
+                    html += '</tr></thead><tbody>';
+                    
+                    // Snippet Rows
+                    (sheetData.rows || []).slice(0, 3).forEach(row => {
+                        html += '<tr>';
+                        snippetHeaders.forEach(h => {
+                            const val = row[h] !== undefined ? row[h] : '';
+                            html += `<td style="padding: 4px; border: 1px solid #eee; color: #666; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${val}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table></div>';
+                }
+                
+                html += '</div>';
+            });
+
+            html += '</div>';
+
+            content.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.remove('active');
+        }
+
+        function initFiltersAndInfo() {
+            const clients = new Set();
+            let totalSamples = 0;
+
+            // Single pass over all rows — collect clients + sample count (skip non-Month-Year sheets)
+            Object.keys(allData).filter(n => getSheetDate(n) !== null).forEach(sheetName => {
+                const sheet = allData[sheetName];
+                (sheet.rows || []).forEach(row => {
+                    if (!isRepeatSample(row, sheetName)) totalSamples++;
+                    const c = getRowClientName(row, sheetName);
+                    if (c) clients.add(getNormalizedClientName(c));
+                });
+            });
+
+            // Client dropdown
+            const select = document.getElementById('clientSelect');
+            if (select) {
+                const sorted = Array.from(clients).sort();
+                select.innerHTML = sorted.length
+                    ? '<option value="">All Clients</option>' + sorted.map(c => `<option value="${c}">${c}</option>`).join('')
+                    : '<option value="">-- No Client Column Detected --</option>';
+            }
+
+            // Year dropdown — read from sheet names (O(sheets), no date parsing)
+            const years = new Set();
+            Object.keys(allData).forEach(name => {
+                const d = getSheetDate(name);
+                if (d) years.add(d.getFullYear());
+            });
+            const topYear = document.getElementById('topYearSelect');
+            if (topYear) {
+                topYear.innerHTML = '<option value="">All Years</option>'
+                    + Array.from(years).sort((a, b) => b - a).map(y => `<option value="${y}">${y}</option>`).join('');
+            }
+
+            // Total samples count (sidebar button)
+            const tsEl = document.getElementById('totalSamplesCount');
+            if (tsEl) tsEl.textContent = totalSamples;
+        }
+
+        function getSortedSheetNames() {
+            // Only include sheets that match "Month Year" pattern (e.g. "May 2026")
+            const sheetNames = Object.keys(allData).filter(name => getSheetDate(name) !== null);
+            const months = {
+                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+            };
+
+            return sheetNames.sort((a, b) => {
+                const parse = (s) => {
+                    const parts = s.toLowerCase().trim().split(/\s+/);
+                    if (parts.length < 2) return { m: -1, y: -1 };
+                    // Match the first 3 letters for month (e.g., "Jan" or "January")
+                    const m = months[parts[0].substring(0, 3)] ?? -1;
+                    const y = parseInt(parts[1]) || -1;
+                    return { m, y };
+                };
+
+                const da = parse(a);
+                const db = parse(b);
+
+                // If parsing failed for one or both, handle gracefully
+                if (da.y === -1 || db.y === -1) {
+                    if (da.y === db.y) return a.localeCompare(b);
+                    return db.y - da.y;
+                }
+
+                // Sort by Year (Descending), then Month (Descending)
+                if (da.y !== db.y) return db.y - da.y;
+                return db.m - da.m;
+            });
+        }
+
+        function renderSheetTabs() {
+            const tabsContainer = document.getElementById('sheetTabs');
+            tabsContainer.innerHTML = '';
+            
+            const sortedSheets = getSortedSheetNames();
+            sortedSheets.forEach(sheetName => {
+                const tab = document.createElement('button');
+                tab.className = 'tab';
+                tab.textContent = sheetName;
+                tab.onclick = () => { activeTATFilter = null; displaySheet(sheetName); };
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        function showAllSheets() {
+            activeFilterFn = null;
+            activeFilterLabel = '';
+            activeTATFilter = null;
+            document.querySelectorAll('.filter-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+
+            const sortedSheets = getSortedSheetNames();
+            if (sortedSheets.length > 0) {
+                displaySheet(sortedSheets[0]);
+            }
+        }
+
+        function displaySheet(sheetName) {
+            currentSheet = sheetName;
+
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.textContent === sheetName);
+            });
+
+            const sheetData = allData[sheetName];
+            if (!sheetData || sheetData.rows.length === 0) {
+                document.getElementById('contentArea').innerHTML = '<div class="no-data">No data available in this sheet</div>';
+                return;
+            }
+
+            const rowsWithSource = sheetData.rows.map(row => ({
+                ...row,
+                _sourceSheet: sheetName
+            }));
+
+            let baseRows = rowsWithSource;
+            let baseTitle = `${sheetName} - All Samples`;
+
+            if (activeFilterFn) {
+                baseRows = rowsWithSource.filter(row => activeFilterFn(row, sheetName));
+                baseTitle = `${sheetName} - ${activeFilterLabel}`;
+            }
+
+            const statRows = baseRows; // counts always reflect pre-TAT-filter view
+
+            let displayRows = baseRows;
+            if (activeTATFilter) {
+                const tatLabel = activeTATFilter === 'Released' ? 'Completed' : activeTATFilter;
+                displayRows = baseRows.filter(row => calculateStatus(row, row._sourceSheet || sheetName) === activeTATFilter);
+                baseTitle += ` (${tatLabel})`;
+            }
+
+            currentView = displayRows;
+            if (displayRows.length === 0) {
+                const emptyMsg = activeTATFilter === 'Overdue'   ? '🎉 No overdue samples' :
+                                 activeTATFilter === 'Ongoing'   ? '✅ No ongoing samples — all completed' :
+                                 activeTATFilter === 'Released'  ? 'No completed samples yet' :
+                                                                   'No samples found';
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="result-header">
+                        <h3>${baseTitle}</h3>
+                        <div class="result-stats">
+                            <div class="stat-item clickable stat-total${activeTATFilter ? '' : ' active-filter'}" onclick="filterByTATStatus(null)" title="Click to show all samples">
+                                <div class="stat-label">Total Samples</div>
+                                <div class="stat-value">${statRows.filter(r => !isRepeatSample(r, r._sourceSheet)).length}</div>
+                            </div>
+                            ${getTATStats(statRows)}
+                        </div>
+                    </div>
+                    <div class="no-data">${emptyMsg}</div>`;
+            } else {
+                renderTable(displayRows, baseTitle, sheetData.headers, statRows);
+            }
+        }
+
+        function showAllFilteredMonths() {
+            if (!activeFilterFn) { showAllSheets(); return; }
+            const filteredData = [];
+            Object.keys(allData).forEach(sheetName => {
+                (allData[sheetName].rows || []).forEach(row => {
+                    const rowWithSource = { ...row, _sourceSheet: sheetName };
+                    if (activeFilterFn(rowWithSource, sheetName)) filteredData.push(rowWithSource);
+                });
+            });
+            if (filteredData.length > 0) {
+                currentView = filteredData;
+                renderTable(filteredData, activeFilterLabel);
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            }
+        }
+
+        let currentTableCols = []; // Track column definitions for current table to enable correct sorting.
+
+        function renderTable(rows, title = '', headers = null, statRows = null) {
+            if (rows.length === 0) {
+                document.getElementById('contentArea').innerHTML = '<div class="no-data">No samples match your criteria</div>';
+                return;
+            }
+            
+            const normalize = (str) => String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const allKeys = Object.keys(rows[0]).filter(key => key !== '_sourceSheet');
+
+            // Pre-detect the client department column by scanning actual cell VALUES.
+            // This works regardless of what the column is named in the spreadsheet.
+            const CLIENT_DEPT_KW = ['CHRISTIAN MEDICAL','HAEMOTOL','HAEMATOL','NEPHROL',
+                                    'CYTOGENET','MEDICAL GENET','MOLECULAR ENDOCRIN',
+                                    'CMC VELLORE','CMC -','CMC-'];
+            const isDeptValue = v => {
+                const u = String(v||'').trim().toUpperCase();
+                return u.length > 3 && u.length < 150 && CLIENT_DEPT_KW.some(kw => u.includes(kw));
+            };
+            // Find column key whose values look like department names (check first 20 rows)
+            const clientDeptKey = (() => {
+                const sample = rows.slice(0, 20);
+                // Prefer a key that normalises to 'clientdepartment', then 'clientname'
+                const priority = allKeys.slice().sort((a,b) => {
+                    const order = ['clientdepartment','clientname','client','department'];
+                    const ia = order.indexOf(normalize(a)), ib = order.indexOf(normalize(b));
+                    return (ia<0?99:ia) - (ib<0?99:ib);
+                });
+                for (const k of priority) {
+                    if (sample.some(r => isDeptValue(r[k]))) return k;
+                }
+                // Fallback: any column whose values contain department keywords
+                for (const k of allKeys) {
+                    if (sample.some(r => isDeptValue(r[k]))) return k;
+                }
+                return null;
+            })();
+            
+            const definitions = {
+                sampleName: { title: 'Sample Name', keys: ['samplename', 'patientname', 'name', 'patient', 'patientsamplename'] },
+                gender: { title: 'Gender', keys: ['gender', 'sex', 'mf'] },
+                age: { title: 'Age', keys: ['age', 'patientage'] },
+                andId: { title: 'Anderson ID', keys: ['andid', 'andersonid'] },
+                sampleNumber: { title: 'Sample Number', keys: ['samplenumber', 'sampleno', 'sampleid', 'labnumber', 'labid', 'labno', 'barcode', 'uhid'] },
+                test: { title: 'Test', keys: ['test', 'testname', 'testformat', 'testtype', 'assay', 'analysis', 'procedure'] },
+                clientDept: { title: 'Client Department', keys: ['clientdepartment', 'clientname', 'client', 'department', 'referral', 'refby', 'referredby', 'referringhospital', 'referringdoctor', 'hospital', 'hospitalname', 'centername', 'center', 'clinic', 'account', 'customer', 'source'] },
+                remarks: { title: 'Remarks', keys: ['remarks', 'remark', 'comments', 'comment', 'notes', 'history'] },
+                receivedDate: { title: 'Received Date', keys: ['receiveddate', 'datereceived', 'receiptdate', 'registrationdate', 'regdate', 'inwarddate', 'entrydate', 'bookingdate', 'received', 'dateofreceiptt'] },
+                rawDataDate: { title: 'Raw Data Sent', keys: ['rawdatadate', 'rawdatasent', 'rawdata', 'rundate', 'sequencingdate', 'rawdatareceived', 'datasentdate', 'rawdatasentdate'] },
+                tatReportDate: { title: 'TAT Report Date', keys: ['tatreportdate', 'tatreport', 'tatdate', 'duedate', 'targetdate', 'promiseddate', 'tat'] },
+                reportReleasedDate: { title: 'Report Released Date', keys: ['reportreleaseddate', 'reportreleased', 'releaseddate', 'releasedate', 'dispatchdate', 'completiondate', 'finalreport', 'issueddate'] },
+                status: { title: 'Status', keys: ['status', 'samplestatus', 'reportstatus', 'processstatus', 'currentstatus'] }
+            };
+
+            const keyMap = {};
+            const usedKeys = new Set();
+            
+            // Ignore specific columns like S.NO and internal tracking links
+            const hiddenCols = ['sno', 'slno', 'serialno', 'serialnumber', 'reportsentlink', 'rawdatasentto', 'rawdatasentlink', 'clientdoctorname'];
+            allKeys.forEach(k => {
+                const norm = normalize(k);
+                if (hiddenCols.includes(norm)) {
+                    usedKeys.add(k);
+                }
+            });
+
+            // Map target columns
+            Object.keys(definitions).forEach(defKey => {
+                const patterns = definitions[defKey].keys;
+                // Exact match first
+                let matched = allKeys.find(k => !usedKeys.has(k) && patterns.includes(normalize(k)));
+                // Contains match second
+                if (!matched) {
+                    matched = allKeys.find(k => {
+                        if (usedKeys.has(k)) return false;
+                        const norm = normalize(k);
+                        return patterns.some(p => p.length >= 6 && (norm.includes(p) || p.includes(norm)));
+                    });
+                }
+                if (matched) {
+                    keyMap[defKey] = matched;
+                    usedKeys.add(matched);
+                }
+            });
+
+            const otherKeys = allKeys.filter(k => !usedKeys.has(k));
+
+            // Generate Columns config
+            const cols = [
+                { title: 'Sample Name', getValue: (r) => keyMap.sampleName ? r[keyMap.sampleName] : '' },
+                { title: 'Gender', getValue: (r) => {
+                    const s = keyMap.sampleName ? String(r[keyMap.sampleName] || '') : '';
+                    let m = s.match(/\b(MALE|FEMALE)\b/i) || s.match(/[\/\-\s,\|\(]\s*([MF])\s*(?:[\/\-\s,\|\)]|$)/i);
+                    if (m) {
+                        let g = (m[1] || m[2]).toUpperCase();
+                        return (g === 'M' || g === 'MALE') ? 'Male' : 'Female';
+                    }
+                    if (keyMap.gender) {
+                        let g = String(r[keyMap.gender] || '').trim().toUpperCase();
+                        if (g === 'M' || g === 'MALE') return 'Male';
+                        if (g === 'F' || g === 'FEMALE') return 'Female';
+                        return r[keyMap.gender];
+                    }
+                    return ''; 
+                }},
+                { title: 'Age', getValue: (r) => {
+                    const s = keyMap.sampleName ? String(r[keyMap.sampleName] || '') : '';
+                    let m = s.match(/\b(\d{1,3})\s*(YRS?|Y|MONTHS?|M|DAYS?|D)\b/i);
+                    if (m) {
+                        let num = parseInt(m[1], 10);
+                        let unit = m[2].toUpperCase().charAt(0);
+                        let label = unit === 'M' ? 'Month' : (unit === 'D' ? 'Day' : 'Year');
+                        return num + ' ' + label + (num === 1 ? '' : 's');
+                    }
+                    let m2 = s.match(/[\/\-\s,\|\(]\s*(\d{1,3})\s*[\/\-\s,\|\)]/);
+                    if (m2) {
+                        let num = parseInt(m2[1], 10);
+                        return num + ' Year' + (num === 1 ? '' : 's');
+                    }
+                    
+                    if (keyMap.age) {
+                        let a = String(r[keyMap.age] || '').trim();
+                        if (a && !isNaN(a)) {
+                            let num = parseInt(a, 10);
+                            return num + ' Year' + (num === 1 ? '' : 's');
+                        }
+                        return a;
+                    }
+                    return '';
+                }},
+                { title: 'Anderson ID', getValue: (r) => keyMap.andId ? r[keyMap.andId] : '' },
+                { title: 'Sample Number', getValue: (r) => keyMap.sampleNumber ? r[keyMap.sampleNumber] : '' },
+                { title: 'Test', getValue: (r) => keyMap.test ? r[keyMap.test] : '' },
+                { title: 'Client Department', getValue: (r) => {
+                    const sheet = r._sourceSheet || currentSheet;
+                    const isDocName = v => /^Dr[\.\s]/i.test(String(v).trim());
+                    const hasDate   = v => /\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/.test(v);
+                    const clean     = v => { const m = v.match(/\s+(Dr[\.\s].+)/i); return m ? v.replace(m[0],'').trim() : v; };
+                    const good      = v => { const s = String(v||'').trim(); return s && !isDocName(s) && !hasDate(s) ? s : ''; };
+
+                    // Use the pre-detected column key (found by scanning actual cell values above)
+                    if (clientDeptKey) {
+                        const v = good(r[clientDeptKey]);
+                        if (v) return clean(v);
+                    }
+
+                    // Apps Script sends the department as 'clientName' key
+                    // (reads from "Client Name" OR "Client Department" column after the Apps Script fix)
+                    const direct = String(r.clientName || '').trim();
+                    if (direct && !isDocName(direct)) return clean(direct);
+
+                    // Fallback: pre-detected key or keyMap (covers any future column rename)
+                    if (clientDeptKey && r[clientDeptKey]) {
+                        const v = String(r[clientDeptKey]).trim();
+                        if (v && !isDocName(v)) return clean(v);
+                    }
+                    if (keyMap.clientDept && r[keyMap.clientDept]) {
+                        const v = String(r[keyMap.clientDept]).trim();
+                        if (v && !isDocName(v)) return clean(v);
+                    }
+
+                    // Last resort: parse from remarks
+                    return clean(getRowClientName(r, sheet) || '');
+                }},
+                { title: 'Client Doctor Name', getValue: (r) => {
+                    const sheet = r._sourceSheet || currentSheet;
+                    // 1. Dedicated "Client Doctor Name" column
+                    let docName = '';
+                    Object.keys(r).forEach(k => {
+                        if (normalize(k) === 'clientdoctorname' && r[k]) docName = String(r[k]).trim();
+                    });
+                    if (docName) return docName;
+                    // 2. Extract Dr. suffix from the client column (older combined-format sheets)
+                    const clientVal = String(getFieldValue(r, 'clientName', sheet) || r[keyMap.clientDept] || '').trim();
+                    const m = clientVal.match(/\s+(Dr[\.\s].+)/i);
+                    return m ? m[1].trim() : '';
+                }},
+                { title: 'Remarks', getValue: (r) => keyMap.remarks ? r[keyMap.remarks] : '' },
+                { title: 'Received Date', getValue: (r) => keyMap.receivedDate ? r[keyMap.receivedDate] : '' },
+                { title: 'Raw Data Sent', getValue: (r) => keyMap.rawDataDate ? r[keyMap.rawDataDate] : '' },
+                { title: 'TAT Report Date', getValue: (r) => keyMap.tatReportDate ? r[keyMap.tatReportDate] : '' },
+                { title: 'Report Released Date', getValue: (r) => keyMap.reportReleasedDate ? r[keyMap.reportReleasedDate] : '' },
+                { title: 'Status', getValue: (r) => calculateStatus(r, r._sourceSheet) },
+                { title: 'Days Overdue', getValue: (r) => calculateDaysOverdue(r, r._sourceSheet) }
+            ];
+
+            const formatHeader = (key) => {
+                const known = {
+                    'sampleType': 'Sample Type',
+                    'history': 'History',
+                    'tatRawData': 'TAT Raw Data',
+                    'reports': 'Reports'
+                };
+                if (known[key]) return known[key];
+                return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+            };
+
+            let reportColAdded = false;
+            otherKeys.forEach(ok => {
+                const title = formatHeader(ok);
+                const norm  = title.toLowerCase().replace(/\s/g,'');
+                if (norm === 'reports') {
+                    cols.push({ title: 'Choose Department', getValue: (r) => renderDepartmentCell(r), noSort: true });
+                    cols.push({ title: 'Reports', getValue: (r) => renderReportCell(r, r[ok]), noSort: true });
+                    cols.push({ title: 'Mail',    getValue: (r) => renderMailCell(r),           noSort: true });
+                    reportColAdded = true;
+                } else {
+                    cols.push({ title, getValue: (r) => r[ok] });
+                }
+            });
+            if (!reportColAdded) {
+                cols.push({ title: 'Choose Department', getValue: (r) => renderDepartmentCell(r), noSort: true });
+                cols.push({ title: 'Reports', getValue: (r) => renderReportCell(r, ''), noSort: true });
+                cols.push({ title: 'Mail',    getValue: (r) => renderMailCell(r),       noSort: true });
+            }
+
+            currentTableCols = cols;
+
+            let html = `
+                <div class="result-header">
+                    <h3>${title}</h3>
+                    <div class="result-stats">
+                        <div class="stat-item clickable stat-total${activeTATFilter ? '' : ' active-filter'}" onclick="filterByTATStatus(null)" title="Click to show all samples">
+                            <div class="stat-label">Total Samples</div>
+                            <div class="stat-value">${(statRows || rows).filter(r => !isRepeatSample(r, r._sourceSheet)).length}</div>
+                        </div>
+                        ${getTATStats(statRows || rows)}
+                    </div>
+                </div>
+            `;
+            
+            html += '<div class="table-container"><table><thead><tr>';
+            
+            const wideCols = new Set(['Test', 'Client Department', 'Client Doctor Name', 'Remarks']);
+            cols.forEach((col, index) => {
+                if (col.noSort) {
+                    const cls = col.title === 'Reports' ? 'col-report' : col.title === 'Choose Department' ? 'col-dept' : 'col-mail';
+                    html += `<th class="${cls}">${col.title}</th>`;
+                } else {
+                    let thClass = col.title === 'History' ? 'sortable col-history' : 'sortable';
+                    if (wideCols.has(col.title)) thClass += ' col-wide';
+                    html += `<th class="${thClass}" onclick="sortTable(${index})">${col.title}</th>`;
+                }
+            });
+
+            html += '</tr></thead><tbody id="tableBody">';
+
+            rows.forEach(row => {
+                const rowClass = getTATClass(row);
+                html += `<tr class="${rowClass}" data-rowkey="${encodeURIComponent(_rowKey(row))}">`;
+
+                cols.forEach(col => {
+                    const value = col.getValue(row);
+                    if (col.title === 'Status') {
+                        const badgeCls = value === 'Released' ? 'badge-released' : value === 'Overdue' ? 'badge-overdue' : 'badge-ongoing';
+                        html += `<td><span class="status-badge ${badgeCls}">${value}</span></td>`;
+                    } else if (col.title === 'Choose Department') {
+                        html += `<td class="col-dept">${value}</td>`;
+                    } else if (col.title === 'Reports') {
+                        html += `<td class="col-report">${value}</td>`;
+                    } else if (col.title === 'Mail') {
+                        html += `<td class="col-mail">${value}</td>`;
+                    } else {
+                        let tdClass = '';
+                        if (col.title === 'History') tdClass = ' class="col-history"';
+                        else if (wideCols.has(col.title)) tdClass = ' class="col-wide"';
+                        html += `<td${tdClass}>${value !== null && value !== undefined ? value : ''}</td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            // Add scroll hint if table is wide
+            const scrollHintHtml = cols.length > 8 ? '<div class="scroll-hint show">Scroll horizontally to see more columns</div>' : '';
+            
+            document.getElementById('contentArea').innerHTML = html;
+            
+            setTimeout(() => {
+                const container = document.querySelector('.table-container');
+                if (container) {
+                    const needsScroll = container.scrollWidth > container.clientWidth;
+                    if (needsScroll && !scrollHintHtml) {
+                        const hint = document.createElement('div');
+                        hint.className = 'scroll-hint show';
+                        hint.textContent = 'Scroll horizontally to see more columns';
+                        container.parentNode.insertBefore(hint, container);
+                    }
+                }
+            }, 100);
+        }
+
+        function getTATStats(rows) {
+            let ongoing = 0, overdue = 0, completed = 0;
+
+            rows.forEach(row => {
+                const sheetName = row._sourceSheet || currentSheet;
+
+                // Repeat samples are released, but shouldn't add a 2nd count for the same sample
+                if (isRepeatSample(row, sheetName)) return;
+
+                const status = calculateStatus(row, sheetName);
+
+                if (status === 'Released') {
+                    completed++;
+                } else if (status === 'Overdue') {
+                    overdue++;
+                } else {
+                    ongoing++;
+                }
+            });
+            
+            const colorCls = { Ongoing: 'stat-ongoing', Overdue: 'stat-overdue', Released: 'stat-completed' };
+            const cls = (status) => `stat-item clickable ${colorCls[status]}${activeTATFilter === status ? ' active-filter' : ''}`;
+            let html = `
+                <div class="${cls('Ongoing')}" onclick="filterByTATStatus('Ongoing')" title="Click to filter ongoing samples">
+                    <div class="stat-label">⏳ Ongoing</div>
+                    <div class="stat-value">${ongoing}</div>
+                </div>
+                <div class="${cls('Overdue')}" onclick="filterByTATStatus('Overdue')" title="Click to filter overdue samples">
+                    <div class="stat-label">🚨 Overdue</div>
+                    <div class="stat-value">${overdue}</div>
+                </div>
+                <div class="${cls('Released')}" onclick="filterByTATStatus('Released')" title="Click to filter completed samples">
+                    <div class="stat-label">✅ Completed</div>
+                    <div class="stat-value">${completed}</div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function filterByTATStatus(status) {
+            if (status === null || activeTATFilter === status) {
+                activeTATFilter = null;
+            } else {
+                activeTATFilter = status;
+            }
+            if (currentSheet) {
+                displaySheet(currentSheet);
+            }
+        }
+
+        function getTATClass(row) {
+            const sheetName = row._sourceSheet || currentSheet;
+            const status = calculateStatus(row, sheetName);
+            
+            if (status === 'Released') return 'tat-completed';
+            if (status === 'Overdue') return 'tat-overdue';
+            if (status === 'Ongoing') return 'tat-pending';
+            
+            return '';
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr === '' || dateStr === null || dateStr === undefined) {
+                return null;
+            }
+
+            const dateString = String(dateStr).trim();
+            if (!dateString) return null;
+
+            // Try multiple date formats
+            const formats = [
+                // DD/MM/YYYY
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+                // MM/DD/YYYY
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+                // YYYY-MM-DD
+                /^(\d{4})-(\d{1,2})-(\d{1,2})$/,
+                // DD-MM-YYYY
+                /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
+            ];
+
+            // Try DD/MM/YYYY first (most common in lab context)
+            let match = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (match) {
+                const day = parseInt(match[1]);
+                const month = parseInt(match[2]) - 1; // JS months are 0-indexed
+                const year = parseInt(match[3]);
+                
+                const date = new Date(year, month, day);
+                
+                // Validate the date
+                if (!isNaN(date.getTime()) && 
+                    date.getDate() === day && 
+                    date.getMonth() === month && 
+                    date.getFullYear() === year) {
+                    return date;
+                }
+            }
+
+            // Try YYYY-MM-DD
+            match = dateString.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (match) {
+                const year = parseInt(match[1]);
+                const month = parseInt(match[2]) - 1;
+                const day = parseInt(match[3]);
+                
+                const date = new Date(year, month, day);
+                if (!isNaN(date.getTime())) {
+                    return date;
+                }
+            }
+
+            // Try native Date parsing as fallback
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                return date;
+            }
+            
+            console.warn(`Could not parse date: ${dateString}`);
+            return null;
+        }
+
+        function sortTable(columnIndex) {
+            if (!currentTableCols || !currentTableCols[columnIndex]) return;
+            if (currentTableCols[columnIndex].noSort) return;
+            
+            const colDef = currentTableCols[columnIndex];
+            
+            if (sortColumn === columnIndex) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = columnIndex;
+                sortDirection = 'asc';
+            }
+            
+            currentView.sort((a, b) => {
+                let valA = colDef.getValue(a);
+                let valB = colDef.getValue(b);
+                
+                if (valA === null || valA === undefined) valA = '';
+                if (valB === null || valB === undefined) valB = '';
+                
+                const dateA = parseDate(valA);
+                const dateB = parseDate(valB);
+                if (dateA && dateB) {
+                    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+                }
+                
+                if (valA !== '' && valB !== '') {
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB) && String(numA) === String(valA).trim() && String(numB) === String(valB).trim()) {
+                        return sortDirection === 'asc' ? numA - numB : numB - numA;
+                    }
+                }
+                
+                valA = String(valA).toLowerCase();
+                valB = String(valB).toLowerCase();
+                
+                if (sortDirection === 'asc') {
+                    return valA < valB ? -1 : valA > valB ? 1 : 0;
+                } else {
+                    return valA > valB ? -1 : valA < valB ? 1 : 0;
+                }
+            });
+            
+            const titleElement = document.querySelector('.result-header h3');
+            const title = titleElement ? titleElement.textContent : '';
+            renderTable(currentView, title);
+            
+            document.querySelectorAll('th').forEach((th, idx) => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (idx === columnIndex) {
+                    th.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
+        }
+
+        function searchTable() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                const currentTitle = document.querySelector('.result-header h3');
+                if (currentTitle) {
+                    const title = currentTitle.textContent.replace(' (Filtered)', '');
+                    renderTable(currentView, title);
+                }
+                return;
+            }
+            
+            const filtered = currentView.filter(row => {
+                return Object.values(row).some(val => {
+                    if (val === null || val === undefined) return false;
+                    return String(val).toLowerCase().includes(searchTerm);
+                });
+            });
+            
+            const currentTitle = document.querySelector('.result-header h3');
+            const baseTitle = currentTitle ? currentTitle.textContent.replace(' (Filtered)', '') : '';
+            renderTable(filtered, baseTitle + ` (Filtered)`);
+        }
+
+        function applyTopFilter() {
+            const client = document.getElementById('clientSelect').value;
+            const yearVal = document.getElementById('topYearSelect').value;
+            const year = yearVal ? parseInt(yearVal) : null;
+
+            let filteredData = [];
+            let title = client ? `Client: ${client}` : 'All Clients';
+            if (year) title += ` - ${year}`;
+
+            Object.keys(allData).forEach(sheetName => {
+                (allData[sheetName].rows || []).forEach(row => {
+                    const rowClient = getNormalizedClientName(getRowClientName(row, sheetName));
+                    if (client && rowClient !== client) return;
+                    if (year) {
+                        let d = parseDate(getFieldValue(row, 'receivedDate', sheetName));
+                        if (!d) d = parseDate(getFieldValue(row, 'tatReport', sheetName));
+                        if (!d || d.getFullYear() !== year) return;
+                    }
+                    filteredData.push({ ...row, _sourceSheet: sheetName });
+                });
+            });
+
+            if (filteredData.length === 0) {
+                alert('No data found for the selected criteria');
+                return;
+            }
+
+            const _client = client;
+            const _year = year;
+            activeFilterFn = (row, sheetName) => {
+                const rowClient = getNormalizedClientName(getRowClientName(row, sheetName));
+                if (_client && rowClient !== _client) return false;
+                if (!_year) return true;
+                let d = parseDate(getFieldValue(row, 'receivedDate', sheetName));
+                if (!d) d = parseDate(getFieldValue(row, 'tatReport', sheetName));
+                return d && d.getFullYear() === _year;
+            };
+            activeFilterLabel = title;
+
+            currentView = filteredData;
+            renderTable(filteredData, title);
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        }
+
+        function resetTopFilter() {
+            document.getElementById('clientSelect').value = '';
+            document.getElementById('topYearSelect').value = '';
+            activeFilterFn = null;
+            activeFilterLabel = '';
+            showAllSheets();
+        }
+
+
+        // Close modals when clicking outside
+        document.getElementById('configModal').addEventListener('click', function(e) {
+            if (e.target === this) closeConfigModal();
+        });
+        document.getElementById('emailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEmailModal();
+        });
+    </script>
+    <!-- Dashboard v1.1.2 - Self-Healing & Fallback Enabled -->
+</body>
+</html>

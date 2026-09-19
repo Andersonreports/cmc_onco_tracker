@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from auth import router as auth_router, read_session, renew_session_cookie, COOKIE_NAME
 from admin_api import router as admin_router
 from exome_api import router as exome_tracker_router
+from cmc_sample_tracking_api import router as cmc_sample_tracking_router
 import access
 import exome_roles
 import reports_client
@@ -42,6 +43,7 @@ app = FastAPI(title="Anderson Trackings")
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(exome_tracker_router)
+app.include_router(cmc_sample_tracking_router)
 
 
 @app.exception_handler(reports_client.ReportsAPIUnsupported)
@@ -248,6 +250,32 @@ def clinical_history_page(anderson_session: str | None = Cookie(default=None)):
     return _gate(sess, access.can_open_tracker(sess["acc"], "clinical-history"), "clinical-history.html")
 
 
+@app.get("/cmc-sample-tracking", include_in_schema=False)
+def cmc_sample_tracking_slash():
+    return RedirectResponse("/cmc-sample-tracking/")
+
+
+@app.get("/cmc-sample-tracking/", response_class=HTMLResponse)
+def cmc_sample_tracking_page(anderson_session: str | None = Cookie(default=None)):
+    sess = read_session(anderson_session)
+    if not sess:
+        return _to_login()
+    if not access.can_open_tracker(sess["acc"], "cmc-sample-tracking"):
+        return _home_for(sess)
+
+    html = (FRONTEND_DIR / "cmc-sample-tracking.html").read_text(encoding="utf-8")
+    html = html.replace(
+        "</head>",
+        "<script>window.API_BASE_URL = '/cmc-sample-tracking/api/exec';</script>\n</head>",
+        1,
+    )
+    return HTMLResponse(
+        html,
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate",
+                 "Pragma": "no-cache"},
+    )
+
+
 @app.get("/anderson-coverage", include_in_schema=False)
 def coverage_slash():
     return RedirectResponse("/anderson-coverage/")
@@ -289,6 +317,17 @@ def _mount_coverage_checker() -> None:
 
 
 _mount_coverage_checker()
+
+
+def _start_cmc_sample_tracking_alerts() -> None:
+    import cmc_sample_tracking
+    try:
+        cmc_sample_tracking.schedule_tat_alerts()
+    except Exception as e:
+        print(f"[cmc-sample-tracking] TAT alert job not started ({type(e).__name__}: {e})")
+
+
+_start_cmc_sample_tracking_alerts()
 
 
 class AssetFiles(StaticFiles):
