@@ -470,13 +470,26 @@ def _send_alert_email(samples: list[dict], alert_category: str, theme_color: str
     </div>
     """
 
-    msg = EmailMessage()
-    msg["From"] = MAIL_FROM
-    msg["To"] = ALERT_RECIPIENTS
-    msg["Subject"] = subject
-    msg.set_content("This message requires an HTML-capable mail client to view.")
-    msg.add_alternative(html_body, subtype="html")
-    _send_via_smtp(msg)
+    if APPS_SCRIPT_EXEC_URL:
+        # Same path the "Send Mail" button uses (MailApp, via Code.gs's
+        # doPost) — no separate SMTP setup needed when a sheet's exec URL
+        # is already the data source.
+        result = _send_via_apps_script({
+            "to": ALERT_RECIPIENTS,
+            "subject": subject,
+            "body": "This message requires an HTML-capable mail client to view.",
+            "htmlBody": html_body,
+        })
+        if not result.get("success"):
+            raise SampleTrackingError(result.get("error") or "Apps Script sendEmail failed")
+    else:
+        msg = EmailMessage()
+        msg["From"] = MAIL_FROM
+        msg["To"] = ALERT_RECIPIENTS
+        msg["Subject"] = subject
+        msg.set_content("This message requires an HTML-capable mail client to view.")
+        msg.add_alternative(html_body, subtype="html")
+        _send_via_smtp(msg)
     print(f"[cmc_sample_tracking] TAT alert sent: {subject} to {ALERT_RECIPIENTS}")
 
 
