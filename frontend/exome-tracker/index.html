@@ -1576,6 +1576,10 @@
           <select id="bulk-release-reviewer-filter" onchange="renderBulkReleaseList()" title="Filter by reviewer" style="height:42px;padding:0 10px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--ib);color:var(--text);font-family:inherit;font-size:13px;max-width:180px;flex-shrink:0">
             <option value="">All Reviewers</option>
           </select>
+          <select id="bulk-release-run-filter" onchange="renderBulkReleaseList()" title="Filter by run" style="height:42px;padding:0 10px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--ib);color:var(--text);font-family:inherit;font-size:13px;max-width:180px;flex-shrink:0">
+            <option value="">All Runs</option>
+          </select>
+          <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
           <input type="text" class="date-txt sel" id="bulk-release-date" placeholder="DD-MM-YYYY" inputmode="numeric" onblur="normalizeDateInput(this)" title="Release date (DD-MM-YYYY)" style="flex-shrink:0" />
@@ -1583,7 +1587,6 @@
           <select id="bulk-release-clin-reviewer" class="sel" style="height:38px;flex:1;min-width:160px" title="Clinical reviewer these samples go to"></select>
           <select id="bulk-release-cnv-status" class="sel" style="height:38px;flex:1;min-width:160px" title="CNV status these samples go to"></select>
           <button class="btn btn-green btn-sm" onclick="submitBulkApply()" style="flex-shrink:0">Apply to Selected</button>
-          <span id="bulk-release-selected-count" style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">0 selected</span>
         </div>
         <div id="bulk-release-caption" style="font-size:11px;color:var(--muted);margin:-6px 0 10px"></div>
         <div id="bulk-release-list" style="max-height:460px;overflow:auto;border:1px solid var(--pb);border-radius:var(--rs)"></div>
@@ -2843,12 +2846,25 @@ function toggleBulkReleasePanel() {
     document.getElementById('bulk-remark-text').value = '';
     document.getElementById('bulk-release-search').value = '';
     document.getElementById('bulk-release-reviewer-filter').value = '';
+    document.getElementById('bulk-release-run-filter').value = '';
+    populateBulkReleaseRunFilter();
     populateBulkReleaseClinicalReviewers();
     document.getElementById('bulk-release-clin-reviewer').value = '';
     populateBulkReleaseCnvStatuses();
     document.getElementById('bulk-release-cnv-status').value = '';
     renderBulkReleaseList();
   }
+}
+
+function populateBulkReleaseRunFilter() {
+  const sel = document.getElementById('bulk-release-run-filter');
+  if (!sel) return;
+  const keep = sel.value;
+  const runs = [...new Set(getBulkReleaseCandidates().map(r => r.run_text).filter(Boolean))]
+    .sort((a, b) => (extractRunNumber(b) || 0) - (extractRunNumber(a) || 0));
+  sel.innerHTML = '<option value="">All Runs</option>' +
+    runs.map(r => `<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('');
+  sel.value = keep;
 }
 
 function populateBulkReleaseClinicalReviewers() {
@@ -2872,8 +2888,9 @@ function populateBulkReleaseCnvStatuses() {
 function renderBulkReleaseList() {
   const q = (document.getElementById('bulk-release-search')?.value || '').toLowerCase().trim();
   const reviewerVal = document.getElementById('bulk-release-reviewer-filter')?.value || '';
+  const runVal = document.getElementById('bulk-release-run-filter')?.value || '';
   const all = getBulkReleaseCandidates();
-  let data = all.filter(r => matchesReviewerFilter(r, reviewerVal));
+  let data = all.filter(r => matchesReviewerFilter(r, reviewerVal) && (!runVal || r.run_text === runVal));
   if (q) data = data.filter(r =>
     (r.name||'').toLowerCase().includes(q) ||
     (r.test||'').toLowerCase().includes(q) ||
@@ -2915,7 +2932,7 @@ function renderBulkReleaseList() {
   const caption = document.getElementById('bulk-release-caption');
   if (caption) {
     const overdue = all.filter(r => r.diff < 0).length;
-    caption.textContent = (q || reviewerVal)
+    caption.textContent = (q || reviewerVal || runVal)
       ? `${data.length} of ${all.length} awaiting a release date match this filter`
       : `${all.length} awaiting a release date — ${overdue} overdue, the rest due within ${BULK_RELEASE_DUE_DAYS} days`;
   }
@@ -3991,7 +4008,10 @@ function refreshAll() {
   renderPrioritySamples();
 
   if (document.querySelector('.page.active')?.id === 'page-reanalysis') renderReanalysis();
-  if (document.getElementById('bulk-release-panel')?.style.display === 'block') renderBulkReleaseList();
+  if (document.getElementById('bulk-release-panel')?.style.display === 'block') {
+    populateBulkReleaseRunFilter();
+    renderBulkReleaseList();
+  }
   if (document.getElementById('bulk-assign-panel')?.style.display === 'block') {
     populateBulkAssignReviewers();
     renderBulkAssignList();
