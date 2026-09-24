@@ -326,9 +326,9 @@
         }
 
         .header-title-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: center;
             margin: -12px -24px 10px;
             padding: 14px 24px;
             background: #1e3a8a;
@@ -341,6 +341,27 @@
             white-space: nowrap;
             text-align: center;
             letter-spacing: -0.3px;
+        }
+
+        .header-title-spacer { visibility: hidden; }
+
+        .header-refresh-btn {
+            justify-self: end;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.1);
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .header-refresh-btn:hover {
+            background: rgba(255,255,255,0.22);
+            border-color: rgba(255,255,255,0.55);
         }
 
         .header-controls-row {
@@ -412,26 +433,25 @@
         .sidebar-btn:active { transform: scale(0.97); }
 
         .total-samples-btn {
-            justify-content: space-between;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
             background: #dbeafe;
             border: 1px solid #93c5fd;
             color: #1e3a8a;
             margin-bottom: 12px;
+            padding: 14px 16px;
         }
         .total-samples-btn:hover {
             background: #bfdbfe;
             border-color: #60a5fa;
         }
-        .total-samples-btn .ts-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .total-samples-btn .ts-label { font-size: 13px; font-weight: 700; white-space: nowrap; }
         .total-samples-btn .ts-count {
-            font-size: 16px;
+            font-size: 34px;
             font-weight: 800;
-            color: #ffffff;
-            background: #2563eb;
-            border-radius: 8px;
-            padding: 1px 11px;
-            min-width: 28px;
-            text-align: center;
+            color: #2563eb;
+            line-height: 1.1;
         }
 
         .sidebar-btn-config {
@@ -477,6 +497,59 @@
             box-shadow: 0 4px 16px rgba(239,68,68,0.28);
         }
 
+        .sidebar-btn-analytics {
+            background: #ede9fe;
+            border: 1.5px solid #a78bfa;
+            color: #4c1d95;
+            box-shadow: 0 2px 8px rgba(124,58,237,0.15);
+        }
+        .sidebar-btn-analytics:hover {
+            background: #ddd6fe;
+            border-color: #8b5cf6;
+            color: #4c1d95;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+        }
+        .sidebar-btn-analytics.active {
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+        }
+
+        .year-tabs {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            padding: 8px 20px;
+            overflow-x: auto;
+            gap: 6px;
+        }
+
+        .year-tab {
+            padding: 8px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            font-size: 13px;
+            font-weight: 700;
+            color: #bfdbfe;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .year-tab:hover {
+            color: #ffffff;
+            background: rgba(255,255,255,0.18);
+        }
+
+        .year-tab.active {
+            color: #1e3a8a;
+            font-weight: 800;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.25);
+        }
+
         .tabs {
             display: flex;
             background: rgba(255,255,255,0.95);
@@ -494,7 +567,7 @@
             border: none;
             background: none;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 700;
             color: #64748b;
             border-bottom: 3px solid transparent;
             white-space: nowrap;
@@ -510,7 +583,7 @@
         .tab.active {
             color: #4f46e5;
             border-bottom-color: #4f46e5;
-            font-weight: 700;
+            font-weight: 800;
             background: rgba(79,70,229,0.06);
         }
 
@@ -521,6 +594,35 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: start;
+            gap: 20px;
+            min-height: 0;
+            overflow: auto;
+        }
+        .analytics-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 18px 20px 14px;
+            box-shadow: 0 2px 10px rgba(15,23,42,0.06);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .analytics-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 14px;
+        }
+        .analytics-chart-wrap {
+            position: relative;
+            height: 340px;
         }
 
         .loading {
@@ -1164,21 +1266,15 @@
             <span class="ts-label">Total Samples</span>
             <span class="ts-count" id="totalSamplesCount">–</span>
         </button>
-        <button class="sidebar-btn sidebar-btn-refresh" onclick="loadAllData(true)">Refresh Data</button>
-        <button class="sidebar-btn sidebar-btn-reset" onclick="resetLocalData()">Reset Mail & Files</button>
-
+        <button class="sidebar-btn sidebar-btn-analytics" id="analyticsNavBtn" onclick="showAnalytics()" title="View sample analytics">
+            📊 Analytics
+        </button>
         <div class="filter-bar sidebar-filter">
             <h4 class="sidebar-filter-title">🔎 Filters</h4>
             <div class="filter-bar-group">
                 <label for="clientSelect">Client:</label>
                 <select id="clientSelect">
                     <option value="">All Clients</option>
-                </select>
-            </div>
-            <div class="filter-bar-group">
-                <label for="topYearSelect">Year:</label>
-                <select id="topYearSelect">
-                    <option value="">All Years</option>
                 </select>
             </div>
             <button class="apply-filter-btn" onclick="applyTopFilter()">📈 Apply Filter</button>
@@ -1190,7 +1286,9 @@
     <div class="main-content">
         <div class="header">
             <div class="header-title-row">
+                <span class="header-title-spacer"></span>
                 <h1>CMC Sample Management System</h1>
+                <button class="header-refresh-btn" onclick="loadAllData(true)">🔄 Refresh Data</button>
             </div>
             <div class="header-controls-row">
                 <input type="text" class="search-box" id="searchBox" placeholder="Search in current view..." onkeyup="searchTable()">
@@ -1198,6 +1296,7 @@
             </div>
         </div>
 
+        <div class="year-tabs" id="yearTabs"></div>
         <div class="tabs" id="sheetTabs"></div>
 
         <div class="content-area" id="contentArea">
@@ -1277,6 +1376,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
         // Points at this project's own Node/Express backend (see /backend), which replaced
         // the old Google Apps Script Web App. Same-origin by default when served by the
@@ -1287,6 +1387,7 @@
         let metadata = {};
         let currentView = [];
         let currentSheet = '';
+        let currentTabYear = null;
         let sortColumn = null;
         let sortDirection = 'asc';
         let columnMappings = {};
@@ -1295,6 +1396,8 @@
         let activeTATFilter = null;
         const _mailPreviewCache = {};
         const selectedReleaseRows = new Map(); // key `${sheetName}::${rowIndex}` -> {sheetName, rowIndex}
+        let monthChartInstance = null;
+        let deptChartInstance = null;
 
         // Column mapping patterns - will auto-detect from actual headers
         const COLUMN_PATTERNS = {
@@ -1398,7 +1501,6 @@
                 contentArea.innerHTML = '<div class="loading">Parsing data</div>';
                 detectColumnMappings();
                 initFiltersAndInfo();
-                renderSheetTabs();
                 showAllSheets();
                 setTimeout(() => validateColumnMappings(), 300);
 
@@ -1488,7 +1590,13 @@
                 });
                 const json = await res.json();
                 if (json.success) {
-                    items.forEach(it => _applyReleaseDateLocally(it.sheetName, it.rowIndex, value));
+                    // The date input gives YYYY-MM-DD; every other date column now
+                    // displays the sheet's own DD-MM-YYYY, so convert before the
+                    // optimistic local update — otherwise this row shows a different
+                    // format than the rest until the next refresh.
+                    const [y, mo, d] = value.split('-');
+                    const displayValue = (y && mo && d) ? `${d}-${mo}-${y}` : value;
+                    items.forEach(it => _applyReleaseDateLocally(it.sheetName, it.rowIndex, displayValue));
                     showToast(`✓ Release date saved for ${items.length} sample${items.length === 1 ? '' : 's'}`, 'success');
                     selectedReleaseRows.clear();
                     const inFilteredMonthsView = activeFilterFn && !document.querySelector('.tab.active');
@@ -2530,18 +2638,6 @@ Anderson Diagnostics`;
                     : '<option value="">-- No Client Column Detected --</option>';
             }
 
-            // Year dropdown — read from sheet names (O(sheets), no date parsing)
-            const years = new Set();
-            Object.keys(allData).forEach(name => {
-                const d = getSheetDate(name);
-                if (d) years.add(d.getFullYear());
-            });
-            const topYear = document.getElementById('topYearSelect');
-            if (topYear) {
-                topYear.innerHTML = '<option value="">All Years</option>'
-                    + Array.from(years).sort((a, b) => b - a).map(y => `<option value="${y}">${y}</option>`).join('');
-            }
-
             // Total samples count (sidebar button)
             const tsEl = document.getElementById('totalSamplesCount');
             if (tsEl) tsEl.textContent = totalSamples;
@@ -2580,12 +2676,35 @@ Anderson Diagnostics`;
             });
         }
 
-        function renderSheetTabs() {
+        // Years are derived from the same sheet names the month tabs use, so a
+        // year only ever appears here if it actually has data behind it.
+        function getYearsFromSheets() {
+            const years = new Set();
+            getSortedSheetNames().forEach(name => {
+                const d = getSheetDate(name);
+                if (d) years.add(d.getFullYear());
+            });
+            return Array.from(years).sort((a, b) => b - a); // most recent first
+        }
+
+        function renderYearTabs(selectedYear) {
+            const container = document.getElementById('yearTabs');
+            if (!container) return;
+            container.innerHTML = '';
+            getYearsFromSheets().forEach(year => {
+                const tab = document.createElement('button');
+                tab.className = 'year-tab';
+                tab.textContent = year;
+                tab.classList.toggle('active', year === selectedYear);
+                tab.onclick = () => selectYear(year);
+                container.appendChild(tab);
+            });
+        }
+
+        function renderMonthTabs(sheetNames) {
             const tabsContainer = document.getElementById('sheetTabs');
             tabsContainer.innerHTML = '';
-            
-            const sortedSheets = getSortedSheetNames();
-            sortedSheets.forEach(sheetName => {
+            sheetNames.forEach(sheetName => {
                 const tab = document.createElement('button');
                 tab.className = 'tab';
                 tab.textContent = sheetName;
@@ -2594,20 +2713,47 @@ Anderson Diagnostics`;
             });
         }
 
+        // Selecting a year shows that year's months below it and previews the
+        // most recent one — the "last month of that year" that actually has
+        // data, not necessarily calendar December.
+        function selectYear(year) {
+            currentTabYear = year;
+            renderYearTabs(year);
+            const monthsInYear = getSortedSheetNames().filter(name => {
+                const d = getSheetDate(name);
+                return d && d.getFullYear() === year;
+            });
+            renderMonthTabs(monthsInYear);
+            if (monthsInYear.length > 0) {
+                activeTATFilter = null;
+                displaySheet(monthsInYear[0]);
+            }
+        }
+
+        function deactivateAnalyticsNav() {
+            const btn = document.getElementById('analyticsNavBtn');
+            if (btn) btn.classList.remove('active');
+        }
+
         function showAllSheets() {
+            deactivateAnalyticsNav();
             activeFilterFn = null;
             activeFilterLabel = '';
             activeTATFilter = null;
             document.querySelectorAll('.filter-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
 
+            // Defaults to the most recent sheet's year — the current month's
+            // year on a normal day, since that sheet sorts first.
             const sortedSheets = getSortedSheetNames();
             if (sortedSheets.length > 0) {
-                displaySheet(sortedSheets[0]);
+                const year = getSheetDate(sortedSheets[0]).getFullYear();
+                selectYear(year);
             }
         }
 
         function displaySheet(sheetName) {
+            deactivateAnalyticsNav();
             currentSheet = sheetName;
 
             document.querySelectorAll('.tab').forEach(tab => {
@@ -2678,7 +2824,135 @@ Anderson Diagnostics`;
                 currentView = filteredData;
                 renderTable(filteredData, activeFilterLabel);
                 document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.year-tab').forEach(tab => tab.classList.remove('active'));
             }
+        }
+
+        function showAnalytics() {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.year-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('yearTabs').innerHTML = '';
+            document.getElementById('sheetTabs').innerHTML = '';
+            document.getElementById('analyticsNavBtn').classList.add('active');
+
+            // Chronological ascending (getSortedSheetNames() returns newest-first).
+            const monthNames = getSortedSheetNames().slice().reverse();
+            const monthCounts = monthNames.map(sheetName => {
+                let count = 0;
+                (allData[sheetName].rows || []).forEach(row => {
+                    if (!isRepeatSample(row, sheetName)) count++;
+                });
+                return count;
+            });
+
+            const deptTotals = {};
+            monthNames.forEach(sheetName => {
+                (allData[sheetName].rows || []).forEach(row => {
+                    if (isRepeatSample(row, sheetName)) return;
+                    const dept = getNormalizedClientName(getRowClientName(row, sheetName)) || 'Unknown';
+                    deptTotals[dept] = (deptTotals[dept] || 0) + 1;
+                });
+            });
+            let deptEntries = Object.entries(deptTotals).sort((a, b) => b[1] - a[1]);
+            if (deptEntries.length > 8) {
+                const top = deptEntries.slice(0, 7);
+                const otherTotal = deptEntries.slice(7).reduce((sum, e) => sum + e[1], 0);
+                deptEntries = [...top, ['Other', otherTotal]];
+            }
+
+            document.getElementById('contentArea').innerHTML = `
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3 class="analytics-card-title">Month-wise Sample Count</h3>
+                        <div class="analytics-chart-wrap"><canvas id="monthChart"></canvas></div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3 class="analytics-card-title">Department-wise Sample Count</h3>
+                        <div class="analytics-chart-wrap"><canvas id="deptChart"></canvas></div>
+                    </div>
+                </div>`;
+
+            renderMonthChart(monthNames, monthCounts);
+            renderDeptChart(deptEntries.map(e => e[0]), deptEntries.map(e => e[1]));
+        }
+
+        function renderMonthChart(labels, data) {
+            const ctx = document.getElementById('monthChart');
+            if (!ctx || typeof Chart === 'undefined') return;
+            if (monthChartInstance) monthChartInstance.destroy();
+            monthChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Samples',
+                        data,
+                        borderColor: '#2a78d6',
+                        backgroundColor: 'rgba(42,120,214,0.12)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#2a78d6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1.5,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 10,
+                            cornerRadius: 6,
+                            callbacks: { label: (c) => ` ${c.parsed.y} samples` }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef1f5' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderDeptChart(labels, data) {
+            const ctx = document.getElementById('deptChart');
+            if (!ctx || typeof Chart === 'undefined') return;
+            if (deptChartInstance) deptChartInstance.destroy();
+            deptChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Samples',
+                        data,
+                        backgroundColor: '#2a78d6',
+                        borderRadius: 4,
+                        maxBarThickness: 46
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 10,
+                            cornerRadius: 6,
+                            callbacks: { label: (c) => ` ${c.parsed.y} samples` }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef1f5' } },
+                        x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 40, minRotation: 0 } }
+                    }
+                }
+            });
         }
 
         let currentTableCols = []; // Track column definitions for current table to enable correct sorting.
@@ -2731,6 +3005,7 @@ Anderson Diagnostics`;
                 remarks: { title: 'Remarks', keys: ['remarks', 'remark', 'comments', 'comment', 'notes', 'history'] },
                 receivedDate: { title: 'Received Date', keys: ['receiveddate', 'datereceived', 'receiptdate', 'registrationdate', 'regdate', 'inwarddate', 'entrydate', 'bookingdate', 'received', 'dateofreceiptt'] },
                 rawDataDate: { title: 'Raw Data Sent', keys: ['rawdatadate', 'rawdatasent', 'rawdata', 'rundate', 'sequencingdate', 'rawdatareceived', 'datasentdate', 'rawdatasentdate'] },
+                tatRawData: { title: 'TAT Raw Data', keys: ['tatrawdata', 'tatrawdate', 'tatdataraw', 'rawdatatat', 'tatraw', 'tatdata', 'tattodataraw'] },
                 tatReportDate: { title: 'TAT Report Date', keys: ['tatreportdate', 'tatreport', 'tatdate', 'duedate', 'targetdate', 'promiseddate', 'tat'] },
                 reportReleasedDate: { title: 'Report Released Date', keys: ['reportreleaseddate', 'reportreleased', 'releaseddate', 'releasedate', 'dispatchdate', 'completiondate', 'finalreport', 'issueddate'] },
                 status: { title: 'Status', keys: ['status', 'samplestatus', 'reportstatus', 'processstatus', 'currentstatus'] }
@@ -2862,6 +3137,7 @@ Anderson Diagnostics`;
                 { title: 'Remarks', getValue: (r) => keyMap.remarks ? r[keyMap.remarks] : '' },
                 { title: 'Received Date', getValue: (r) => keyMap.receivedDate ? r[keyMap.receivedDate] : '' },
                 { title: 'Raw Data Sent', getValue: (r) => keyMap.rawDataDate ? r[keyMap.rawDataDate] : '' },
+                { title: 'TAT Raw Data', getValue: (r) => keyMap.tatRawData ? r[keyMap.tatRawData] : '' },
                 { title: 'TAT Report Date', getValue: (r) => keyMap.tatReportDate ? r[keyMap.tatReportDate] : '' },
                 { title: 'Report Released Date', getValue: (r) => keyMap.reportReleasedDate ? r[keyMap.reportReleasedDate] : '' },
                 { title: 'Status', getValue: (r) => calculateStatus(r, r._sourceSheet) },
@@ -3097,9 +3373,27 @@ Anderson Diagnostics`;
                 const year = parseInt(match[1]);
                 const month = parseInt(match[2]) - 1;
                 const day = parseInt(match[3]);
-                
+
                 const date = new Date(year, month, day);
                 if (!isNaN(date.getTime())) {
+                    return date;
+                }
+            }
+
+            // Try DD-MM-YYYY (dash-separated — this is the sheet's actual format;
+            // without this branch it fell through to native Date parsing below,
+            // which reads dashed dates as MM-DD-YYYY and swaps day/month)
+            match = dateString.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+            if (match) {
+                const day = parseInt(match[1]);
+                const month = parseInt(match[2]) - 1;
+                const year = parseInt(match[3]);
+
+                const date = new Date(year, month, day);
+                if (!isNaN(date.getTime()) &&
+                    date.getDate() === day &&
+                    date.getMonth() === month &&
+                    date.getFullYear() === year) {
                     return date;
                 }
             }
@@ -3173,6 +3467,7 @@ Anderson Diagnostics`;
         function searchTable() {
             const searchBox = document.getElementById('searchBox');
             const searchTerm = searchBox.value.toLowerCase().trim();
+            if (searchTerm) deactivateAnalyticsNav();
 
             if (!searchTerm) {
                 const currentTitle = document.querySelector('.result-header h3');
@@ -3232,23 +3527,16 @@ Anderson Diagnostics`;
         }
 
         function applyTopFilter() {
+            deactivateAnalyticsNav();
             const client = document.getElementById('clientSelect').value;
-            const yearVal = document.getElementById('topYearSelect').value;
-            const year = yearVal ? parseInt(yearVal) : null;
 
             let filteredData = [];
             let title = client ? `Client: ${client}` : 'All Clients';
-            if (year) title += ` - ${year}`;
 
             Object.keys(allData).forEach(sheetName => {
                 (allData[sheetName].rows || []).forEach(row => {
                     const rowClient = getNormalizedClientName(getRowClientName(row, sheetName));
                     if (client && rowClient !== client) return;
-                    if (year) {
-                        let d = parseDate(getFieldValue(row, 'receivedDate', sheetName));
-                        if (!d) d = parseDate(getFieldValue(row, 'tatReport', sheetName));
-                        if (!d || d.getFullYear() !== year) return;
-                    }
                     filteredData.push({ ...row, _sourceSheet: sheetName });
                 });
             });
@@ -3259,14 +3547,9 @@ Anderson Diagnostics`;
             }
 
             const _client = client;
-            const _year = year;
             activeFilterFn = (row, sheetName) => {
                 const rowClient = getNormalizedClientName(getRowClientName(row, sheetName));
-                if (_client && rowClient !== _client) return false;
-                if (!_year) return true;
-                let d = parseDate(getFieldValue(row, 'receivedDate', sheetName));
-                if (!d) d = parseDate(getFieldValue(row, 'tatReport', sheetName));
-                return d && d.getFullYear() === _year;
+                return !_client || rowClient === _client;
             };
             activeFilterLabel = title;
 
@@ -3277,7 +3560,6 @@ Anderson Diagnostics`;
 
         function resetTopFilter() {
             document.getElementById('clientSelect').value = '';
-            document.getElementById('topYearSelect').value = '';
             activeFilterFn = null;
             activeFilterLabel = '';
             showAllSheets();
