@@ -3820,7 +3820,7 @@ const REPORT_FORM_FIELDS = [
 ];
 // run_number is parsed from the run label for sorting; a run with no number sorts last.
 const DEFAULT_RUN_NUMBER = 9999;
-const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram', 'Priya', 'Raghavi'];
+const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram', 'Priya', 'Raghavi', 'Shruti'];
 const CLINICAL_REVIEWERS = ['Dr.Sarath', 'Dr.Robert'];
 const CNV_STATUSES = ['No CNV', 'CNV - Suspected', 'CNV - Reported'];
 const SAMPLE_TYPES = ['AF', 'Single', 'Couple'];
@@ -4388,7 +4388,8 @@ const TEAM_MAP = {
   'Vamshi':    'Team 5',
   'Nikhil':    'Team 6',
   'Priya':     'Team 7',
-  'Raghavi':   'Team 8'
+  'Raghavi':   'Team 8',
+  'Shruti':    'Team 9'
 };
 
 const TEAM_LEADER_MAP = Object.fromEntries(
@@ -5577,16 +5578,22 @@ const TEAM_MEMBERS = [
   { key: 'nikhil',   label: 'Nikhil',    color: '#8b5cf6' },
   { key: 'priya',    label: 'Priya',     color: '#800000' },
   { key: 'raghavi',  label: 'Raghavi',   color: '#eab308' },
+  { key: 'shruti',   label: 'Shruti',    color: '#14b8a6', startsFrom: { year: 2026, month: 'Oct' } },
 ];
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// A specific month/year view hides a retired member's ring once their team ends;
+// A specific month/year view hides a member's ring outside their active months;
 // "All" (year or month) still shows them so their historical released totals stay visible.
 function isMemberActiveForPeriod(member, year, month) {
-  if (!member.retiredAfter) return true;
   if (year === 'All' || month === 'All') return true;
   const yearNum = parseInt(year, 10);
   const monthIdx = MONTH_LABELS.indexOf(month);
+  if (member.startsFrom) {
+    const startIdx = MONTH_LABELS.indexOf(member.startsFrom.month);
+    if (yearNum !== member.startsFrom.year) return yearNum > member.startsFrom.year;
+    return monthIdx >= startIdx;
+  }
+  if (!member.retiredAfter) return true;
   const retiredYear = member.retiredAfter.year;
   const retiredMonthIdx = MONTH_LABELS.indexOf(member.retiredAfter.month);
   if (yearNum !== retiredYear) return yearNum < retiredYear;
