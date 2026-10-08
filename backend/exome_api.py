@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+import exome_notifications
 import reports_client
 from exome_roles import (can_edit, can_upload, forbidden, require_tracker_access,
-                         username_for)
+                         role_for, username_for)
 
 router = APIRouter(prefix="/exome-tracker/api", dependencies=[Depends(require_tracker_access)])
 
@@ -55,6 +56,21 @@ class BulkApplyIn(BaseModel):
     remarks: str = ""
     final: str = ""
     cnv_status: str = ""
+
+
+class NotificationsReadIn(BaseModel):
+    ids: list[str] | None = None
+
+
+@router.get("/notifications")
+def list_notifications(request: Request):
+    return exome_notifications.for_user(username_for(request), role_for(request) == "admin")
+
+
+@router.post("/notifications/read")
+def read_notifications(payload: NotificationsReadIn, request: Request):
+    exome_notifications.mark_read(username_for(request), role_for(request) == "admin", payload.ids)
+    return {"ok": True}
 
 
 @router.get("/reports")
@@ -146,10 +162,15 @@ def update_report(
 ):
     if not can_edit(request):
         return forbidden()
+    try:
+        previous = (reports_client.get_report(report_id) or {}).get("pri_rev", "")
+    except reports_client.ReportsAPIError:
+        previous = report.pri_rev
     doc = reports_client.update_report(report_id, _stamped(report, request))
     print(f"[exome_api] PUT /reports/{report_id} returning: {doc}")
     if doc is None:
         return JSONResponse({"error": "Report not found"}, status_code=404)
+    reports_client._notify([(doc, previous, doc.get("pri_rev", ""))])
     if report.report_release_date.strip():
         _trigger_cmc_release_sync()
     return doc

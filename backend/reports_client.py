@@ -388,6 +388,7 @@ def create_report(payload: dict) -> dict:
             row["id"] = report_id(max(matches, key=lambda r: int(str(r.get("id") or 0))))
     _overlay_set(row["id"], row)
     row["_response"] = resp if isinstance(resp, dict) else {}
+    _notify([(row, "", row.get("pri_rev", ""))])
     return row
 
 
@@ -418,11 +419,20 @@ def update_report(report_id_: str, payload: dict) -> dict | None:
     return row
 
 
+def _notify(changes: list[tuple[dict, str, str]]) -> None:
+    try:
+        import exome_notifications
+        exome_notifications.record_reviewer_changes(changes)
+    except Exception as e:
+        print(f"[reports_client] notification not recorded: {e}")
+
+
 def bulk_add(reports: list[dict]) -> int:
     if not reports:
         return 0
     recs = [_to_it(r) for r in reports]
     _post(PATH_BULK, {"sample_data": recs})
+    _notify([(r, "", r.get("pri_rev", "")) for r in reports])
 
     for r, rec in zip(reports, recs):
         r["last_updated_at"] = rec["last_updated_at"]
@@ -499,13 +509,17 @@ def _patch_many(id: list[str], changes: dict) -> int:
     stored = {row["id"]: row for row in list_reports() if row["id"] in wanted}
 
     count = 0
+    moved = []
     for id_ in id:
         row = stored.get(str(id_))
         if row is None:
             continue
+        before = row.get("pri_rev", "")
         row.update(changes)
         update_report(str(id_), row)
+        moved.append((dict(row), before, row.get("pri_rev", "")))
         count += 1
+    _notify(moved)
     return count
 
 

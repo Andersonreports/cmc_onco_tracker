@@ -31,3 +31,4 @@ backend/it-*.md
 *.bed
 *.vcf
 *.vcf.gz
+backend/exome_notifications.json

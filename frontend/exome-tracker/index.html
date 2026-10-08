@@ -66,6 +66,22 @@
     }
     .hdr-actions{display:flex;gap:10px;align-items:center}
 
+
+    .nt-wrap{position:relative}
+    .nt-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--bdr);background:var(--ib);color:var(--text);cursor:pointer;transition:var(--tr)}
+    .nt-bell:hover{border-color:var(--pri);color:var(--pri)}
+    .nt-count{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center}
+    .nt-panel{display:none;position:absolute;right:0;top:42px;width:380px;max-width:92vw;max-height:70vh;overflow:auto;background:#fff;border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh-lg);z-index:1000}
+    .nt-panel.open{display:block}
+    .nt-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bdr);font-weight:700;font-size:13px}
+    .nt-head button{border:none;background:none;color:var(--pri);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+    .nt-item{padding:11px 14px;border-bottom:1px solid #eef0f4;font-size:12.5px;line-height:1.45}
+    .nt-item.unread{background:rgba(79,70,229,.07);border-left:3px solid var(--pri)}
+    .nt-item .nt-date{display:block;margin-top:3px;font-size:11px;color:var(--muted)}
+    .nt-item details{margin-top:4px;color:var(--muted)}
+    .nt-item summary{cursor:pointer;color:var(--pri);font-weight:600}
+    .nt-empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:12.5px}
+
     .live-pill{
       display:inline-flex;align-items:center;gap:7px;
       padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
@@ -1455,6 +1471,16 @@
     </nav>
   </div>
   <div class="hdr-actions">
+    <div class="nt-wrap" id="nt-wrap">
+      <button class="nt-bell" id="nt-bell" onclick="toggleNotifications(event)" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="nt-count" id="nt-count">0</span>
+      </button>
+      <div class="nt-panel" id="nt-panel">
+        <div class="nt-head"><span>Notifications</span><button onclick="markNotificationsRead()">Mark all read</button></div>
+        <div id="nt-list"></div>
+      </div>
+    </div>
     <div class="live-pill" id="user-pill" style="cursor:default" title="Signed in via the parent tracker">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span id="user-pill-label">…</span>
@@ -6288,6 +6314,76 @@ function anExportPNG() {
   toast('Right-click on charts to save as image', 'info');
 }
 
+let notifications = [];
+
+function groupNotifications(list) {
+  const groups = new Map();
+  list.forEach(n => {
+    const key = [n.kind, n.from, n.to, n.run, n.date].join('|');
+    if (!groups.has(key)) groups.set(key, { ...n, items: [] });
+    groups.get(key).items.push(n);
+  });
+  return [...groups.values()];
+}
+
+function notificationText(g) {
+  const count = g.items.length;
+  const subject = count === 1
+    ? `Sample <b>${esc(g.items[0].sample || g.items[0].gen_id || '')}</b>`
+    : `<b>${count} samples</b>`;
+  const run = g.run ? ` from <b>${esc(g.run)}</b>` : '';
+  const target = isAdminUser() ? esc(g.to) : 'you';
+  const verb = g.kind === 'transferred'
+    ? `${count === 1 ? 'is' : 'are'} transferred from <b>${esc(g.from)}</b> to <b>${target}</b>`
+    : `${count === 1 ? 'is' : 'are'} newly allocated to <b>${target}</b>`;
+  return `${subject}${run} ${verb} on ${esc(g.date)}.`;
+}
+
+function renderNotifications() {
+  const unread = notifications.filter(n => !n.read).length;
+  const badge = document.getElementById('nt-count');
+  badge.textContent = unread > 99 ? '99+' : unread;
+  badge.style.display = unread ? 'inline-flex' : 'none';
+  document.getElementById('nt-list').innerHTML = notifications.length
+    ? groupNotifications(notifications).map(g => {
+        const isUnread = g.items.some(n => !n.read);
+        const names = g.items.length > 1
+          ? `<details><summary>Show samples</summary>${g.items.map(n => esc(n.sample || n.gen_id)).join(', ')}</details>`
+          : '';
+        return `<div class="nt-item${isUnread ? ' unread' : ''}">${notificationText(g)}${names}<span class="nt-date">${g.by ? 'by ' + esc(g.by) : ''}</span></div>`;
+      }).join('')
+    : '<div class="nt-empty">No notifications</div>';
+}
+
+async function fetchNotifications() {
+  try {
+    const resp = await fetch('api/notifications', { credentials: 'same-origin' });
+    if (!resp.ok) return;
+    notifications = await resp.json();
+    renderNotifications();
+  } catch (e) {}
+}
+
+function toggleNotifications(ev) {
+  ev.stopPropagation();
+  document.getElementById('nt-panel').classList.toggle('open');
+}
+
+async function markNotificationsRead() {
+  notifications = notifications.map(n => ({ ...n, read: true }));
+  renderNotifications();
+  try {
+    await fetch('api/notifications/read', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' }, body: '{}',
+    });
+  } catch (e) {}
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#nt-wrap')) document.getElementById('nt-panel').classList.remove('open');
+});
+
 (async function boot() {
   readCurrentUser();
   populateTatReviewerFilters();
@@ -6302,6 +6398,8 @@ function anExportPNG() {
   await fetchReports(false);
 
   startAutoSync();
+  fetchNotifications();
+  setInterval(fetchNotifications, 60000);
 })();
 </script>
 </body>
