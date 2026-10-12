@@ -52,8 +52,17 @@ def can_edit(request: Request) -> bool:
     return can(request, "edit")
 
 
+# Leads who also add samples, matched on first name like notification recipients.
+LEAD_UPLOADERS = frozenset({"diwakar"})
+
+
+def lead_may_upload(role: str, name: str) -> bool:
+    parts = (name or "").lower().replace("dr.", "").split()
+    return role == "lead" and bool(parts) and parts[0] in LEAD_UPLOADERS
+
+
 def can_upload(request: Request) -> bool:
-    return can(request, "upload")
+    return can(request, "upload") or lead_may_upload(role_for(request), username_for(request))
 
 
 def username_for(request: Request) -> str:

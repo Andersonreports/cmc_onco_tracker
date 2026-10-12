@@ -67,8 +67,46 @@ def record_reviewer_changes(changes: list[tuple[dict, str, str]]) -> None:
         print(f"[exome_notifications] not recorded: {e}")
 
 
-def for_user(user: str, is_admin: bool) -> list[dict]:
-    items = [n for n in _load() if is_admin or _is_recipient(user, n.get("to", ""))]
+def record_run_uploads(rows: list[dict]) -> None:
+    """One notification per run in an upload, addressed to every team lead."""
+    runs: dict[str, list[dict]] = {}
+    for row in rows:
+        runs.setdefault(str(row.get("run_text") or "").strip(), []).append(row)
+    now = datetime.now()
+    fresh = [{
+        "id": uuid.uuid4().hex,
+        "audience": "lead",
+        "to": "",
+        "from": "",
+        "kind": "run_uploaded",
+        "sample": "",
+        "gen_id": "",
+        "run": run,
+        "count": len(group),
+        "by": str(group[0].get("last_updated_by") or "").strip(),
+        "date": now.strftime("%d-%m-%Y"),
+        "at": now.isoformat(timespec="seconds"),
+        "read_by": [],
+    } for run, group in runs.items() if run]
+    if not fresh:
+        return
+    try:
+        with _lock:
+            _save(_load() + fresh)
+    except Exception as e:
+        print(f"[exome_notifications] not recorded: {e}")
+
+
+def _visible(n: dict, user: str, role: str) -> bool:
+    if role == "admin":
+        return True
+    if n.get("audience"):
+        return n["audience"] == role
+    return _is_recipient(user, n.get("to", ""))
+
+
+def for_user(user: str, role: str) -> list[dict]:
+    items = [n for n in _load() if _visible(n, user, role)]
     out = []
     for n in reversed(items):
         out.append({**{k: v for k, v in n.items() if k != "read_by"},
@@ -76,12 +114,12 @@ def for_user(user: str, is_admin: bool) -> list[dict]:
     return out[:200]
 
 
-def mark_read(user: str, is_admin: bool, ids: list[str] | None) -> None:
+def mark_read(user: str, role: str, ids: list[str] | None) -> None:
     with _lock:
         items = _load()
         for n in items:
             if ids is not None and n["id"] not in ids:
                 continue
-            if (is_admin or _is_recipient(user, n.get("to", ""))) and user not in n.setdefault("read_by", []):
+            if _visible(n, user, role) and user not in n.setdefault("read_by", []):
                 n["read_by"].append(user)
         _save(items)

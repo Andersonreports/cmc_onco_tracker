@@ -225,6 +225,7 @@ def exome_tracker_page(anderson_session: str | None = Cookie(default=None)):
         "username": (mapping.get("name") or "").strip() or mobile,
         "role": exome_roles.role_for_accesses(sess["acc"], sess.get("role")),
     }
+    user["leadUpload"] = exome_roles.lead_may_upload(user["role"], user["username"])
     payload = json.dumps(user).replace("</", "<\\/")
 
     html = (FRONTEND_DIR / "exome-tracker" / "index.html").read_text(encoding="utf-8")

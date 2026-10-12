@@ -389,6 +389,7 @@ def create_report(payload: dict) -> dict:
     _overlay_set(row["id"], row)
     row["_response"] = resp if isinstance(resp, dict) else {}
     _notify([(row, "", row.get("pri_rev", ""))])
+    _notify_uploads([row])
     return row
 
 
@@ -427,12 +428,21 @@ def _notify(changes: list[tuple[dict, str, str]]) -> None:
         print(f"[reports_client] notification not recorded: {e}")
 
 
+def _notify_uploads(rows: list[dict]) -> None:
+    try:
+        import exome_notifications
+        exome_notifications.record_run_uploads(rows)
+    except Exception as e:
+        print(f"[reports_client] upload notification not recorded: {e}")
+
+
 def bulk_add(reports: list[dict]) -> int:
     if not reports:
         return 0
     recs = [_to_it(r) for r in reports]
     _post(PATH_BULK, {"sample_data": recs})
     _notify([(r, "", r.get("pri_rev", "")) for r in reports])
+    _notify_uploads(reports)
 
     for r, rec in zip(reports, recs):
         r["last_updated_at"] = rec["last_updated_at"]

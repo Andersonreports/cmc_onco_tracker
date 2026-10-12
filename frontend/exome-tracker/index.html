@@ -75,6 +75,10 @@
     .nt-panel.open{display:block}
     .nt-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bdr);font-weight:700;font-size:13px}
     .nt-head button{border:none;background:none;color:var(--pri);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+    .nt-tabs{display:flex;border-bottom:1px solid var(--bdr)}
+    .nt-tab{flex:1;padding:9px 8px;border:none;border-bottom:2px solid transparent;background:none;font:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+    .nt-tab.active{color:var(--pri);border-bottom-color:var(--pri)}
+    .nt-tab .nt-tab-n{display:inline-block;margin-left:5px;min-width:16px;padding:0 5px;border-radius:8px;background:var(--danger);color:#fff;font-size:10px;line-height:16px}
     .nt-item{padding:11px 14px;border-bottom:1px solid #eef0f4;font-size:12.5px;line-height:1.45}
     .nt-item.unread{background:rgba(79,70,229,.07);border-left:3px solid var(--pri)}
     .nt-item .nt-date{display:block;margin-top:3px;font-size:11px;color:var(--muted)}
@@ -577,10 +581,10 @@
       animation:fadeIn .2s ease-out;margin:20px;
     }
     #report-modal-hdr{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:16px 22px 14px;border-bottom:1px solid var(--pb);flex-shrink:0;
+      display:flex;align-items:center;justify-content:flex-end;
+      padding:16px 22px 14px;border-bottom:1px solid var(--pb);flex-shrink:0;position:relative;
     }
-    #report-modal-title{font-size:15px;font-weight:700;color:var(--text)}
+    #report-modal-title{position:absolute;left:50%;transform:translateX(-50%);font-size:22px;font-weight:700;color:var(--text);white-space:nowrap}
     #report-modal-close{
       background:none;border:none;cursor:pointer;font-size:20px;
       color:var(--muted);padding:4px 8px;border-radius:8px;line-height:1;
@@ -591,7 +595,7 @@
     .rf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .rf-item{display:flex;flex-direction:column;gap:5px}
     .rf-item.rf-wide{grid-column:1/-1}
-    .rf-item label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .rf-item label{font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:.04em}
     .rf-item input,.rf-item textarea{
       height:38px;padding:0 12px;border:1.5px solid var(--bdr);border-radius:var(--rs);
       background:var(--ib);color:var(--text);font-family:inherit;font-size:13px;transition:var(--tr);
@@ -1074,6 +1078,7 @@
     .ph-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .btn-ink{background:var(--ink);color:#fff;border-color:var(--ink)}
     .btn-ink:hover{background:#000;border-color:#000;transform:translateY(-1px)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
     .btn-quiet{background:var(--surface);color:var(--ink-2);border-color:var(--bdr)}
     .btn-quiet:hover{border-color:var(--ink);color:var(--ink);background:#f9fafb}
 
@@ -1478,6 +1483,10 @@
       </button>
       <div class="nt-panel" id="nt-panel">
         <div class="nt-head"><span>Notifications</span><button onclick="markNotificationsRead()">Mark all read</button></div>
+        <div class="nt-tabs">
+          <button class="nt-tab active" id="nt-tab-mine" onclick="setNotificationTab('mine')">My notifications<span class="nt-tab-n" id="nt-n-mine" style="display:none"></span></button>
+          <button class="nt-tab" id="nt-tab-team" onclick="setNotificationTab('team')">Team notifications<span class="nt-tab-n" id="nt-n-team" style="display:none"></span></button>
+        </div>
         <div id="nt-list"></div>
       </div>
     </div>
@@ -1512,18 +1521,11 @@
 <div id="report-modal-backdrop" onclick="closeReportModal(event)">
   <div id="report-modal">
     <div id="report-modal-hdr">
-      <span id="report-modal-title">Add Report</span>
+      <span id="report-modal-title">Add Sample</span>
       <button id="report-modal-close" onclick="closeReportModal(null)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="report-modal-body">
       <input type="hidden" id="rf-id" />
-      <div id="rf-upload-section" style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--pb)">
-        <input type="file" id="rf-excel-file" accept=".xlsx,.xls" style="display:none" onchange="handleReportExcelUpload(event)" />
-        <button class="btn btn-out btn-sm" onclick="document.getElementById('rf-excel-file').click()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Excel Instead
-        </button>
-        <span style="font-size:12px;color:var(--muted)">Adds every sample row found in the file — or fill the form below for one sample</span>
-      </div>
       <div class="rf-grid">
         <div class="rf-item"><label>Sample Name</label><input type="text" id="rf-name" /></div>
         <div class="rf-item"><label>Test</label><input type="text" id="rf-test" /></div>
@@ -1600,10 +1602,10 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Refresh Now
     </button>
     <button class="btn btn-ink" id="add-report-btn" onclick="openReportModal()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Report
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Sample
     </button>
     <input type="file" id="bulk-edit-excel-file" accept=".xlsx,.xls" style="display:none" onchange="handleBulkEditExcelUpload(event)" />
-    <button class="btn btn-out" id="bulk-edit-btn" onclick="document.getElementById('bulk-edit-excel-file').click()" title="Update existing samples by Gen ID / Anderson ID — fill in only Repeat Expansion and/or TAT Date">
+    <button class="btn btn-green" id="bulk-edit-btn" onclick="document.getElementById('bulk-edit-excel-file').click()" title="Update existing samples by Gen ID / Anderson ID — fill in only Repeat Expansion and/or TAT Date">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Update via Excel
     </button>
   </div>
@@ -3791,7 +3793,7 @@ function canEditReports() {
 }
 
 function canUploadReports() {
-  return userCan('upload');
+  return userCan('upload') || !!(currentUser && currentUser.leadUpload);
 }
 
 function isAdminUser() {
@@ -3811,7 +3813,7 @@ function readCurrentUser() {
   const injected = window.TRACKER_USER;
   const u = (injected && injected.username) ? injected : DEV_USER;
   currentUser = (u && u.username)
-    ? { username: String(u.username), role: String(u.role || 'viewer').toLowerCase() }
+    ? { username: String(u.username), role: String(u.role || 'viewer').toLowerCase(), leadUpload: !!u.leadUpload }
     : null;
   if (!injected && currentUser) {
     console.warn('[tracker] window.TRACKER_USER not set — using the standalone DEV_USER ' +
@@ -3831,7 +3833,12 @@ function applyRolePermissions() {
   const bulkReleaseBtn = document.getElementById('bulk-release-toggle-btn');
   const bulkAssignBtn = document.getElementById('bulk-assign-toggle-btn');
   // Adding samples belongs to the Primary team, allocation and release to the lead.
-  if (addBtn) addBtn.style.display = canUploadReports() ? '' : 'none';
+  if (addBtn) {
+    const leadOnly = currentUser && currentUser.role === 'lead';
+    addBtn.style.display = canUploadReports() || leadOnly ? '' : 'none';
+    addBtn.disabled = !canUploadReports();
+    addBtn.title = addBtn.disabled ? 'Only Diwakar can add samples' : '';
+  }
   if (bulkEditBtn) bulkEditBtn.style.display = canUploadReports() ? '' : 'none';
   if (bulkReleaseBtn) bulkReleaseBtn.style.display = canEdit ? '' : 'none';
   if (bulkAssignBtn) bulkAssignBtn.style.display = canEdit ? '' : 'none';
@@ -3877,13 +3884,11 @@ function openReportModalById(id) {
 function openReportModal(row) {
   const gsr = document.getElementById('global-search-results');
   if (gsr) gsr.style.display = 'none';
-  document.getElementById('report-modal-title').textContent = row ? 'Edit Report' : 'Add Report';
+  document.getElementById('report-modal-title').textContent = row ? 'Edit Sample' : 'Add Sample';
   document.getElementById('rf-id').value = row?.id || '';
   document.getElementById('rf-is_priority').checked = !!row?.is_priority;
 
   document.getElementById('rf-is_reanalysis').checked = !!row?.is_reanalysis;
-  document.getElementById('rf-upload-section').style.display = row ? 'none' : 'flex';
-  document.getElementById('rf-excel-file').value = '';
   // Editing a saved sample is the lead's; adding one is the Primary team's, so
   // Save has to follow whichever the modal is currently doing.
   const saveBtn = document.getElementById('report-save-btn');
@@ -6315,6 +6320,17 @@ function anExportPNG() {
 }
 
 let notifications = [];
+let ntAutoOpened = false;
+let ntSticky = false;
+let ntTab = 'mine';
+
+const isTeamNotification = n => n.kind === 'run_uploaded';
+const inNotificationTab = (n, tab) => (tab === 'team') === isTeamNotification(n);
+
+function setNotificationTab(tab) {
+  ntTab = tab;
+  renderNotifications();
+}
 
 function groupNotifications(list) {
   const groups = new Map();
@@ -6327,6 +6343,10 @@ function groupNotifications(list) {
 }
 
 function notificationText(g) {
+  if (g.kind === 'run_uploaded') {
+    const n = g.items.reduce((sum, i) => sum + (i.count || 0), 0);
+    return `<b>${n} new sample${n === 1 ? '' : 's'}</b> uploaded to <b>${esc(g.run)}</b> on ${esc(g.date)}.`;
+  }
   const count = g.items.length;
   const subject = count === 1
     ? `Sample <b>${esc(g.items[0].sample || g.items[0].gen_id || '')}</b>`
@@ -6344,8 +6364,16 @@ function renderNotifications() {
   const badge = document.getElementById('nt-count');
   badge.textContent = unread > 99 ? '99+' : unread;
   badge.style.display = unread ? 'inline-flex' : 'none';
-  document.getElementById('nt-list').innerHTML = notifications.length
-    ? groupNotifications(notifications).map(g => {
+  ['mine', 'team'].forEach(tab => {
+    const n = notifications.filter(x => !x.read && inNotificationTab(x, tab)).length;
+    const el = document.getElementById('nt-n-' + tab);
+    el.textContent = n;
+    el.style.display = n ? 'inline-block' : 'none';
+    document.getElementById('nt-tab-' + tab).classList.toggle('active', tab === ntTab);
+  });
+  const shown = notifications.filter(n => inNotificationTab(n, ntTab));
+  document.getElementById('nt-list').innerHTML = shown.length
+    ? groupNotifications(shown).map(g => {
         const isUnread = g.items.some(n => !n.read);
         const names = g.items.length > 1
           ? `<details><summary>Show samples</summary>${g.items.map(n => esc(n.sample || n.gen_id)).join(', ')}</details>`
@@ -6361,11 +6389,21 @@ async function fetchNotifications() {
     if (!resp.ok) return;
     notifications = await resp.json();
     renderNotifications();
+    if (!ntAutoOpened) {
+      ntAutoOpened = true;
+      if (notifications.some(n => !n.read)) {
+        ntSticky = true;
+        if (!notifications.some(n => !n.read && inNotificationTab(n, 'mine'))) ntTab = 'team';
+        renderNotifications();
+        document.getElementById('nt-panel').classList.add('open');
+      }
+    }
   } catch (e) {}
 }
 
 function toggleNotifications(ev) {
   ev.stopPropagation();
+  ntSticky = false;
   document.getElementById('nt-panel').classList.toggle('open');
 }
 
@@ -6381,7 +6419,7 @@ async function markNotificationsRead() {
 }
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('#nt-wrap')) document.getElementById('nt-panel').classList.remove('open');
+  if (!ntSticky && !e.target.closest('#nt-wrap')) document.getElementById('nt-panel').classList.remove('open');
 });
 
 (async function boot() {
