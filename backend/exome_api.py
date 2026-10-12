@@ -64,12 +64,12 @@ class NotificationsReadIn(BaseModel):
 
 @router.get("/notifications")
 def list_notifications(request: Request):
-    return exome_notifications.for_user(username_for(request), role_for(request) == "admin")
+    return exome_notifications.for_user(username_for(request), role_for(request))
 
 
 @router.post("/notifications/read")
 def read_notifications(payload: NotificationsReadIn, request: Request):
-    exome_notifications.mark_read(username_for(request), role_for(request) == "admin", payload.ids)
+    exome_notifications.mark_read(username_for(request), role_for(request), payload.ids)
     return {"ok": True}
 
 
