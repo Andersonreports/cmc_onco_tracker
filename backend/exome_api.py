@@ -154,6 +154,20 @@ def _trigger_cmc_release_sync() -> None:
         print(f"[exome_api] CMC release-date sync not triggered ({type(e).__name__}: {e})")
 
 
+@router.put("/reports/bulk-edit")
+def bulk_edit(reports: list[ReportEditIn], request: Request):
+    """Primary team's day-2 pass: match existing samples by Gen ID / Anderson
+    ID and fill in whichever of Repeat Expansion / TAT the sheet carries.
+    """
+    if not can_upload(request):
+        return forbidden()
+    if not reports:
+        return {"ok": True, "count": 0, "unmatched": []}
+    result = reports_client.bulk_edit(
+        [r.model_dump() for r in reports], username_for(request))
+    return {"ok": True, **result}
+
+
 @router.put("/reports/{report_id}")
 def update_report(
     report_id: str,
@@ -200,17 +214,3 @@ def bulk_add(reports: list[ReportIn], request: Request):
         return {"ok": True, "count": 0}
     count = reports_client.bulk_add([_stamped(r, request) for r in reports])
     return {"ok": True, "count": count}
-
-
-@router.put("/reports/bulk-edit")
-def bulk_edit(reports: list[ReportEditIn], request: Request):
-    """Primary team's day-2 pass: match existing samples by Gen ID / Anderson
-    ID and fill in whichever of Repeat Expansion / TAT the sheet carries.
-    """
-    if not can_upload(request):
-        return forbidden()
-    if not reports:
-        return {"ok": True, "count": 0, "unmatched": []}
-    result = reports_client.bulk_edit(
-        [r.model_dump() for r in reports], username_for(request))
-    return {"ok": True, **result}

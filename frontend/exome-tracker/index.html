@@ -1526,6 +1526,13 @@
     </div>
     <div id="report-modal-body">
       <input type="hidden" id="rf-id" />
+      <div id="rf-upload-section" style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--pb)">
+        <input type="file" id="rf-excel-file" accept=".xlsx,.xls" style="display:none" onchange="handleReportExcelUpload(event)" />
+        <button class="btn btn-out btn-sm" onclick="document.getElementById('rf-excel-file').click()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Excel Instead
+        </button>
+        <span style="font-size:12px;color:var(--muted)">Adds every sample row found in the file — or fill the form below for one sample</span>
+      </div>
       <div class="rf-grid">
         <div class="rf-item"><label>Sample Name</label><input type="text" id="rf-name" /></div>
         <div class="rf-item"><label>Test</label><input type="text" id="rf-test" /></div>
@@ -3889,6 +3896,8 @@ function openReportModal(row) {
   document.getElementById('rf-is_priority').checked = !!row?.is_priority;
 
   document.getElementById('rf-is_reanalysis').checked = !!row?.is_reanalysis;
+  document.getElementById('rf-upload-section').style.display = row ? 'none' : 'flex';
+  document.getElementById('rf-excel-file').value = '';
   // Editing a saved sample is the lead's; adding one is the Primary team's, so
   // Save has to follow whichever the modal is currently doing.
   const saveBtn = document.getElementById('report-save-btn');
