@@ -1269,6 +1269,9 @@
         <button class="sidebar-btn sidebar-btn-analytics" id="analyticsNavBtn" onclick="showAnalytics()" title="View sample analytics">
             📊 Analytics
         </button>
+        <button class="sidebar-btn sidebar-btn-analytics" id="researchSamplesNavBtn" onclick="showResearchSamples()" title="View research sample (plasmid) tracking">
+            🧪 Research Samples
+        </button>
         <div class="filter-bar sidebar-filter">
             <h4 class="sidebar-filter-title">🔎 Filters</h4>
             <div class="filter-bar-group">
@@ -1398,6 +1401,13 @@
         const selectedReleaseRows = new Map(); // key `${sheetName}::${rowIndex}` -> {sheetName, rowIndex}
         let monthChartInstance = null;
         let deptChartInstance = null;
+
+        // --- Research Samples (plasmids) tab --------------------------------
+        let researchSamplesRows = [];
+        let researchSamplesLoaded = false;
+        let rsSortColumn = -1;
+        let rsSortDirection = 'asc';
+        let rsSearchTerm = '';
 
         // Column mapping patterns - will auto-detect from actual headers
         const COLUMN_PATTERNS = {
@@ -2733,6 +2743,12 @@ Anderson Diagnostics`;
         function deactivateAnalyticsNav() {
             const btn = document.getElementById('analyticsNavBtn');
             if (btn) btn.classList.remove('active');
+            deactivateResearchSamplesNav();
+        }
+
+        function deactivateResearchSamplesNav() {
+            const btn = document.getElementById('researchSamplesNavBtn');
+            if (btn) btn.classList.remove('active');
         }
 
         function showAllSheets() {
@@ -2833,6 +2849,7 @@ Anderson Diagnostics`;
             document.querySelectorAll('.year-tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById('yearTabs').innerHTML = '';
             document.getElementById('sheetTabs').innerHTML = '';
+            deactivateResearchSamplesNav();
             document.getElementById('analyticsNavBtn').classList.add('active');
 
             // Chronological ascending (getSortedSheetNames() returns newest-first).
@@ -2953,6 +2970,127 @@ Anderson Diagnostics`;
                     }
                 }
             });
+        }
+
+        // Research Samples (plasmids) tab is a separate, much simpler sheet
+        // shape (no client/TAT/release-date concepts), so it gets its own
+        // small render/sort/search instead of reusing renderTable()'s
+        // clinical-sample-specific column detection.
+        const RS_COLUMNS = [
+            { key: 'slNo', title: 'S.No' },
+            { key: 'sampleName', title: 'Sample Name' },
+            { key: 'sampleReceivedDate', title: 'Sample Received Date' },
+            { key: 'assayRegistered', title: 'Assay Registered' },
+            { key: 'libraryPreparationDate', title: 'Library Preparation Date' },
+            { key: 'sequencedRunId', title: 'Sequenced / Run ID' },
+            { key: 'order', title: 'Order' }
+        ];
+
+        async function showResearchSamples(forceRefresh = false) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.year-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('yearTabs').innerHTML = '';
+            document.getElementById('sheetTabs').innerHTML = '';
+            document.getElementById('analyticsNavBtn').classList.remove('active');
+            document.getElementById('researchSamplesNavBtn').classList.add('active');
+
+            const contentArea = document.getElementById('contentArea');
+
+            if (researchSamplesLoaded && !forceRefresh) {
+                renderResearchSamplesTable();
+                return;
+            }
+
+            contentArea.innerHTML = '<div class="loading">Loading research samples</div>';
+            try {
+                const url = `${APPS_SCRIPT_URL}?action=getResearchSamples&_t=${Date.now()}`;
+                const response = await fetch(url, { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `Server returned ${response.status}`);
+                }
+                researchSamplesRows = data.rows || [];
+                researchSamplesLoaded = true;
+                renderResearchSamplesTable();
+            } catch (err) {
+                contentArea.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ Could Not Load Research Samples</h3>
+                        <p>${err.message}</p>
+                        <button onclick="showResearchSamples(true)" style="margin-top:12px;padding:10px 22px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;font-size:14px;font-weight:600;">🔄 Retry</button>
+                    </div>`;
+            }
+        }
+
+        function filterResearchSamples() {
+            const box = document.getElementById('rsSearchBox');
+            rsSearchTerm = box ? box.value.toLowerCase().trim() : '';
+            renderResearchSamplesTable();
+        }
+
+        function sortResearchSamples(columnIndex) {
+            const col = RS_COLUMNS[columnIndex];
+            if (!col) return;
+            rsSortDirection = (rsSortColumn === columnIndex && rsSortDirection === 'asc') ? 'desc' : 'asc';
+            rsSortColumn = columnIndex;
+            renderResearchSamplesTable();
+        }
+
+        function renderResearchSamplesTable() {
+            let rows = researchSamplesRows;
+            if (rsSearchTerm) {
+                rows = rows.filter(row =>
+                    RS_COLUMNS.some(c => String(row[c.key] || '').toLowerCase().includes(rsSearchTerm)));
+            }
+
+            if (rsSortColumn >= 0) {
+                const col = RS_COLUMNS[rsSortColumn];
+                const dir = rsSortDirection === 'asc' ? 1 : -1;
+                rows = rows.slice().sort((a, b) => {
+                    const valA = String(a[col.key] || '');
+                    const valB = String(b[col.key] || '');
+                    return valA.localeCompare(valB, undefined, { numeric: true }) * dir;
+                });
+            }
+
+            let html = `
+                <div class="result-header">
+                    <h3>Research Samples (Plasmids)</h3>
+                    <div class="result-stats">
+                        <div class="stat-item stat-total active-filter">
+                            <div class="stat-label">Total Samples</div>
+                            <div class="stat-value">${researchSamplesRows.length}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-controls-row" style="margin-bottom:12px;">
+                    <input type="text" class="search-box" id="rsSearchBox" placeholder="Search research samples..." value="${rsSearchTerm}" oninput="filterResearchSamples()">
+                    <button class="header-refresh-btn" onclick="showResearchSamples(true)">🔄 Refresh</button>
+                </div>`;
+
+            if (rows.length === 0) {
+                html += '<div class="no-data">No research samples match your criteria</div>';
+                document.getElementById('contentArea').innerHTML = html;
+                return;
+            }
+
+            html += '<div class="table-container"><table><thead><tr>';
+            RS_COLUMNS.forEach((col, index) => {
+                const arrow = rsSortColumn === index ? (rsSortDirection === 'asc' ? ' ▲' : ' ▼') : '';
+                html += `<th class="sortable" onclick="sortResearchSamples(${index})">${col.title}${arrow}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            rows.forEach(row => {
+                html += '<tr>';
+                RS_COLUMNS.forEach(col => {
+                    html += `<td>${row[col.key] || ''}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+
+            document.getElementById('contentArea').innerHTML = html;
         }
 
         let currentTableCols = []; // Track column definitions for current table to enable correct sorting.

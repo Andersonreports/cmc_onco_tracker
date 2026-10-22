@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from auth import COOKIE_NAME, read_session
 import access
 import cmc_sample_tracking as tracking
+import cmc_research_samples as research_samples
 
 TRACKER_KEY = "cmc-sample-tracking"
 
@@ -30,8 +31,12 @@ def exec_get(action: str = ""):
             return tracking.get_all_data()
         if action == "getRegistrations":
             return {"registrations": tracking.get_registration_rows()}
+        if action == "getResearchSamples":
+            return research_samples.get_research_samples()
         return JSONResponse({"error": "Invalid action"}, status_code=400)
     except tracking.SampleTrackingError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=500)
+    except research_samples.ResearchSamplesError as exc:
         return JSONResponse({"error": str(exc)}, status_code=500)
     except Exception as exc:  # noqa: BLE001 - surfaced to the frontend as an error toast
         print(f"[cmc-sample-tracking] GET /exec error: {exc}")
