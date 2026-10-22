@@ -304,7 +304,7 @@ def _col_letter(index: int) -> str:
     return letters
 
 
-def _update_report_released_date_bulk_via_sheets_api(items: list[dict], default_value: str) -> dict:
+def _update_column_bulk_via_sheets_api(items: list[dict], column_name: str, default_value: str) -> dict:
     if not SPREADSHEET_ID:
         return {"success": False, "error": "CMC_ST_SPREADSHEET_ID is not configured"}
 
@@ -325,10 +325,10 @@ def _update_report_released_date_bulk_via_sheets_api(items: list[dict], default_
                 header_row = sheets.values().get(
                     spreadsheetId=SPREADSHEET_ID, range=f"'{sheet_name}'!1:1").execute()
                 headers = (header_row.get("values") or [[]])[0]
-                col_by_sheet[sheet_name] = _find_col(headers, "Report released date")
+                col_by_sheet[sheet_name] = _find_col(headers, column_name)
             col = col_by_sheet[sheet_name]
             if col < 0:
-                errors.append(f"Report released date column not found in {sheet_name}")
+                errors.append(f"{column_name} column not found in {sheet_name}")
                 continue
             rng = f"'{sheet_name}'!{_col_letter(col)}{row_index}"
             data_updates.append({"range": rng, "values": [[value]]})
@@ -360,11 +360,37 @@ def update_report_released_date_bulk(items: list[dict], value: str = "") -> dict
             "items": items, "value": value,
         })
     else:
-        result = _update_report_released_date_bulk_via_sheets_api(items, value)
+        result = _update_column_bulk_via_sheets_api(items, "Report released date", value)
 
     if result.get("success"):
         global _all_data_cache
         _all_data_cache = None  # next getAllData() reflects the edit instead of a stale cache
+    return result
+
+
+def update_remarks_bulk(items: list[dict], value: str = "") -> dict:
+    """Fill "Remarks" for every {sheetName, rowIndex} pair given — same shape
+    as update_report_released_date_bulk, used today by the exome-tracker sync.
+
+    NOTE: when CMC_ST_APPS_SCRIPT_EXEC_URL is configured, writes route through
+    that externally-deployed Apps Script Web App (not in this repo). That
+    script needs its own handler for the "updateRemarksBulk" action before
+    this will actually persist — until then this falls through to Apps
+    Script's own "unknown action" error there instead of writing anything.
+    """
+    if not items:
+        return {"success": False, "error": "No rows selected"}
+
+    if APPS_SCRIPT_EXEC_URL:
+        result = _post_to_apps_script("updateRemarksBulk", {
+            "items": items, "value": value,
+        })
+    else:
+        result = _update_column_bulk_via_sheets_api(items, "Remarks", value)
+
+    if result.get("success"):
+        global _all_data_cache
+        _all_data_cache = None
     return result
 
 
@@ -389,57 +415,78 @@ def _exome_date_to_iso(value: str) -> str:
     return f"{y}-{mo.zfill(2)}-{d.zfill(2)}"
 
 
-def _exome_release_dates_by_anderson_id() -> dict[str, str]:
+def _exome_records_by_anderson_id() -> dict[str, dict]:
     import reports_client
 
     if not reports_client.is_configured():
         return {}
 
-    dates: dict[str, str] = {}
+    records: dict[str, dict] = {}
     for rec in reports_client.list_reports():
         and_id = str(rec.get("and_id") or "").strip().upper()
-        iso = _exome_date_to_iso(rec.get("report_release_date"))
-        if and_id and iso:
-            dates[and_id] = iso
-    return dates
+        if and_id:
+            records[and_id] = rec
+    return records
 
 
-def sync_release_dates_from_exome_tracker() -> dict:
-    """Auto-fill CMC's "Report released date" from the exome tracker's own
-    release date for any CMC sample that already has one there but not here,
-    matched by Anderson ID. Best-effort: any failure is returned, never
-    raised, since this runs opportunistically (after an exome edit, and on
-    a periodic timer) and must never disrupt its caller.
+def sync_from_exome_tracker() -> dict:
+    """Auto-fill CMC's "Report released date" and "Remarks" from the exome
+    tracker's own record for any CMC sample that doesn't have one here yet,
+    matched by Anderson ID. Fills blanks only — never overwrites something
+    already entered directly in the CMC sheet. Best-effort: any failure is
+    returned, never raised, since this runs opportunistically (after an
+    exome edit, and on a periodic timer) and must never disrupt its caller.
     """
     try:
-        exome_dates = _exome_release_dates_by_anderson_id()
+        exome_records = _exome_records_by_anderson_id()
     except Exception as exc:  # noqa: BLE001 - reports API being down shouldn't break the caller
         return {"success": False, "error": str(exc)}
 
-    if not exome_dates:
-        return {"success": True, "updated": 0}
+    if not exome_records:
+        return {"success": True, "updatedReleaseDates": 0, "updatedRemarks": 0}
 
     try:
         all_data = get_all_data()
     except Exception as exc:  # noqa: BLE001
         return {"success": False, "error": str(exc)}
 
-    items = []
+    release_items, remarks_items = [], []
     for sheet_name, sheet in all_data.get("sheets", {}).items():
         for row in sheet.get("rows", []):
-            if row.get("reportReleasedDate"):
-                continue  # already filled — exome isn't the only way this gets set
             and_id = str(row.get("andersonId") or "").strip().upper()
             row_index = row.get("_rowIndex")
-            released = exome_dates.get(and_id)
-            if and_id and row_index and released:
-                items.append({"sheetName": sheet_name, "rowIndex": row_index, "value": released})
+            rec = exome_records.get(and_id)
+            if not (and_id and row_index and rec):
+                continue
 
-    if not items:
-        return {"success": True, "updated": 0}
+            if not row.get("reportReleasedDate"):
+                released = _exome_date_to_iso(rec.get("report_release_date"))
+                if released:
+                    release_items.append({"sheetName": sheet_name, "rowIndex": row_index, "value": released})
 
-    result = update_report_released_date_bulk(items)
-    result.setdefault("updated", len(items) if result.get("success") else 0)
+            if not row.get("remarks"):
+                remarks = str(rec.get("remarks") or "").strip()
+                if remarks:
+                    remarks_items.append({"sheetName": sheet_name, "rowIndex": row_index, "value": remarks})
+
+    result = {"success": True, "updatedReleaseDates": 0, "updatedRemarks": 0, "errors": []}
+
+    if release_items:
+        r = update_report_released_date_bulk(release_items)
+        result["updatedReleaseDates"] = r.get("updated", 0) if r.get("success") else 0
+        if not r.get("success"):
+            result["success"] = False
+            if r.get("error"):
+                result["errors"].append(r["error"])
+
+    if remarks_items:
+        r = update_remarks_bulk(remarks_items)
+        result["updatedRemarks"] = r.get("updated", 0) if r.get("success") else 0
+        if not r.get("success"):
+            result["success"] = False
+            if r.get("error"):
+                result["errors"].append(r["error"])
+
     return result
 
 
@@ -459,16 +506,17 @@ def schedule_exome_release_sync() -> None:
 
     def _run():
         try:
-            result = sync_release_dates_from_exome_tracker()
-            if result.get("updated"):
-                print(f"[cmc_sample_tracking] exome sync filled {result['updated']} release date(s)")
+            result = sync_from_exome_tracker()
+            if result.get("updatedReleaseDates") or result.get("updatedRemarks"):
+                print(f"[cmc_sample_tracking] exome sync filled {result.get('updatedReleaseDates', 0)} "
+                      f"release date(s) and {result.get('updatedRemarks', 0)} remark(s)")
         except Exception as exc:  # noqa: BLE001 - keep the scheduler alive
             print(f"[cmc_sample_tracking] exome sync job failed: {exc}")
 
     _exome_sync_scheduler = BackgroundScheduler(timezone=TZ_NAME)
     _exome_sync_scheduler.add_job(_run, IntervalTrigger(minutes=EXOME_SYNC_MINUTES))
     _exome_sync_scheduler.start()
-    print(f"[cmc_sample_tracking] exome release-date sync scheduled every {EXOME_SYNC_MINUTES} min")
+    print(f"[cmc_sample_tracking] exome sync scheduled every {EXOME_SYNC_MINUTES} min")
 
 
 def trigger_exome_sync_async() -> None:
@@ -481,9 +529,10 @@ def trigger_exome_sync_async() -> None:
 
     def _run():
         try:
-            result = sync_release_dates_from_exome_tracker()
-            if result.get("updated"):
-                print(f"[cmc_sample_tracking] exome sync (post-edit) filled {result['updated']} release date(s)")
+            result = sync_from_exome_tracker()
+            if result.get("updatedReleaseDates") or result.get("updatedRemarks"):
+                print(f"[cmc_sample_tracking] exome sync (post-edit) filled {result.get('updatedReleaseDates', 0)} "
+                      f"release date(s) and {result.get('updatedRemarks', 0)} remark(s)")
         except Exception as exc:  # noqa: BLE001 - never let this affect the exome save
             print(f"[cmc_sample_tracking] exome sync (post-edit) failed: {exc}")
 
@@ -581,7 +630,20 @@ def send_email_action(params: dict) -> dict:
 
 # --- Daily TAT-deadline alert job ---------------------------------------
 
+# Mirrors the frontend's isRepeatSample() regex (cmc-sample-tracking.html) —
+# a repeat/resequenced sample is never "overdue" since it isn't awaiting a
+# fresh report. Tolerates the "REPAET" typo that shows up in real remarks,
+# same as the frontend does.
+_REPEAT_SAMPLE_RE = re.compile(r"rep(?:eat|aet)\s*sample", re.I)
+
+
+def _is_repeat_sample(row: dict) -> bool:
+    return bool(_REPEAT_SAMPLE_RE.search(str(row.get("remarks") or "")))
+
+
 def _is_released(row: dict) -> bool:
+    if _is_repeat_sample(row):
+        return True
     status = (row.get("status") or "").lower()
     return bool(
         "release" in status or "complete" in status

@@ -99,12 +99,23 @@ def _process_rows(data: list[list[str]]) -> list[dict]:
     idx = {key: _find_col(headers, *names) for key, names in _COLUMN_ALIASES.items()}
 
     rows = []
+    last_order = ""
     for r in data[1:]:
         if not _get_string(r, idx["sampleName"]):
             continue
         row = {key: _get_string(r, i) for key, i in idx.items() if key not in _DATE_FIELDS}
         for key in _DATE_FIELDS:
             row[key] = _format_date(_get_string(r, idx[key]))
+
+        # The sheet only labels the first row of a batch with "Order N" —
+        # every row after it (same run, same dates) is left blank but
+        # belongs to that same order. Forward-fill so grouping/filtering by
+        # order works on every row, not just batch leaders.
+        if row["order"]:
+            last_order = row["order"]
+        else:
+            row["order"] = last_order
+
         rows.append(row)
     return rows
 

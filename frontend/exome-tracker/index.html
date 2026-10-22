@@ -2536,7 +2536,9 @@ function isSentToSiva(r) {
 // this original row never gets one of its own, so it would sit in Overdue
 // forever. It's done, just not a release in its own right, so it's kept out
 // of the Released count too (the repeat row supplies that).
-const REPEAT_SAMPLE_REMARK = /repeat\s*sample/i;
+// Tolerates the "repaet" typo too, not just the correct spelling — matches
+// the CMC tracker's own repeat-sample regex (cmc-sample-tracking.html).
+const REPEAT_SAMPLE_REMARK = /rep(?:eat|aet)\s*sample/i;
 
 // Same patient, same Anderson ID, redrawn: IT reuses the gen id with an "A"
 // appended for the sample that actually goes forward. The earlier row (no

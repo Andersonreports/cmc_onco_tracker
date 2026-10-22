@@ -387,6 +387,22 @@
             box-shadow: 0 0 0 3px rgba(79,70,229,0.15), inset 0 1px 4px rgba(79,70,229,0.07);
         }
 
+        .rs-filter-select {
+            padding: 8px 14px;
+            border: 1.5px solid #c7d2fe;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            background: #f5f3ff;
+            cursor: pointer;
+        }
+        .rs-filter-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+        }
+
         .send-mail-btn {
             flex-shrink: 0;
             padding: 9px 20px;
@@ -1408,6 +1424,8 @@
         let rsSortColumn = -1;
         let rsSortDirection = 'asc';
         let rsSearchTerm = '';
+        let rsAssayFilter = '';
+        let rsOrderFilter = '';
 
         // Column mapping patterns - will auto-detect from actual headers
         const COLUMN_PATTERNS = {
@@ -2986,6 +3004,22 @@ Anderson Diagnostics`;
             { key: 'order', title: 'Order' }
         ];
 
+        // Fixed per-assay colors (not re-derived from current sort/filter
+        // order) so the same assay always renders the same color everywhere.
+        const RS_ASSAY_COLORS = {
+            'WGA': '#3987e5',
+            'WGS': '#d95926',
+            'RTR': '#199e70',
+            'RTRL': '#c98500',
+            'Amplicon Seq': '#d55181',
+            'WGA+Seq': '#9085e9',
+        };
+        const RS_ASSAY_FALLBACK_COLOR = '#6b7280';
+
+        function rsAssayColor(name) {
+            return RS_ASSAY_COLORS[name] || RS_ASSAY_FALLBACK_COLOR;
+        }
+
         async function showResearchSamples(forceRefresh = false) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.year-tab').forEach(tab => tab.classList.remove('active'));
@@ -3028,43 +3062,113 @@ Anderson Diagnostics`;
             renderResearchSamplesTable();
         }
 
+        function onRsAssaySelectChange() {
+            rsAssayFilter = document.getElementById('rsAssaySelect').value;
+            renderResearchSamplesTable();
+        }
+
+        function onRsOrderSelectChange() {
+            rsOrderFilter = document.getElementById('rsOrderSelect').value;
+            renderResearchSamplesTable();
+        }
+
+        function toggleRsAssayStage(value) {
+            rsAssayFilter = (rsAssayFilter === value) ? '' : value;
+            renderResearchSamplesTable();
+        }
+
+        function clearRsAssayFilter() {
+            rsAssayFilter = '';
+            renderResearchSamplesTable();
+        }
+
         function sortResearchSamples(columnIndex) {
             const col = RS_COLUMNS[columnIndex];
-            if (!col) return;
+            if (!col || col.noSort) return;
             rsSortDirection = (rsSortColumn === columnIndex && rsSortDirection === 'asc') ? 'desc' : 'asc';
             rsSortColumn = columnIndex;
             renderResearchSamplesTable();
         }
 
+        function _rsColValue(col, row) {
+            return col.getValue ? col.getValue(row) : (row[col.key] || '');
+        }
+
+        // Numeric-aware compare so "Order 2" sorts before "Order 10".
+        function _rsNaturalCompare(a, b) {
+            return String(a || '').localeCompare(String(b || ''), undefined, { numeric: true });
+        }
+
         function renderResearchSamplesTable() {
-            let rows = researchSamplesRows;
+            // Search + the "Order" dropdown narrow the pool the stage counts
+            // are computed from; the stage filter itself is excluded from that
+            // pool so clicking a stage doesn't change the other stages' counts.
+            let statBaseRows = researchSamplesRows;
             if (rsSearchTerm) {
-                rows = rows.filter(row =>
+                statBaseRows = statBaseRows.filter(row =>
                     RS_COLUMNS.some(c => String(row[c.key] || '').toLowerCase().includes(rsSearchTerm)));
+            }
+            if (rsOrderFilter) {
+                statBaseRows = statBaseRows.filter(row => row.order === rsOrderFilter);
+            }
+
+            const stageCounts = {};
+            statBaseRows.forEach(row => {
+                const stage = row.assayRegistered || 'Unspecified';
+                stageCounts[stage] = (stageCounts[stage] || 0) + 1;
+            });
+            const stageEntries = Object.entries(stageCounts).sort((a, b) => b[1] - a[1]);
+
+            let rows = statBaseRows;
+            if (rsAssayFilter) {
+                rows = rows.filter(row => row.assayRegistered === rsAssayFilter);
             }
 
             if (rsSortColumn >= 0) {
                 const col = RS_COLUMNS[rsSortColumn];
                 const dir = rsSortDirection === 'asc' ? 1 : -1;
                 rows = rows.slice().sort((a, b) => {
-                    const valA = String(a[col.key] || '');
-                    const valB = String(b[col.key] || '');
+                    const valA = String(_rsColValue(col, a) ?? '');
+                    const valB = String(_rsColValue(col, b) ?? '');
                     return valA.localeCompare(valB, undefined, { numeric: true }) * dir;
                 });
             }
+
+            const allAssayValues = [...new Set(researchSamplesRows.map(r => r.assayRegistered).filter(Boolean))].sort();
+            const allOrderValues = [...new Set(researchSamplesRows.map(r => r.order).filter(Boolean))].sort(_rsNaturalCompare);
+
+            const stageItemsHtml = stageEntries.map(([stage, count]) => `
+                <div class="stat-item clickable${rsAssayFilter === stage ? ' active-filter' : ''}" style="background:${rsAssayColor(stage)};color:#fff;" onclick="toggleRsAssayStage('${stage.replace(/'/g, "\\'")}')" title="Click to filter by ${stage}">
+                    <div class="stat-label">${stage}</div>
+                    <div class="stat-value">${count}</div>
+                </div>`).join('');
+
+            const assayOptionsHtml = allAssayValues.map(v =>
+                `<option value="${v}"${v === rsAssayFilter ? ' selected' : ''}>${v}</option>`).join('');
+            const orderOptionsHtml = allOrderValues.map(v =>
+                `<option value="${v}"${v === rsOrderFilter ? ' selected' : ''}>${v}</option>`).join('');
 
             let html = `
                 <div class="result-header">
                     <h3>Research Samples (Plasmids)</h3>
                     <div class="result-stats">
-                        <div class="stat-item stat-total active-filter">
+                        <div class="stat-item clickable stat-total${rsAssayFilter ? '' : ' active-filter'}" onclick="clearRsAssayFilter()" title="Click to show all stages">
                             <div class="stat-label">Total Samples</div>
-                            <div class="stat-value">${researchSamplesRows.length}</div>
+                            <div class="stat-value">${statBaseRows.length}</div>
                         </div>
+                        ${stageItemsHtml}
                     </div>
                 </div>
-                <div class="header-controls-row" style="margin-bottom:12px;">
+                <div class="header-controls-row" style="margin-bottom:12px; flex-wrap:wrap;">
                     <input type="text" class="search-box" id="rsSearchBox" placeholder="Search research samples..." value="${rsSearchTerm}" oninput="filterResearchSamples()">
+                    <select class="rs-filter-select" id="rsAssaySelect" onchange="onRsAssaySelectChange()">
+                        <option value="">All Assays</option>
+                        ${assayOptionsHtml}
+                    </select>
+                    <select class="rs-filter-select" id="rsOrderSelect" onchange="onRsOrderSelectChange()">
+                        <option value="">All Orders</option>
+                        ${orderOptionsHtml}
+                    </select>
                     <button class="header-refresh-btn" onclick="showResearchSamples(true)">🔄 Refresh</button>
                 </div>`;
 
@@ -3077,14 +3181,15 @@ Anderson Diagnostics`;
             html += '<div class="table-container"><table><thead><tr>';
             RS_COLUMNS.forEach((col, index) => {
                 const arrow = rsSortColumn === index ? (rsSortDirection === 'asc' ? ' ▲' : ' ▼') : '';
-                html += `<th class="sortable" onclick="sortResearchSamples(${index})">${col.title}${arrow}</th>`;
+                const cls = col.noSort ? '' : 'sortable';
+                html += `<th class="${cls}" onclick="sortResearchSamples(${index})">${col.title}${col.noSort ? '' : arrow}</th>`;
             });
             html += '</tr></thead><tbody>';
 
             rows.forEach(row => {
                 html += '<tr>';
                 RS_COLUMNS.forEach(col => {
-                    html += `<td>${row[col.key] || ''}</td>`;
+                    html += `<td>${_rsColValue(col, row)}</td>`;
                 });
                 html += '</tr>';
             });
