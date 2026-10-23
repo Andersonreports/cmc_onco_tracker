@@ -370,10 +370,6 @@
             gap: 16px;
         }
 
-        .header.no-controls { padding-bottom: 0; border-bottom: none; }
-        .header.no-controls .header-title-row { margin-bottom: 0; }
-        .header.no-controls #headerControlsRow { display: none; }
-
         .search-box {
             flex: 1;
             padding: 8px 16px 8px 36px;
@@ -536,27 +532,6 @@
             box-shadow: 0 4px 16px rgba(124,58,237,0.4);
         }
 
-        .sidebar-btn-research {
-            background: linear-gradient(135deg, #0f766e, #14b8a6);
-            border: 1.5px solid #0d9488;
-            color: #ffffff;
-            font-weight: 700;
-            box-shadow: 0 3px 12px rgba(13,148,136,0.35);
-        }
-        .sidebar-btn-research:hover {
-            background: linear-gradient(135deg, #115e59, #0d9488);
-            border-color: #5eead4;
-            color: #ffffff;
-            transform: translateX(3px);
-            box-shadow: 0 6px 20px rgba(13,148,136,0.45);
-        }
-        .sidebar-btn-research.active {
-            background: linear-gradient(135deg, #134e4a, #0f766e);
-            border-color: #2dd4bf;
-            color: #ffffff;
-            box-shadow: 0 0 0 2px rgba(45,212,191,0.45), 0 6px 20px rgba(13,148,136,0.5);
-        }
-
         .year-tabs {
             display: flex;
             align-items: center;
@@ -708,8 +683,6 @@
             letter-spacing: -0.2px;
             text-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
-
-        .rs-header h3 { font-size: 22px; }
 
         .result-stats {
             display: flex;
@@ -1312,7 +1285,7 @@
         <button class="sidebar-btn sidebar-btn-analytics" id="analyticsNavBtn" onclick="showAnalytics()" title="View sample analytics">
             📊 Analytics
         </button>
-        <button class="sidebar-btn sidebar-btn-analytics sidebar-btn-research" id="researchSamplesNavBtn" onclick="showResearchSamples()" title="View research sample (plasmid) tracking">
+        <button class="sidebar-btn sidebar-btn-analytics" id="researchSamplesNavBtn" onclick="showResearchSamples()" title="View research sample (plasmid) tracking">
             🧪 Research Samples
         </button>
         <div class="filter-bar sidebar-filter">
@@ -1330,13 +1303,13 @@
     </div>
 
     <div class="main-content">
-        <div class="header" id="mainHeader">
+        <div class="header">
             <div class="header-title-row">
                 <span class="header-title-spacer"></span>
                 <h1>CMC Sample Management System</h1>
                 <button class="header-refresh-btn" onclick="loadAllData(true)">🔄 Refresh Data</button>
             </div>
-            <div class="header-controls-row" id="headerControlsRow">
+            <div class="header-controls-row">
                 <input type="text" class="search-box" id="searchBox" placeholder="Search in current view..." onkeyup="searchTable()">
                 <button class="send-mail-btn" onclick="openComposeMail()" title="Compose a new email">✉️ Send Mail</button>
             </div>
@@ -2794,12 +2767,6 @@ Anderson Diagnostics`;
         function deactivateResearchSamplesNav() {
             const btn = document.getElementById('researchSamplesNavBtn');
             if (btn) btn.classList.remove('active');
-            setHeaderControlsVisible(true);
-        }
-
-        function setHeaderControlsVisible(visible) {
-            const header = document.getElementById('mainHeader');
-            if (header) header.classList.toggle('no-controls', !visible);
         }
 
         function showAllSheets() {
@@ -3060,7 +3027,6 @@ Anderson Diagnostics`;
             document.getElementById('sheetTabs').innerHTML = '';
             document.getElementById('analyticsNavBtn').classList.remove('active');
             document.getElementById('researchSamplesNavBtn').classList.add('active');
-            setHeaderControlsVisible(false);
 
             const contentArea = document.getElementById('contentArea');
 
@@ -3183,7 +3149,7 @@ Anderson Diagnostics`;
                 `<option value="${v}"${v === rsOrderFilter ? ' selected' : ''}>${v}</option>`).join('');
 
             let html = `
-                <div class="result-header rs-header">
+                <div class="result-header">
                     <h3>Research Samples (Plasmids)</h3>
                     <div class="result-stats">
                         <div class="stat-item clickable stat-total${rsAssayFilter ? '' : ' active-filter'}" onclick="clearRsAssayFilter()" title="Click to show all stages">
@@ -3203,6 +3169,7 @@ Anderson Diagnostics`;
                         <option value="">All Orders</option>
                         ${orderOptionsHtml}
                     </select>
+                    <button class="header-refresh-btn" onclick="showResearchSamples(true)">🔄 Refresh</button>
                 </div>`;
 
             if (rows.length === 0) {

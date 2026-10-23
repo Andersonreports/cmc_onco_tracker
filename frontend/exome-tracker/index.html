@@ -426,7 +426,6 @@
     .etc-af{background:rgba(59,130,246,.14);color:#1d4ed8}
     .etc-single{background:rgba(100,116,139,.14);color:#475569}
     .etc-couple{background:rgba(219,39,119,.13);color:#be185d}
-    .etc-trio{background:rgba(217,119,6,.14);color:#b45309}
     .emp-type-counts-lg{gap:10px}
     .emp-type-counts-lg .etc-pill{font-size:14px;font-weight:700;padding:6px 14px;border-radius:10px}
     .ba-team-grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px}
@@ -3198,7 +3197,6 @@ function renderBulkAssignTeamSummary() {
         <span class="etc-pill etc-af">AF ${counts.AF}</span>
         <span class="etc-pill etc-single">Single ${counts.Single}</span>
         <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
-        <span class="etc-pill etc-trio">Trio ${counts.Trio}</span>
       </div>
     </div>`;
   }).join('');
@@ -3867,7 +3865,7 @@ const DEFAULT_RUN_NUMBER = 9999;
 const REVIEWERS = ['Naveen', 'Vignesh', 'Diwakar', 'Gayathri', 'Dr. Sudha', 'Vamshi', 'Nikhil', 'Vikram', 'Priya', 'Raghavi', 'Shruti'];
 const CLINICAL_REVIEWERS = ['Dr.Sarath', 'Dr.Robert'];
 const CNV_STATUSES = ['No CNV', 'CNV - Suspected', 'CNV - Reported'];
-const SAMPLE_TYPES = ['AF', 'Single', 'Couple', 'Trio'];
+const SAMPLE_TYPES = ['AF', 'Single', 'Couple'];
 
 // Keeps an off-list value selectable so opening a legacy row never wipes it.
 function selectOptions(choices, current) {
@@ -4472,29 +4470,26 @@ function teamTint(hex, alpha) {
 let _teamWorkloadFull = [];
 
 // AF samples carry an "AF" suffix on their Gen ID; couple samples are the ones
-// tagged with a couple_id, split into Trio when the tag says so ("Trio 1");
-// everything else — no suffix, no couple tag — is Single.
+// tagged with a couple_id; everything else — no suffix, no couple tag — is Single.
 const AF_GEN_ID_SUFFIX = /af$/i;
 
 function sampleTypeOf(r) {
   if (AF_GEN_ID_SUFFIX.test(String(r.gen_id || '').trim())) return 'AF';
-  const tag = coupleTag(r.couple_id);
-  if (tag) return /trio/i.test(tag) ? 'Trio' : 'Couple';
+  if (coupleTag(r.couple_id)) return 'Couple';
   return 'Single';
 }
 
-// "Couple"/"Trio" count cases, not samples — 2 samples sharing a couple_id is 1
+// "Couple" counts pairs, not samples — 2 samples sharing a couple_id is 1
 // couple case, so it's the number of distinct tags, not a per-row tally.
 function teamWorkloadBreakdown(reports) {
-  const counts = { AF: 0, Single: 0, Couple: 0, Trio: 0 };
-  const caseTags = { Couple: new Set(), Trio: new Set() };
+  const counts = { AF: 0, Single: 0, Couple: 0 };
+  const coupleTags = new Set();
   reports.forEach(r => {
     const t = sampleTypeOf(r);
-    if (t in caseTags) caseTags[t].add(coupleTag(r.couple_id).toLowerCase());
+    if (t === 'Couple') coupleTags.add(coupleTag(r.couple_id).toLowerCase());
     else if (t in counts) counts[t]++;
   });
-  counts.Couple = caseTags.Couple.size;
-  counts.Trio = caseTags.Trio.size;
+  counts.Couple = coupleTags.size;
   return counts;
 }
 
@@ -4547,7 +4542,6 @@ function renderTeamWorkload(containerId, data) {
         <span class="etc-pill etc-af">AF ${counts.AF}</span>
         <span class="etc-pill etc-single">Single ${counts.Single}</span>
         <span class="etc-pill etc-couple">Couple ${counts.Couple}</span>
-        <span class="etc-pill etc-trio">Trio ${counts.Trio}</span>
       </div>
       <div class="emp-count">${reports.length} report${reports.length!==1?'s':''} in review</div>
       <div class="emp-pills">
@@ -5031,7 +5025,6 @@ function openEmpModal(empName) {
         <span class="etc-pill etc-af" id="emp-modal-af">AF ${counts.AF}</span>
         <span class="etc-pill etc-single" id="emp-modal-single">Single ${counts.Single}</span>
         <span class="etc-pill etc-couple" id="emp-modal-couple">Couple ${counts.Couple}</span>
-        <span class="etc-pill etc-trio" id="emp-modal-trio">Trio ${counts.Trio}</span>
       </div>
     </div>`;
 
@@ -5054,18 +5047,16 @@ function filterEmpModal() {
   const countEl = document.getElementById('emp-modal-count');
   if (countEl) countEl.textContent = `${data.length} samples`;
 
-  // AF/Single/Couple/Trio breakdown follows the selected run, same as the record
+  // AF/Single/Couple breakdown follows the selected run, same as the record
   // count — but stays independent of the type filter so it's still a full
   // reference for that run even while the table is narrowed to one type.
   const counts = teamWorkloadBreakdown(runFiltered);
   const afEl = document.getElementById('emp-modal-af');
   const singleEl = document.getElementById('emp-modal-single');
   const coupleEl = document.getElementById('emp-modal-couple');
-  const trioEl = document.getElementById('emp-modal-trio');
   if (afEl) afEl.textContent = `AF ${counts.AF}`;
   if (singleEl) singleEl.textContent = `Single ${counts.Single}`;
   if (coupleEl) coupleEl.textContent = `Couple ${counts.Couple}`;
-  if (trioEl) trioEl.textContent = `Trio ${counts.Trio}`;
 }
 
 function downloadEmpModalExcel() {
