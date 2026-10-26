@@ -711,6 +711,18 @@
 
         .rs-header h3 { font-size: 22px; }
 
+        /* Sits on the light filter row, not the dark header bar, so it needs
+           its own fill instead of .header-refresh-btn's translucent white. */
+        .rs-refresh-btn {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #ffffff;
+        }
+        .rs-refresh-btn:hover {
+            background: #0f766e;
+            border-color: #0f766e;
+        }
+
         .result-stats {
             display: flex;
             gap: 8px;
@@ -2795,6 +2807,7 @@ Anderson Diagnostics`;
             const btn = document.getElementById('researchSamplesNavBtn');
             if (btn) btn.classList.remove('active');
             setHeaderControlsVisible(true);
+            stopResearchSamplesAutoRefresh();
         }
 
         function setHeaderControlsVisible(visible) {
@@ -3066,6 +3079,7 @@ Anderson Diagnostics`;
 
             if (researchSamplesLoaded && !forceRefresh) {
                 renderResearchSamplesTable();
+                startResearchSamplesAutoRefresh();
                 return;
             }
 
@@ -3080,13 +3094,46 @@ Anderson Diagnostics`;
                 researchSamplesRows = data.rows || [];
                 researchSamplesLoaded = true;
                 renderResearchSamplesTable();
+                startResearchSamplesAutoRefresh();
             } catch (err) {
+                stopResearchSamplesAutoRefresh();
                 contentArea.innerHTML = `
                     <div class="error">
                         <h3>⚠️ Could Not Load Research Samples</h3>
                         <p>${err.message}</p>
                         <button onclick="showResearchSamples(true)" style="margin-top:12px;padding:10px 22px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;font-size:14px;font-weight:600;">🔄 Retry</button>
                     </div>`;
+            }
+        }
+
+        const RESEARCH_SAMPLES_REFRESH_MS = 5 * 60 * 1000;
+        let researchSamplesTimer = null;
+
+        function startResearchSamplesAutoRefresh() {
+            stopResearchSamplesAutoRefresh();
+            researchSamplesTimer = setInterval(refreshResearchSamplesQuietly, RESEARCH_SAMPLES_REFRESH_MS);
+        }
+
+        function stopResearchSamplesAutoRefresh() {
+            if (researchSamplesTimer) {
+                clearInterval(researchSamplesTimer);
+                researchSamplesTimer = null;
+            }
+        }
+
+        // Leaves the table on screen while it polls: a failed request or a slow
+        // network must not swap a working view for a spinner or an error panel.
+        async function refreshResearchSamplesQuietly() {
+            if (document.activeElement && document.activeElement.id === 'rsSearchBox') return;
+            try {
+                const url = `${APPS_SCRIPT_URL}?action=getResearchSamples&_t=${Date.now()}`;
+                const response = await fetch(url, { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || data.error) return;
+                researchSamplesRows = data.rows || [];
+                renderResearchSamplesTable();
+            } catch (err) {
+                /* keep the last good data on screen until the next poll */
             }
         }
 
@@ -3203,6 +3250,7 @@ Anderson Diagnostics`;
                         <option value="">All Orders</option>
                         ${orderOptionsHtml}
                     </select>
+                    <button class="header-refresh-btn rs-refresh-btn" onclick="showResearchSamples(true)" title="Reload from the CMC Plasmids sheet now (also auto-refreshes every 5 minutes)">🔄 Refresh</button>
                 </div>`;
 
             if (rows.length === 0) {
