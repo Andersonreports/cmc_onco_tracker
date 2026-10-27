@@ -2542,8 +2542,7 @@ Anderson Diagnostics`;
             if (isFilled(rawDate) && isFilled(relDate)) return 'Released';
 
             // Not released — use TAT report date to decide Ongoing vs Overdue
-            const tatText = row['tatReport'] || getFieldValue(row, 'tatReport', targetSheet) || '';
-            const tatDate = parseDate(tatText);
+            const tatDate = resolvedTATDate(row, targetSheet);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
@@ -2555,12 +2554,40 @@ Anderson Diagnostics`;
             return calculateStatus(row, sheetName) === 'Released';
         }
 
+        // Returns the corrected TAT date for a row.  When Google Sheets was set to a
+        // non-India locale it returns dates in MM/DD/YYYY format; the server-side
+        // normaliser (and parseDate) treat the first component as the day, so
+        // "11/2/2026" (US Nov 2) becomes February 11.  The sheet name tells us which
+        // month samples were received, so a TAT date that lands BEFORE the sheet month
+        // with both day and month ≤ 12 is almost certainly a swapped parse — we swap
+        // them back and return the corrected date.
+        function resolvedTATDate(row, sheetName) {
+            const targetSheet = sheetName || row._sourceSheet || currentSheet;
+            const tatText = row['tatReport'] || getFieldValue(row, 'tatReport', targetSheet) || '';
+            const tatDate = parseDate(tatText);
+            if (!tatDate) return null;
+
+            const sheetDate = getSheetDate(targetSheet);
+            if (sheetDate && tatDate < sheetDate && tatDate.getDate() <= 12) {
+                // Try swapping day and month
+                const swappedMonth = tatDate.getDate() - 1;   // original day becomes month (0-indexed)
+                const swappedDay   = tatDate.getMonth() + 1;  // original month becomes day
+                const swapped = new Date(tatDate.getFullYear(), swappedMonth, swappedDay);
+                if (swapped.getDate() === swappedDay &&
+                    swapped.getMonth() === swappedMonth &&
+                    swapped >= sheetDate) {
+                    return swapped;
+                }
+            }
+
+            return tatDate;
+        }
+
         function calculateDaysOverdue(row, sheetName = null) {
             if (calculateStatus(row, sheetName) !== 'Overdue') return '';
 
             const targetSheet = sheetName || row._sourceSheet || currentSheet;
-            const tatText = row['tatReport'] || getFieldValue(row, 'tatReport', targetSheet) || '';
-            const tatDate = parseDate(tatText);
+            const tatDate = resolvedTATDate(row, targetSheet);
             if (!tatDate) return '';
 
             const today = new Date();
