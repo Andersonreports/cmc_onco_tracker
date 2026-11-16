@@ -1072,7 +1072,7 @@
       --sc-pri-bd:  #fcd34d;  --sc-pri-bg:  #fffbeb;  --sc-pri-tx:  #b45309;
       --sc-over-bd: #fca5a5;  --sc-over-bg: #fef2f2;  --sc-over-tx: #dc2626;
     }
-    body{background:var(--sc-total-bg);color:var(--ink-2)}
+    body{background:#eaf3ff url('bg.jpg') no-repeat center center;background-size:cover;background-attachment:fixed;color:var(--ink-2)}
 
     .glass{
       background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -1083,9 +1083,9 @@
     .hdr{
       display:flex;align-items:center;gap:22px;justify-content:space-between;
       padding:0 32px;height:68px;
-      background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;
-      border-bottom:2px solid transparent;box-shadow:none;
-      background:linear-gradient(var(--surface),var(--surface)) padding-box,
+      backdrop-filter:none;-webkit-backdrop-filter:none;
+      border-bottom:2px solid transparent;box-shadow:0 2px 12px rgba(0,0,0,.05);
+      background:linear-gradient(#ffffff,#ffffff) padding-box,
                  linear-gradient(90deg,#4f46e5 0%,#8b5cf6 50%,#06b6d4 100%) border-box;
     }
     .hdr-left{display:flex;align-items:center;gap:26px;min-width:0;flex:1}
@@ -1157,6 +1157,43 @@
     .sc-rel .s-icon{color:var(--sc-rel-tx)}
     .sc-pri .s-icon{color:var(--sc-pri-tx)}
     .sc-over .s-icon{color:var(--sc-over-tx)}
+
+    /* ===== Image-asset redesign ===== */
+    .scard{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:15px 18px;border-radius:18px;
+      border:1px solid rgba(2,8,46,.05);border-left:5px solid transparent;
+      background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;
+      box-shadow:0 6px 22px rgba(30,64,175,.09);
+    }
+    .scard:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(30,64,175,.17)}
+    .scard .s-body{min-width:0}
+    .scard .s-icon{display:none}
+    .scard .s-lbl{padding-right:0;margin-bottom:8px}
+    .scard .s-illus{
+      width:64px;height:64px;object-fit:contain;flex-shrink:0;
+      filter:drop-shadow(0 5px 9px rgba(30,64,175,.20));pointer-events:none;
+    }
+    .sc-all{background:var(--sc-total-bg);border-left-color:var(--sc-total-tx)} .sc-all .s-val{color:var(--sc-total-tx)}
+    .sc-pri{background:var(--sc-pri-bg); border-left-color:var(--sc-pri-tx)}   .sc-pri .s-val{color:var(--sc-pri-tx)}
+    .sc-yet{background:var(--sc-yet-bg); border-left-color:var(--sc-yet-tx)}   .sc-yet .s-val{color:var(--sc-yet-tx)}
+    .sc-ong{background:var(--sc-ong-bg); border-left-color:var(--sc-ong-tx)}   .sc-ong .s-val{color:var(--sc-ong-tx)}
+    .sc-rel{background:var(--sc-rel-bg); border-left-color:var(--sc-rel-tx)}   .sc-rel .s-val{color:var(--sc-rel-tx)}
+
+    /* Nav pills with 3D icons */
+    .hdr .tabs{gap:8px;flex-wrap:wrap}
+    .hdr .tab{
+      border-radius:999px;border:1px solid rgba(2,8,46,.06);bottom:0;
+      padding:7px 14px;background:rgba(255,255,255,.6);color:var(--ink-2);
+    }
+    .hdr .tab:hover{background:#fff;color:var(--ink)}
+    .hdr .tab.active{background:var(--pri);color:#fff;border-color:var(--pri);box-shadow:0 5px 16px rgba(79,70,229,.32)}
+    .hdr .tab.active .tbadge{background:rgba(255,255,255,.26);color:#fff}
+    .tab-ic{width:20px;height:20px;object-fit:contain;flex-shrink:0}
+    @media(max-width:640px){
+      .scard{padding:13px 14px;border-radius:14px}
+      .scard .s-illus{width:46px;height:46px}
+    }
 
     .ra-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:0 0 18px}
     @media(max-width:900px){.ra-stats{grid-template-columns:repeat(2,1fr)}}
@@ -1384,6 +1421,25 @@
     }
     .prail-foot button:hover{background:#f5f3ff}
 
+    /* ===== Background-watermark: translucent frosted surfaces ===== */
+    .panel{
+      background:rgba(255,255,255,.80);
+      backdrop-filter:blur(22px) saturate(155%);-webkit-backdrop-filter:blur(22px) saturate(155%);
+    }
+    .panel-body{background:transparent}
+    .prail{
+      background:rgba(255,255,255,.80);
+      backdrop-filter:blur(22px) saturate(155%);-webkit-backdrop-filter:blur(22px) saturate(155%);
+    }
+    .prail-run-cards .pcard{background:rgba(255,255,255,.70)}
+    /* stat cards keep their pastel tint, now lightly see-through */
+    .scard{backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
+    .sc-all{background:rgba(239,246,255,.80)}
+    .sc-pri{background:rgba(255,255,255,.82)}
+    .sc-yet{background:rgba(255,255,255,.82)}
+    .sc-ong{background:rgba(245,243,255,.80)}
+    .sc-rel{background:rgba(236,253,245,.80)}
+
     .main{padding:0 32px 36px}
 
     .tab.active{
@@ -1515,10 +1571,10 @@
     <span class="hdr-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/><path d="M17 6l-2.5-2.5"/><path d="M14 8l-1-1"/><path d="M7 18l2.5 2.5"/><path d="M3.5 14.5l.5.5"/><path d="M20 9l.5.5"/><path d="M6.5 12.5l1 1"/><path d="M16.5 10.5l1 1"/><path d="M10 16l1.5 1.5"/></svg> Genetics Exome Sample Tracker</span>
     <nav class="tabs">
       <button class="tab active" onclick="switchTab('dashboard',this)" id="t-dash"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Dashboard</button>
-      <button class="tab" onclick="switchTab('released',this)" id="t-rel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Released <span class="tbadge" id="b-rel">0</span></button>
-      <button class="tab" onclick="switchTab('overdue',this)" id="t-overdue"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Overdue <span class="tbadge" id="b-overdue" style="background:rgba(239,68,68,.18);color:#dc2626">0</span></button>
-      <button class="tab" onclick="switchTab('analytics',this)" id="t-analytics"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Analytics</button>
-      <button class="tab" onclick="switchTab('reanalysis',this)" id="t-reanalysis"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Re-analysis</button>
+      <button class="tab" onclick="switchTab('released',this)" id="t-rel"><img class="tab-ic" src="assets/tab-released.png" alt="" onerror="this.style.display='none'" /> Released <span class="tbadge" id="b-rel">0</span></button>
+      <button class="tab" onclick="switchTab('overdue',this)" id="t-overdue"><img class="tab-ic" src="assets/tab-overdue.png" alt="" onerror="this.style.display='none'" /> Overdue <span class="tbadge" id="b-overdue" style="background:rgba(239,68,68,.18);color:#dc2626">0</span></button>
+      <button class="tab" onclick="switchTab('analytics',this)" id="t-analytics"><img class="tab-ic" src="assets/tab-analytics.png" alt="" onerror="this.style.display='none'" /> Analytics</button>
+      <button class="tab" onclick="switchTab('reanalysis',this)" id="t-reanalysis"><img class="tab-ic" src="assets/tab-reanalysis.png" alt="" onerror="this.style.display='none'" /> Re-analysis</button>
     </nav>
   </div>
   <div class="hdr-actions">
@@ -1605,9 +1661,14 @@
         <div class="rf-item"><label>Run Number</label><input type="text" id="rf-run_text" placeholder="e.g. SURFseq- Run-102" /></div>
         <div class="rf-item"><label>Couple ID</label>
           <div style="display:flex;gap:6px">
-            <input type="text" id="rf-couple_id" placeholder="Same tag on both samples, e.g. Couple 1" style="flex:1" />
+            <input type="text" id="rf-couple_id" oninput="renderCoupleChips()" placeholder="Same tag on both samples, e.g. Couple 1" style="flex:1" />
             <button type="button" class="btn btn-out btn-sm" onclick="fillNextCoupleId()" title="Fill in the next unused couple number" style="flex-shrink:0;white-space:nowrap">Next #</button>
           </div>
+          <div style="position:relative;margin-top:6px">
+            <input type="text" id="rf-couple-search" autocomplete="off" oninput="searchCouplePartner(this.value)" onfocus="searchCouplePartner(this.value)" onblur="setTimeout(hideCoupleResults,150)" placeholder="Search any patient to link as partner (name / Gen ID / run)…" style="width:100%;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:12.5px;box-sizing:border-box" />
+            <div id="rf-couple-results" style="display:none;position:absolute;left:0;right:0;top:40px;max-height:230px;overflow:auto;background:#fff;border:1px solid var(--pb);border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40"></div>
+          </div>
+          <div id="rf-couple-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
         </div>
         <div class="rf-item rf-wide">
           <label>Remark</label>
@@ -1675,15 +1736,29 @@
 
     <div class="stats">
       <div class="scard glass sc-all clickable" onclick="openAllSamplesModal()">
-        <span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></span>
-        <div class="s-lbl">Total</div>
-        <div class="s-val" id="s-all">0</div>
-        <div class="s-sub" id="s-all-sub">Click to view all samples</div>
+        <div class="s-body">
+          <div class="s-lbl">Total</div>
+          <div class="s-val" id="s-all">0</div>
+          <div class="s-sub" id="s-all-sub">Click to view all samples</div>
+        </div>
+        <img class="s-illus" src="assets/stat-total.png" alt="" onerror="this.style.display='none'" />
       </div>
-      <div class="scard glass sc-pri clickable" onclick="openPriorityModal()"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><div class="s-lbl">Priority</div><div class="s-val" id="s-pri">0</div><div class="s-sub">Flagged as priority</div></div>
-      <div class="scard glass sc-yet clickable" onclick="openAllSamplesModal('Yet to Start')"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg></span><div class="s-lbl">Yet to Start</div><div class="s-val" id="s-yet">0</div><div class="s-sub">No reviewer assigned</div></div>
-      <div class="scard glass sc-ong clickable" onclick="openTeamWorkloadModal()"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><div class="s-lbl">In Review</div><div class="s-val" id="s-ong">0</div><div class="s-sub" id="s-ong-sub">Assigned to reviewers</div></div>
-      <div class="scard glass sc-rel"><span class="s-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
+      <div class="scard glass sc-pri clickable" onclick="openPriorityModal()">
+        <div class="s-body"><div class="s-lbl">Priority</div><div class="s-val" id="s-pri">0</div><div class="s-sub">Flagged as priority</div></div>
+        <img class="s-illus" src="assets/stat-pending.png" alt="" onerror="this.style.display='none'" />
+      </div>
+      <div class="scard glass sc-yet clickable" onclick="openAllSamplesModal('Yet to Start')">
+        <div class="s-body"><div class="s-lbl">Yet to Start</div><div class="s-val" id="s-yet">0</div><div class="s-sub">No reviewer assigned</div></div>
+        <img class="s-illus" src="assets/stat-yet.png" alt="" onerror="this.style.display='none'" />
+      </div>
+      <div class="scard glass sc-ong clickable" onclick="openTeamWorkloadModal()">
+        <div class="s-body"><div class="s-lbl">In Review</div><div class="s-val" id="s-ong">0</div><div class="s-sub" id="s-ong-sub">Assigned to reviewers</div></div>
+        <img class="s-illus" src="assets/stat-review.png" alt="" onerror="this.style.display='none'" />
+      </div>
+      <div class="scard glass sc-rel">
+        <div class="s-body"><div class="s-lbl">Released</div><div class="s-val" id="s-rel">0</div><div class="s-sub">Reports out</div></div>
+        <img class="s-illus" src="assets/stat-released.png" alt="" onerror="this.style.display='none'" />
+      </div>
     </div>
 
     <div style="margin-bottom:20px;position:relative">
@@ -2126,6 +2201,9 @@
             <div class="an-chart-actions">
               <button class="btn btn-sm btn-out an-filter-btn" onclick="anToggleFilter(2)">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg> Filters
+              </button>
+              <button class="btn btn-sm btn-out an-filter-btn" onclick="exportClientNamesExcel()" title="Download every client name with its sample count, to review and combine duplicates">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export names
               </button>
               <span class="badge b-ong">Bar Chart</span>
               <div id="an-total-2" class="an-total-box">Total: 0</div>
@@ -3541,6 +3619,149 @@ function nextCoupleNumber() {
 function fillNextCoupleId() {
   const el = document.getElementById('rf-couple_id');
   if (el) el.value = 'Couple ' + nextCoupleNumber();
+  renderCoupleChips();
+}
+
+// Partners don't always arrive in the same run — one may be in Run 100 and the
+// other in Run 135. Search any patient here and pick them to link the two: the
+// shared couple tag is copied into Couple ID (and written onto the partner too
+// if it didn't already have one), so neither of you has to recall the number.
+// Partner tags to write when the current sample is saved: partnerId -> tag
+// ('' means unlink that partner). Nothing touches another record until Save, so
+// a wrong pick can be undone first, and both sides change together.
+let _pendingCoupleOps = {};
+
+function resetCoupleSearch() {
+  const s = document.getElementById('rf-couple-search');
+  if (s) s.value = '';
+  _pendingCoupleOps = {};
+  hideCoupleResults();
+  renderCoupleChips();
+}
+
+// Partners that (after any pending link/unlink) share the current Couple ID.
+function currentCoupleMembers() {
+  const tag = coupleTag(document.getElementById('rf-couple_id')?.value);
+  if (!tag) return [];
+  const curId = document.getElementById('rf-id')?.value || '';
+  return rows.filter(r => {
+    if (String(r.id) === String(curId)) return false;
+    const eff = (r.id in _pendingCoupleOps) ? _pendingCoupleOps[r.id] : coupleTag(r.couple_id);
+    return coupleTag(eff) === tag;
+  });
+}
+
+function renderCoupleChips() {
+  const box = document.getElementById('rf-couple-chips');
+  if (!box) return;
+  const members = currentCoupleMembers();
+  if (!members.length) { box.innerHTML = ''; return; }
+  box.innerHTML = members.map(m => {
+    const nm = esc(String(m.name || '').trim() || String(m.gen_id || '').trim() || '?');
+    const run = m.run_text ? esc(formatRunText(m.run_text)) : '';
+    const pending = (m.id in _pendingCoupleOps) ? ' · will link on Save' : '';
+    return `<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 6px 3px 10px;border-radius:999px;background:rgba(79,70,229,.10);border:1px solid rgba(79,70,229,.25);font-size:11.5px;color:var(--pri);font-weight:700">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      ${nm}${run ? ` <span style="font-weight:600;color:var(--muted)">· ${run}</span>` : ''}<span style="font-weight:600;color:var(--muted)">${pending}</span>
+      <button type="button" onclick="unlinkCouplePartner('${esc(String(m.id))}')" title="Unlink this partner" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 2px">×</button>
+    </span>`;
+  }).join('');
+}
+
+function hideCoupleResults() {
+  const box = document.getElementById('rf-couple-results');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+}
+
+function searchCouplePartner(q) {
+  const box = document.getElementById('rf-couple-results');
+  if (!box) return;
+  const query = String(q || '').toLowerCase().trim();
+  if (query.length < 2) { hideCoupleResults(); return; }
+  const curId = document.getElementById('rf-id').value;
+  const matches = rows.filter(r => String(r.id) !== String(curId) && (
+    (r.name || '').toLowerCase().includes(query) ||
+    (r.gen_id || '').toLowerCase().includes(query) ||
+    (r.and_id || '').toLowerCase().includes(query) ||
+    (r.run_text || '').toLowerCase().includes(query) ||
+    (r.client || '').toLowerCase().includes(query)
+  )).slice(0, 12);
+
+  if (!matches.length) {
+    box.innerHTML = `<div style="padding:10px 12px;color:var(--muted);font-size:12px">No matching patients</div>`;
+    box.style.display = 'block';
+    return;
+  }
+  box.innerHTML = matches.map(r => {
+    const tag = coupleTag(r.couple_id);
+    const meta = [r.gen_id, r.run_text ? formatRunText(r.run_text) : '', r.client].filter(Boolean).map(esc).join(' · ');
+    const tagHtml = tag ? `<span style="margin-left:6px;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700;background:rgba(79,70,229,.12);color:var(--pri)">${esc(tag)}</span>` : '';
+    return `<div onmousedown="event.preventDefault()" onclick="linkCouplePartner('${esc(String(r.id))}')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--pb)" onmouseover="this.style.background='rgba(79,70,229,.06)'" onmouseout="this.style.background=''">
+      <div style="font-weight:700;font-size:12.5px;color:var(--ink)">${esc(r.name || r.gen_id || '?')}${tagHtml}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px">${meta || '—'}</div>
+    </div>`;
+  }).join('');
+  box.style.display = 'block';
+}
+
+// Picks a partner: sets the shared Couple ID on this form and queues the partner
+// to receive the same tag on Save. Nothing is written to the partner yet.
+function linkCouplePartner(partnerId) {
+  const partner = rows.find(r => String(r.id) === String(partnerId));
+  hideCoupleResults();
+  const search = document.getElementById('rf-couple-search');
+  if (search) search.value = '';
+  if (!partner) { toast('That sample is out of date — refresh and try again', 'err'); return; }
+
+  const inp = document.getElementById('rf-couple_id');
+  const partnerTag = coupleTag(partner.couple_id);
+  const formTag = coupleTag(inp.value);
+  // Prefer the partner's existing tag (join their couple); otherwise reuse the
+  // tag already typed here; otherwise mint the next unused number.
+  const shared = partnerTag || formTag || ('Couple ' + nextCoupleNumber());
+  inp.value = shared;
+
+  if (partnerTag !== shared) _pendingCoupleOps[partner.id] = shared;  // partner needs the tag written on Save
+  else delete _pendingCoupleOps[partner.id];                         // already tagged — nothing to write
+  renderCoupleChips();
+}
+
+// Removes a partner from this couple. A partner only queued (not yet saved) is
+// simply dropped; one already tagged is queued to have its tag cleared on Save.
+function unlinkCouplePartner(partnerId) {
+  const partner = rows.find(r => String(r.id) === String(partnerId));
+  if (partner && !coupleTag(partner.couple_id)) delete _pendingCoupleOps[partnerId];
+  else _pendingCoupleOps[partnerId] = '';
+  // If nobody is left in the couple, clear this sample's tag too so it isn't a
+  // lone orphan tag.
+  if (currentCoupleMembers().length === 0) {
+    const inp = document.getElementById('rf-couple_id');
+    if (inp) inp.value = '';
+  }
+  renderCoupleChips();
+}
+
+// Writes the queued partner tags once the current sample itself has saved, so
+// both sides commit together. Best-effort and edit-gated.
+async function applyPendingCoupleOps() {
+  const ops = Object.entries(_pendingCoupleOps);
+  _pendingCoupleOps = {};
+  if (!ops.length || !canEditReports()) return;
+  for (const [pid, tag] of ops) {
+    const p = rows.find(r => String(r.id) === String(pid));
+    if (!p || coupleTag(p.couple_id) === coupleTag(tag)) continue;
+    try {
+      const resp = await fetch(`api/reports/${pid}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...p, couple_id: tag }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    } catch (e) {
+      toast(`Couldn't update partner ${p.name || p.gen_id || pid}: ${e.message}`, 'err');
+    }
+  }
 }
 
 // Sample names already carry the patient's sex (e.g. "MRS.X (29Y/F)",
@@ -4149,6 +4370,7 @@ function openReportModal(row) {
     }
   });
   populateRemarkPresets();
+  resetCoupleSearch();
   upgradeDateFields(document.getElementById('report-modal-backdrop'));
   document.getElementById('report-modal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -4207,6 +4429,7 @@ async function submitReportForm() {
       return;
     }
     if (!resp.ok) throw await apiError(resp);
+    await applyPendingCoupleOps();   // tag/untag the partner now that this sample is saved
     closeReportModal(null);
     await fetchReports(true);
     refreshAllSamplesModalIfOpen();
@@ -5674,6 +5897,44 @@ function exportTableToExcel(data, cols, filenamePrefix) {
   toast('Excel downloaded: ' + fname, 'ok');
 }
 
+// Case/spacing variants are merged automatically, but genuinely different
+// spellings of the same client (e.g. "ICH Egmore" vs "Egmore Children Hospital")
+// can't be — those need a human call. This dumps every client name with its
+// sample count plus a blank "Combine into" column so staff can mark duplicates,
+// and those become alias rules in normalizeClient().
+function exportClientNamesExcel() {
+  if (typeof XLSX === 'undefined') { toast('SheetJS not loaded — refresh the page', 'err'); return; }
+  const counts = new Map();
+  rows.forEach(r => {
+    const c = normalizeClient(r.client);
+    if (c) counts.set(c, (counts.get(c) || 0) + 1);
+  });
+  if (!counts.size) { toast('No client names to export', 'warn'); return; }
+
+  const list = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const wsData = [['Client', 'Samples', 'Combine into (leave blank to keep)']];
+  list.forEach(([name, n]) => wsData.push([name, n, '']));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{ wch: 48 }, { wch: 10 }, { wch: 36 }];
+  XLSX.utils.book_append_sheet(wb, ws, 'Clients');
+
+  const today = new Date();
+  const fname = `Client_Names_${today.getDate().toString().padStart(2,'0')}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getFullYear()}.xlsx`;
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+  const buf = new ArrayBuffer(wbout.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < wbout.length; i++) view[i] = wbout.charCodeAt(i) & 0xFF;
+  const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = fname; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+  toast(`${list.length} client names exported: ${fname}`, 'ok');
+}
+
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function buildFilenameSuffix(parts) {
@@ -5908,7 +6169,7 @@ function normalizeTest(name) {
 
   if (lower.includes('mito')) {
     if (lower.includes('wes') || lower.includes('exome')) return "WES + Mito";
-    return n; 
+    return normalizeTestName(n);
   }
 
   if (lower.includes('whole exome') || lower.includes('wes')) {
@@ -5930,18 +6191,21 @@ function normalizeTest(name) {
   if (lower.includes('female infertility')) return "Female Infertility NGS panel";
   if (lower.includes('male infertility')) return "Male Infertility NGS panel";
 
-  return n;
+  // Everything else keeps its own name, but canonicalised (case, spacing, dashes,
+  // common misspellings) so variants like "SINGLE GENE – FULL GENE SEQUENCING BY
+  // NGS" and "Single Gene – Full gene sequencing by NGS" collapse into one entry.
+  return normalizeTestName(n);
 }
 
-function normalizeClient(name) {
-  if (!name) return null;
-  const n = name.trim();
-  const lower = n.toLowerCase();
-
+function _isClientNoise(lower) {
   const noise = ['unknown', 'not billed', 'genolab', 'surfseq', 'run-', 'lane-', 's.no', 'sample_name', 'test', 'gen_id'];
-  if (noise.some(word => lower.includes(word))) return null;
-  if (lower.startsWith('gen_') || lower.startsWith('gen.')) return null;
+  if (noise.some(word => lower.includes(word))) return true;
+  return lower.startsWith('gen_') || lower.startsWith('gen.');
+}
 
+// Curated aliases — spellings that mean the same client but share no common
+// key (abbreviations, renames). Case/spacing variants are handled separately.
+function _clientAlias(lower) {
   if (lower.includes('chief minister') || lower.includes('cmchis')) return "CMCHIS";
   if (lower.includes('a4 fertility')) return "A4 Fertility Centre";
   if (lower.includes('aikya fertility')) return "Aikya Fertility";
@@ -5954,8 +6218,68 @@ function normalizeClient(name) {
   if (lower.includes('doppler scan')) return "Doppler Scan Madurai";
   if (lower.includes('akshara fertility')) return "Akshara Fertility";
   if (lower.includes('guru scan')) return "Guru Scan Centre";
+  return null;
+}
 
-  return n;
+// Groups names that differ only by case, spacing or dash style. Title-casing
+// would wreck client acronyms (KIMS, ESIC, ICH, CMCHIS…), so instead every
+// variant maps to one key and we display the real spelling used most often.
+function clientDedupeKey(name) {
+  return String(name || '')
+    .toUpperCase()
+    .replace(/\s*[-–—]\s*/g, ' - ')
+    .replace(/\s*[+]\s*/g, ' + ')
+    .replace(/\s+/g, ' ')
+    .replace(/[.,]+$/g, '')
+    .trim();
+}
+
+let _clientCanonMap = null;
+let _clientCanonRef = null;
+
+function _pickClientSpelling(countMap) {
+  let best = null, bestCount = -1, bestMixed = -1;
+  countMap.forEach((cnt, sp) => {
+    const mixed = (/[a-z]/.test(sp) && /[A-Z]/.test(sp)) ? 1 : 0;   // prefer "Kims" over "KIMS"/"kims"
+    if (cnt > bestCount ||
+        (cnt === bestCount && mixed > bestMixed) ||
+        (cnt === bestCount && mixed === bestMixed && best !== null && sp.localeCompare(best) < 0)) {
+      best = sp; bestCount = cnt; bestMixed = mixed;
+    }
+  });
+  return best;
+}
+
+function buildClientCanonMap() {
+  const byKey = new Map();
+  (rows || []).forEach(r => {
+    const raw = String(r.client || '').trim();
+    if (!raw) return;
+    const lower = raw.toLowerCase();
+    if (_isClientNoise(lower) || _clientAlias(lower)) return;   // aliases are canonical already
+    const key = clientDedupeKey(raw);
+    if (!key) return;
+    const m = byKey.get(key) || new Map();
+    m.set(raw, (m.get(raw) || 0) + 1);
+    byKey.set(key, m);
+  });
+  const out = new Map();
+  byKey.forEach((spellings, key) => out.set(key, _pickClientSpelling(spellings)));
+  _clientCanonMap = out;
+  _clientCanonRef = rows;
+}
+
+function normalizeClient(name) {
+  if (!name) return null;
+  const n = name.trim();
+  const lower = n.toLowerCase();
+
+  if (_isClientNoise(lower)) return null;
+  const alias = _clientAlias(lower);
+  if (alias) return alias;
+
+  if (_clientCanonRef !== rows) buildClientCanonMap();
+  return (_clientCanonMap && _clientCanonMap.get(clientDedupeKey(n))) || n.replace(/\s+/g, ' ').trim();
 }
 
 function anToggleAll(chartPrefix, checked) {
@@ -6186,7 +6510,10 @@ function buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, high
   return TEAM_MEMBERS.filter(t => isMemberActiveForPeriod(t, year, month)).map(t => {
     const cnt = teamCount[t.key] || 0;
     const pct = month !== 'All' ? Math.min(cnt / 100, 1) : (total > 0 ? cnt / total : 0);
-    const celebrate = inThresholdWindow && cnt > 40;
+    const target = TEAM_TARGETS[teamFor(t.label)] ?? TEAM_TARGET_DEFAULT;
+    const showTarget = month !== 'All';          // a monthly goal only reads in a single-month view
+    const beyond = cnt - target;
+    const celebrate = inThresholdWindow && cnt >= target;
     const isHighlighted = t.key === highlightKey;
     return `
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex:1;min-width:150px;cursor:pointer;${isHighlighted ? `outline:2px solid ${t.color};outline-offset:8px;border-radius:18px;` : ''}" onclick="openReviewerRingModal('${t.key}','${t.label.replace(/'/g, "\\'")}')">
@@ -6202,6 +6529,7 @@ function buildReviewerRingsHtml(teamCount, total, month, inThresholdWindow, high
       <div style="text-align:center">
         <div style="font-size:13px;font-weight:800;color:${t.color};text-transform:uppercase;letter-spacing:1px">${t.label}</div>
         <div style="font-size:12px;color:#94a3b8;margin-top:5px">${cnt} sample${cnt !== 1 ? 's' : ''} released</div>
+        ${showTarget ? `<div style="font-size:11px;margin-top:3px;font-weight:700;color:${beyond >= 0 ? '#059669' : '#94a3b8'}">${beyond >= 0 ? `+${beyond} beyond target` : `${-beyond} to target`} <span style="color:#cbd5e1;font-weight:600">· Target ${target}</span></div>` : ''}
       </div>
     </div>`;
   }).join('');
