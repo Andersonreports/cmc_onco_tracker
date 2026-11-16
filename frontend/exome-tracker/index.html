@@ -289,6 +289,8 @@
     .b-cmp{background:rgba(16,185,129,.12);color:#047857;border:1px solid rgba(16,185,129,.25)}
     .b-rel{background:rgba(139,92,246,.12);color:#6d28d9;border:1px solid rgba(139,92,246,.25)}
     .b-can{background:rgba(100,116,139,.12);color:#475569;border:1px solid rgba(100,116,139,.28)}
+    .b-qcf{background:rgba(239,68,68,.14);color:#b91c1c;border:1px solid rgba(239,68,68,.35)}
+    .b-mcc{background:rgba(234,88,12,.14);color:#c2410c;border:1px solid rgba(234,88,12,.35)}
     .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px}
     .qcard{
       padding:15px 17px;border-radius:var(--rs);border-left:3px solid transparent;
@@ -355,6 +357,41 @@
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
       color:var(--ink-2);max-width:170px;
     }
+    .ba-table tr.ba-qcfail td{background:rgba(239,68,68,.07)}
+    .ba-table tr.ba-qcfail:hover td{background:rgba(239,68,68,.11)}
+    .ba-table tr.ba-qcfail .ba-name{color:#b91c1c}
+    .ti-owner.ti-qcfail{background:rgba(239,68,68,.16);color:#b91c1c}
+    #qcfail-overlay{
+      position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.72);backdrop-filter:blur(4px);padding:24px;
+      opacity:0;transition:opacity .16s ease;
+    }
+    #qcfail-overlay.show{opacity:1}
+    #qcfail-overlay .qcf-card{
+      background:#fff;border-radius:18px;max-width:440px;width:100%;padding:30px 30px 26px;text-align:center;
+      box-shadow:0 24px 70px rgba(0,0,0,.4);border-top:6px solid #ef4444;
+      transform:scale(.94);transition:transform .16s ease;
+    }
+    #qcfail-overlay.show .qcf-card{transform:scale(1)}
+    #qcfail-overlay .qcf-icon{
+      width:62px;height:62px;margin:0 auto 14px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(239,68,68,.12);color:#dc2626;
+    }
+    #qcfail-overlay .qcf-title{font-size:19px;font-weight:800;color:#b91c1c;margin-bottom:12px;letter-spacing:.2px}
+    #qcfail-overlay .qcf-list{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:7px}
+    #qcfail-overlay .qcf-list li{
+      background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);border-radius:10px;
+      padding:9px 12px;font-size:14px;color:#1e293b;
+    }
+    #qcfail-overlay .qcf-gid{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:#b91c1c}
+    #qcfail-overlay .qcf-reason{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:9px;font-size:11px;font-weight:700;background:rgba(239,68,68,.14);color:#b91c1c}
+    #qcfail-overlay .qcf-msg{font-size:14px;color:#475569;line-height:1.5;margin-bottom:22px}
+    #qcfail-overlay .qcf-btn{
+      background:#dc2626;color:#fff;border:none;border-radius:10px;padding:11px 30px;
+      font-size:14px;font-weight:700;cursor:pointer;transition:background .12s ease;
+    }
+    #qcfail-overlay .qcf-btn:hover{background:#b91c1c}
     #hover-tip{
       position:fixed;z-index:9999;pointer-events:none;
       background:#1e293b;color:#fff;font-size:12px;font-weight:500;
@@ -500,6 +537,14 @@
     }
     #qmodal-body tr.row-status-yet .col-mono{
       color:#4b5563 !important;background:rgba(75,85,99,.08) !important;border-color:rgba(75,85,99,.22) !important;
+    }
+    #qmodal-body tr.row-status-qcfail td{color:#b91c1c !important;background:rgba(239,68,68,.06) !important}
+    #qmodal-body tr.row-status-qcfail .col-mono{
+      color:#b91c1c !important;background:rgba(239,68,68,.10) !important;border-color:rgba(239,68,68,.30) !important;
+    }
+    #qmodal-body tr.row-status-mcc td{color:#c2410c !important;background:rgba(234,88,12,.06) !important}
+    #qmodal-body tr.row-status-mcc .col-mono{
+      color:#c2410c !important;background:rgba(234,88,12,.10) !important;border-color:rgba(234,88,12,.30) !important;
     }
     th.col-w-test, td.col-w-test,
     #qmodal-body th.col-w-test, #qmodal-body td.col-w-test{
@@ -1564,7 +1609,11 @@
             <button type="button" class="btn btn-out btn-sm" onclick="fillNextCoupleId()" title="Fill in the next unused couple number" style="flex-shrink:0;white-space:nowrap">Next #</button>
           </div>
         </div>
-        <div class="rf-item rf-wide"><label>Remark</label><textarea id="rf-remarks"></textarea></div>
+        <div class="rf-item rf-wide">
+          <label>Remark</label>
+          <select class="sel" id="rf-remark-preset" onchange="applyRemarkPreset()" style="height:36px;width:100%;margin-bottom:7px" title="Pick a standard remark to fill the box below"></select>
+          <textarea id="rf-remarks" placeholder="Pick a standard remark above, or type a free-text note"></textarea>
+        </div>
         <div class="rf-item rf-wide"><label>History</label><textarea id="rf-history"></textarea></div>
         <div class="rf-item rf-wide">
           <label class="rf-check">
@@ -1799,6 +1848,7 @@
       <select class="sel" id="f-asgn-employee" onchange="render('assigned')"><option value="">All Reviewers</option></select>
       <select class="sel" id="f-asgn-tat"      onchange="render('assigned')"><option value="">All TAT</option></select>
       <select class="sel" id="f-asgn-cnv"      onchange="render('assigned')"><option value="">All CNV Statuses</option></select>
+      <select class="sel" id="f-asgn-remark"   onchange="render('assigned')"><option value="">All Statuses</option></select>
       <button class="rel-filter-toggle" id="sort-btn-assigned" onclick="toggleSortDir('assigned')"></button>
       <button class="rel-filter-toggle" id="freeze-btn-assigned" onclick="toggleFreezeMode('tbl-asgn','freeze-btn-assigned')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -1861,6 +1911,10 @@
         <div class="rel-panel-item">
           <label>CNV Status</label>
           <select class="sel" id="f-rel-cnv" onchange="render('released')"><option value="">All CNV Statuses</option></select>
+        </div>
+        <div class="rel-panel-item">
+          <label>Status</label>
+          <select class="sel" id="f-rel-remark" onchange="render('released')"><option value="">All Statuses</option></select>
         </div>
         <div class="rel-panel-item">
           <label>Month</label>
@@ -2579,6 +2633,79 @@ function isContaminated(r) {
   return CONTAMINATED_REMARK.test(r.remarks || '');
 }
 
+// A sample that failed quality control can't go forward to analysis, so it must
+// never be allocated to a reviewer. It's kept out of every queue (not pending,
+// not overdue) and flagged distinctly wherever it's listed; any attempt to put
+// a reviewer on it is blocked with a full-screen alert (see guardQcFail).
+const QC_FAIL_REMARK = /\bq\.?\s*c\.?\s*[-\s]*fail/i;
+
+function isQcFailed(r) {
+  return QC_FAIL_REMARK.test(r.remarks || '');
+}
+
+// An MCC-positive sample (maternal cell contamination) likewise can't go forward
+// to analysis, so it's handled exactly like a QC failure — never allocated, kept
+// out of every queue, flagged, and guarded against a stray reviewer assignment.
+const MCC_POSITIVE_REMARK = /\bmcc\s*positive\b/i;
+
+function isMccPositive(r) {
+  return MCC_POSITIVE_REMARK.test(r.remarks || '');
+}
+
+// The one reason (if any) a sample must not be allocated — drives the block
+// guards and the "cannot proceed" alert. Empty string means it may be allocated.
+function allocationBlockReason(r) {
+  if (isQcFailed(r)) return 'QC Failed';
+  if (isMccPositive(r)) return 'MCC Positive';
+  return '';
+}
+
+function isBlockedFromAllocation(r) {
+  return !!allocationBlockReason(r);
+}
+
+// The standard remarks offered as a per-sample dropdown and as the "Status"
+// table filter. Functional ones change workflow (detected by the regexes above
+// and isRepeatSample); indicational ones are status notes with no side effects.
+const FUNCTIONAL_REMARKS = ['Repeat Sample', 'MCC Positive', 'QC Fail'];
+const INDICATIONAL_REMARKS = [
+  'History Not Available',
+  'Analysis Completed',
+  'Report Crosscheck & Rework Completed',
+  'Under Clinician Review',
+  'Data Mining Done',
+  'Report Finalised',
+];
+const REMARK_FILTER_OPTIONS = [...FUNCTIONAL_REMARKS, ...INDICATIONAL_REMARKS];
+
+// True when a row's remark satisfies a chosen remark-status filter value. The
+// functional options defer to their dedicated detectors (typo-tolerant); the
+// indicational ones are a plain case-insensitive substring of the remark text.
+function matchesRemarkStatus(r, option) {
+  switch (option) {
+    case 'Repeat Sample': return isRepeatSample(r);
+    case 'MCC Positive':  return isMccPositive(r);
+    case 'QC Fail':       return isQcFailed(r);
+    default:              return (r.remarks || '').toLowerCase().includes(option.toLowerCase());
+  }
+}
+
+// A table "Status" filter mixes computed statuses (Ongoing, Released, …) with
+// the remark options — this resolves whichever kind the chosen value is.
+function rowMatchesStatusFilter(r, value) {
+  if (!value) return true;
+  if (REMARK_FILTER_OPTIONS.includes(value)) return matchesRemarkStatus(r, value);
+  return getStatus(r) === value;
+}
+
+function remarkStatusOptgroupHtml() {
+  return `<optgroup label="Functional remarks">` +
+    FUNCTIONAL_REMARKS.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('') +
+    `</optgroup><optgroup label="Indicational remarks">` +
+    INDICATIONAL_REMARKS.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('') +
+    `</optgroup>`;
+}
+
 function getStatus(r) {
   const run = parseInt(r.run_number || 0, 10);
   const hasRelDate = r.report_release_date && r.report_release_date !== '—' && r.report_release_date !== '-' &&
@@ -2587,6 +2714,8 @@ function getStatus(r) {
   if (isCancelled(r)) return 'Cancelled';
   if (r.is_reanalysis) return 'Re-analysis';
   if (run < FIRST_RUN_WITH_RELEASE_DATES || hasRelDate) return 'Released';
+  if (isQcFailed(r)) return 'QC Failed';
+  if (isMccPositive(r)) return 'MCC Positive';
   if (isRepeatSample(r)) return 'Repeat Sample';
   if (isSentToSiva(r)) return 'On Hold';
   if (isContaminated(r)) return 'Contaminated';
@@ -2601,7 +2730,7 @@ function getStatus(r) {
 function isPending(r) {
   const st = getStatus(r);
   return st !== 'Released' && st !== 'Cancelled' && st !== 'On Hold' && st !== 'Contaminated' &&
-         st !== 'Repeat Sample' && st !== 'Re-analysis';
+         st !== 'Repeat Sample' && st !== 'Re-analysis' && st !== 'QC Failed' && st !== 'MCC Positive';
 }
 
 function parseDate(v) {
@@ -3121,8 +3250,10 @@ function getBulkAssignCandidates() {
   const includeAssigned = !!document.getElementById('bulk-assign-include-assigned')?.checked;
   const run = document.getElementById('bulk-assign-run')?.value || '';
   return applySelfFilter(rows)
-    .filter(isPending)
-    .filter(r => includeAssigned || !normalizeAnalystName(r.pri_rev))
+    // Blocked samples (QC fail / MCC positive) stay visible here (flagged, never
+    // allocatable) so staff see why they're not moving; isPending would hide them.
+    .filter(r => isPending(r) || isBlockedFromAllocation(r))
+    .filter(r => includeAssigned || !normalizeAnalystName(r.pri_rev) || isBlockedFromAllocation(r))
     .filter(r => !run || r.run_text === run)
     .sort((a, b) => {
       const da = parseTatDate(a), db = parseTatDate(b);
@@ -3228,10 +3359,14 @@ function renderBulkAssignList() {
     </tr></thead>
     <tbody>${data.map(r => {
       const reviewer = normalizeAnalystName(r.pri_rev);
+      const blockReason = allocationBlockReason(r);
       const checked = _bulkAssignSelected.has(r.id) ? 'checked' : '';
       const cell = (v, cls) => `<td class="${cls || ''}"${v ? ` data-tip="${esc(v)}"` : ''}>${v ? esc(v) : '—'}</td>`;
-      return `<tr class="${priorityRowClass(r)}"${rowEditAttrs(r)}>
-        <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)" /></td>
+      const ownerCell = blockReason
+        ? `<td><span class="ti-owner ti-qcfail">${esc(blockReason.toUpperCase())}</span></td>`
+        : `<td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>`;
+      return `<tr class="${priorityRowClass(r)} ${blockReason ? 'ba-qcfail' : ''}"${rowEditAttrs(r)}>
+        <td class="ba-check" onclick="event.stopPropagation()"><input type="checkbox" data-id="${esc(r.id)}" ${checked} onchange="onBulkAssignCheck(this)"${blockReason ? ` title="${esc(blockReason)} — cannot be allocated"` : ''} /></td>
         <td class="ba-name"${r.name ? ` data-tip="${esc(r.name)}${coupleTitleSuffix(r)}"` : ''}>${priorityIconHtml(r)}${coupleGenderIcon(r)}${r.name ? nameTextHtml(r, esc(r.name)) : '—'}</td>
         ${cell(r.test, 'ba-test')}
         <td class="ba-mono"${r.gen_id ? ` data-tip="${esc(r.gen_id)}"` : ''}>${r.gen_id ? esc(r.gen_id) : '—'}</td>
@@ -3239,17 +3374,19 @@ function renderBulkAssignList() {
         ${cell(r.client, 'ba-client')}
         ${cell(formatRunText(r.run_text), 'ba-run')}
         <td class="ba-tat">${fmtDate(r.tat)}</td>
-        <td><span class="ti-owner ${reviewer ? '' : 'ti-unassigned'}">${reviewer ? esc(reviewer) : 'Unassigned'}</span></td>
+        ${ownerCell}
       </tr>`;
     }).join('')}</tbody></table>`
     : `<div class="empty" style="padding:16px 0;font-size:13px">No matches</div>`;
 
   const caption = document.getElementById('bulk-assign-caption');
   if (caption) {
-    const unassigned = all.filter(r => !normalizeAnalystName(r.pri_rev)).length;
+    const unassigned = all.filter(r => !normalizeAnalystName(r.pri_rev) && !isBlockedFromAllocation(r)).length;
+    const qcCount = all.filter(isBlockedFromAllocation).length;
+    const qcNote = qcCount ? ` · ${qcCount} blocked — QC fail / MCC positive (cannot be allocated)` : '';
     caption.textContent = (q || couplesOnly)
       ? `${data.length} of ${all.length} shown match this filter`
-      : `${all.length} unreleased sample${all.length === 1 ? '' : 's'} — ${unassigned} with no reviewer yet`;
+      : `${all.length} unreleased sample${all.length === 1 ? '' : 's'} — ${unassigned} with no reviewer yet${qcNote}`;
   }
   syncBulkAssignSelectAll(data);
   updateBulkAssignCount();
@@ -3286,10 +3423,63 @@ function updateBulkAssignCount() {
   if (label) label.textContent = `${_bulkAssignSelected.size} selected`;
 }
 
+// A QC-failed or MCC-positive sample must never be allocated. These helpers mask
+// the whole page with a centered alert the moment anyone tries — from the bulk
+// Allocate panel or the single-sample edit form — and callers abort before save.
+function allocationBlockedAmong(ids) {
+  const want = new Set(ids.map(String));
+  return rows.filter(r => want.has(String(r.id)) && isBlockedFromAllocation(r));
+}
+
+function showBlockedAllocationAlert(samples) {
+  const many = samples.length > 1;
+  const items = samples.map(r => {
+    const name = String(r.name || '').trim() || 'Unnamed sample';
+    const gid = String(r.gen_id || '').trim();
+    const reason = allocationBlockReason(r) || 'blocked';
+    return `<li><strong>${esc(name)}</strong>${gid ? ` <span class="qcf-gid">(${esc(gid)})</span>` : ''} <span class="qcf-reason">${esc(reason)}</span></li>`;
+  }).join('');
+  const reasons = [...new Set(samples.map(allocationBlockReason).filter(Boolean))];
+  const reasonText = reasons.length === 1 ? reasons[0] : 'QC failed / MCC positive';
+  dismissBlockedAllocationAlert();
+  const ov = document.createElement('div');
+  ov.id = 'qcfail-overlay';
+  ov.innerHTML = `
+    <div class="qcf-card" role="alertdialog" aria-modal="true" aria-labelledby="qcf-title">
+      <div class="qcf-icon">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <div class="qcf-title" id="qcf-title">Cannot proceed — not allocatable</div>
+      <ul class="qcf-list">${items}</ul>
+      <div class="qcf-msg">${many ? `These samples are <strong>${esc(reasonText)}</strong>, so they` : `This sample is <strong>${esc(reasonText)}</strong>, so it`} could not be allocated or proceed further.</div>
+      <button class="qcf-btn" onclick="dismissBlockedAllocationAlert()" autofocus>Understood</button>
+    </div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) dismissBlockedAllocationAlert(); });
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => {
+    ov.classList.add('show');
+    ov.querySelector('.qcf-btn')?.focus();
+  });
+}
+
+function dismissBlockedAllocationAlert() {
+  const ov = document.getElementById('qcfail-overlay');
+  if (!ov) return;
+  ov.classList.remove('show');
+  setTimeout(() => ov.remove(), 160);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('qcfail-overlay')) dismissBlockedAllocationAlert();
+});
+
 async function submitBulkAssign() {
   const reviewer = document.getElementById('bulk-assign-reviewer').value.trim();
   if (!reviewer) { toast('Enter the reviewer these samples go to', 'warn'); return; }
   if (_bulkAssignSelected.size === 0) { toast('Select at least one sample', 'warn'); return; }
+
+  const blocked = allocationBlockedAmong([..._bulkAssignSelected]);
+  if (blocked.length) { showBlockedAllocationAlert(blocked); return; }
 
   try {
     const resp = await fetch('api/reports/bulk-reviewer', {
@@ -3326,10 +3516,10 @@ function statusNameColor(status) {
 function badgeHtml(status) {
   const cls = {
     'Yet to Start':'b-yet','Ongoing':'b-ong','Released':'b-rel','Cancelled':'b-can',
-    'On Hold':'b-can','Repeat Sample':'b-rel','Contaminated':'b-can'
+    'On Hold':'b-can','Repeat Sample':'b-rel','Contaminated':'b-can','QC Failed':'b-qcf','MCC Positive':'b-mcc'
   }[status] || 'b-yet';
   const icon = {'Yet to Start':IC.pin,'Ongoing':IC.user,'Released':IC.rocket,
-                'Cancelled':IC.ban,'On Hold':IC.ban,'Repeat Sample':IC.rocket,'Contaminated':IC.ban}[status]||'';
+                'Cancelled':IC.ban,'On Hold':IC.ban,'Repeat Sample':IC.rocket,'Contaminated':IC.ban,'QC Failed':IC.ban,'MCC Positive':IC.ban}[status]||'';
   return `<span class="badge ${cls}">${icon} ${esc(status)}</span>`;
 }
 
@@ -3879,6 +4069,43 @@ function reviewerOptions(current)         { return selectOptions(REVIEWERS, curr
 function clinicalReviewerOptions(current) { return selectOptions(CLINICAL_REVIEWERS, current); }
 function cnvStatusOptions(current)        { return selectOptions(CNV_STATUSES, current); }
 
+// The Remark field keeps its free-text box; this dropdown just drops a standard
+// remark into it. One remark per sample, so picking one replaces the box.
+function populateRemarkPresets() {
+  const sel = document.getElementById('rf-remark-preset');
+  if (!sel) return;
+  sel.innerHTML = `<option value="">+ Add a standard remark…</option>` + remarkStatusOptgroupHtml();
+  sel.value = '';
+}
+function applyRemarkPreset() {
+  const sel = document.getElementById('rf-remark-preset');
+  const ta = document.getElementById('rf-remarks');
+  if (!sel || !ta || !sel.value) return;
+  ta.value = sel.value;
+  sel.value = '';
+  ta.focus();
+}
+
+// Fills the table "Status" filters with the remark options. Assigned/Released
+// get a remark-only list; Overdue keeps its computed-status options and gains
+// the remark optgroup. Idempotent — the keep-value guard lets it re-run safely.
+function initRemarkStatusFilters() {
+  ['f-asgn-remark','f-rel-remark'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel && sel.options.length <= 1) {
+      const keep = sel.value;
+      sel.innerHTML = `<option value="">All Statuses</option>` + remarkStatusOptgroupHtml();
+      sel.value = keep;
+    }
+  });
+  const ov = document.getElementById('f-overdue-status');
+  if (ov && !ov.querySelector('optgroup')) {
+    const keep = ov.value;
+    ov.insertAdjacentHTML('beforeend', remarkStatusOptgroupHtml());
+    ov.value = keep;
+  }
+}
+
 // Row templates render once and their onclick can sit in the DOM long after
 // rows[] moves on (a search result left open, a background tab), so this
 // looks the row up fresh at click time instead of trusting whatever was
@@ -3921,6 +4148,7 @@ function openReportModal(row) {
       el.value = row ? (row[f] || '') : '';
     }
   });
+  populateRemarkPresets();
   upgradeDateFields(document.getElementById('report-modal-backdrop'));
   document.getElementById('report-modal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -3946,6 +4174,13 @@ async function submitReportForm() {
   });
   if (!payload.name && !payload.gen_id && !payload.and_id) {
     toast('Enter at least a sample name or ID', 'warn');
+    return;
+  }
+
+  // Block allocating a reviewer to a QC-failed / MCC-positive sample — it can't
+  // proceed to analysis, so it must never be put on anyone's queue.
+  if (payload.pri_rev && isBlockedFromAllocation(payload)) {
+    showBlockedAllocationAlert([payload]);
     return;
   }
 
@@ -4158,6 +4393,8 @@ function refreshAll() {
   populateRunFilter('f-overdue-run', overdueAll);
   populateFilter('f-overdue-client', overdueAll, 'client');
   populateFilter('f-overdue-cnv',    overdueAll, 'cnv_status');
+
+  initRemarkStatusFilters();
 
   populateTeamFilter('f-rel-team',              relAll);
   populateNormalizedFilter('f-rel-analyst',     relAll);
@@ -4574,7 +4811,7 @@ function openTeamWorkloadModal() {
         ${SAMPLE_TYPES.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
       </select>
     </div>
-    <div class="emp-grid" id="q-active" style="padding:24px"></div>`;
+    <div class="emp-grid" id="q-active" style="padding:24px;flex:1;min-height:0;overflow-y:auto"></div>`;
   document.getElementById('qmodal-backdrop').classList.add('open');
   document.body.style.overflow = 'hidden';
   setQModalMaximized(true);
@@ -4633,6 +4870,8 @@ function buildModalTable(data, cols, applyStatusColors = false) {
       if (st === 'Released') rowClass = 'row-status-released';
       else if (st === 'Ongoing') rowClass = 'row-status-ongoing';
       else if (st === 'Yet to Start') rowClass = 'row-status-yet';
+      else if (st === 'QC Failed') rowClass = 'row-status-qcfail';
+      else if (st === 'MCC Positive') rowClass = 'row-status-mcc';
     }
     return `<tr class="${rowClass} ${priorityRowClass(r)}"${rowEditAttrs(r)}>${visibleCols.map(c=>{
     const v = r[c]||'';
@@ -4712,7 +4951,7 @@ function openAllSamplesModal(defaultStatus) {
       <div class="rel-panel-grid">
         <div class="rel-panel-item"><label>Test</label><select class="sel" id="all-f-test" onchange="filterAllSamples()">${'<option value="">All Tests</option>'+tests.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Run</label><select class="sel" id="all-f-run" onchange="filterAllSamples()">${'<option value="">All Runs</option>'+runs.map(r=>`<option value="${esc(r)}">${esc(formatRunText(r))}</option>`).join('')}</select></div>
-        <div class="rel-panel-item"><label>Status</label><select class="sel" id="all-f-status" onchange="filterAllSamples()">${'<option value="">All Statuses</option>'+statuses.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
+        <div class="rel-panel-item"><label>Status</label><select class="sel" id="all-f-status" onchange="filterAllSamples()">${'<option value="">All Statuses</option>'+statuses.map(s=>`<option value="${s}">${s}</option>`).join('')+remarkStatusOptgroupHtml()}</select></div>
         <div class="rel-panel-item"><label>Client</label><select class="sel" id="all-f-client" onchange="filterAllSamples()">${'<option value="">All Clients</option>'+clients.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>CNV Status</label><select class="sel" id="all-f-cnv" onchange="filterAllSamples()">${'<option value="">All CNV Statuses</option>'+cnvStatuses.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
         <div class="rel-panel-item"><label>Reviewer</label><select class="sel" id="all-f-reviewer" onchange="filterAllSamples()">${'<option value="">All Reviewers</option>'+reviewers.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
@@ -4758,7 +4997,7 @@ function filterAllSamples() {
   if (reanaly) data = data.filter(r => !!r.is_reanalysis === (reanaly === 'yes'));
   if (test)    data = data.filter(r=>r.test===test);
   if (run)     data = data.filter(r=>r.run_text===run);
-  if (status)  data = data.filter(r=>getStatus(r)===status);
+  if (status)  data = data.filter(r=>rowMatchesStatusFilter(r, status));
   if (clientF) data = data.filter(r=>r.client===clientF);
   if (cnv)     data = data.filter(r=>r.cnv_status===cnv);
   if (reviewer) data = data.filter(r=>extractAnalysts(r.pri_rev).includes(reviewer));
@@ -4880,6 +5119,8 @@ function openColorGuideModal() {
         <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}</span><span class="legend-desc">Blue &amp; pink icons — Couple (male &amp; female tagged with the same Couple #)</span></div>
         <div class="legend-row"><span class="legend-icons">${GENDER_ICON_LEGEND('M')}${GENDER_ICON_LEGEND('F')}${GENDER_ICON_LEGEND('P')}</span><span class="legend-desc">Blue, pink &amp; dark blue icons — Trio (adds Baby, Fetus and POC Samples)</span></div>
         <div class="legend-row"><span class="legend-sample"><span class="name-cancelled">Sample Name</span></span><span class="legend-desc">Struck-through name — Cancelled</span></div>
+        <div class="legend-row"><span class="legend-sample">${badgeHtml('QC Failed')}</span><span class="legend-desc">Red "QC Failed" tag — failed QC, cannot be allocated or proceed</span></div>
+        <div class="legend-row"><span class="legend-sample">${badgeHtml('MCC Positive')}</span><span class="legend-desc">Orange "MCC Positive" tag — maternal contamination, cannot be allocated or proceed</span></div>
       </div>
     </div>`;
   document.getElementById('qmodal-backdrop').classList.add('open');
@@ -5122,11 +5363,11 @@ function renderQuickCards(containerId, data, status) {
 
 const TABLE_CFG = {
   assigned:  { status:'Ongoing',      q:'q-asgn', test:'f-asgn-test', run:'f-asgn-run', reviewer:'f-asgn-employee', tat:'f-asgn-tat', relMonth:null,          relYear:null,
-               cnv:'f-asgn-cnv',
+               cnv:'f-asgn-cnv', remark:'f-asgn-remark',
                cols:['pri_rev','analyst','assign_date','name','run_text','test','gen_id','and_id','client','tat','rep_exp','cnv_status','ana_date','remarks'] },
   released:  { status:'Released',     q:'q-rel',  test:'f-rel-test',  run:'f-rel-run',  analyst:'f-rel-analyst', team:'f-rel-team', client:'f-rel-client', tat:null,
                relMonth:'f-rel-month', relYear:'f-rel-year', relDate:'f-rel-date', clientNorm:true, selfFilter:true,
-               cnv:'f-rel-cnv',
+               cnv:'f-rel-cnv', remark:'f-rel-remark',
                cols:['name','test','gen_id','and_id','run_text','analyst_txt','client','tat','rep_exp','pri_rev','final','cnv_status','report_release_date','remarks'] },
 };
 
@@ -5158,8 +5399,10 @@ function getFilteredTableData(key) {
   const tatYear  = cfg.tatYear   ? (document.getElementById(cfg.tatYear)?.value||'')  : '';
   const tatDate  = cfg.tatDate   ? (document.getElementById(cfg.tatDate)?.value||'')  : '';
   const cnv      = cfg.cnv       ? (document.getElementById(cfg.cnv)?.value||'')      : '';
+  const remark   = cfg.remark    ? (document.getElementById(cfg.remark)?.value||'')  : '';
 
   let data = (cfg.selfFilter ? applySelfFilter(rows) : rows).filter(r=>getStatus(r)===cfg.status);
+  if (remark)   data = data.filter(r=>matchesRemarkStatus(r, remark));
   if (test)     data = data.filter(r=>r.test===test);
   if (run)      data = data.filter(r=>r.run_text===run);
   if (ana)      data = data.filter(r=>extractAnalysts(r.analyst_raw).includes(ana));
@@ -5237,7 +5480,7 @@ function render(key) {
   if (key === 'released') updateRelCount();
 }
 
-const REL_FILTER_IDS = ['f-rel-team','f-rel-analyst','f-rel-test','f-rel-run','f-rel-client','f-rel-cnv','f-rel-month','f-rel-year'];
+const REL_FILTER_IDS = ['f-rel-team','f-rel-analyst','f-rel-test','f-rel-run','f-rel-client','f-rel-cnv','f-rel-remark','f-rel-month','f-rel-year'];
 
 function toggleRelFilters() {
   document.getElementById('rel-panel').classList.toggle('open');
@@ -5298,7 +5541,7 @@ function getFilteredOverdue() {
   if (test)     data = data.filter(r=>r.test===test);
   if (run)      data = data.filter(r=>r.run_text===run);
   if (clientF)  data = data.filter(r=>r.client===clientF);
-  if (status)   data = data.filter(r=>getStatus(r)===status);
+  if (status)   data = data.filter(r=>rowMatchesStatusFilter(r, status));
   if (numDays)  data = data.filter(r=>r._overdue_days===numDays);
   if (reviewer) data = data.filter(r=>r.pri_rev===reviewer);
   if (cnv)      data = data.filter(r=>r.cnv_status===cnv);
@@ -6344,7 +6587,7 @@ let ntAutoOpened = false;
 let ntSticky = false;
 let ntTab = 'mine';
 
-const isTeamNotification = n => n.kind === 'run_uploaded';
+const isTeamNotification = n => n.kind === 'run_uploaded' || n.kind === 'flagged';
 const inNotificationTab = (n, tab) => (tab === 'team') === isTeamNotification(n);
 
 function setNotificationTab(tab) {
@@ -6355,7 +6598,7 @@ function setNotificationTab(tab) {
 function groupNotifications(list) {
   const groups = new Map();
   list.forEach(n => {
-    const key = [n.kind, n.from, n.to, n.run, n.date].join('|');
+    const key = [n.kind, n.flag || '', n.from, n.to, n.run, n.date].join('|');
     if (!groups.has(key)) groups.set(key, { ...n, items: [] });
     groups.get(key).items.push(n);
   });
@@ -6366,6 +6609,14 @@ function notificationText(g) {
   if (g.kind === 'run_uploaded') {
     const n = g.items.reduce((sum, i) => sum + (i.count || 0), 0);
     return `<b>${n} new sample${n === 1 ? '' : 's'}</b> uploaded to <b>${esc(g.run)}</b> on ${esc(g.date)}.`;
+  }
+  if (g.kind === 'flagged') {
+    const c = g.items.length;
+    const subj = c === 1
+      ? `Sample <b>${esc(g.items[0].sample || g.items[0].gen_id || '')}</b>`
+      : `<b>${c} samples</b>`;
+    const run = g.run ? ` from <b>${esc(g.run)}</b>` : '';
+    return `${subj}${run} ${c === 1 ? 'was' : 'were'} flagged <b>${esc(g.flag || '')}</b> on ${esc(g.date)}.`;
   }
   const count = g.items.length;
   const subject = count === 1

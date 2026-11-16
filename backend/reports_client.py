@@ -390,6 +390,7 @@ def create_report(payload: dict) -> dict:
     row["_response"] = resp if isinstance(resp, dict) else {}
     _notify([(row, "", row.get("pri_rev", ""))])
     _notify_uploads([row])
+    _notify_flags([(row, "", row.get("remarks", ""))])
     return row
 
 
@@ -436,6 +437,16 @@ def _notify_uploads(rows: list[dict]) -> None:
         print(f"[reports_client] upload notification not recorded: {e}")
 
 
+def _notify_flags(changes: list[tuple[dict, str, str]]) -> None:
+    """changes: (row, old remark, new remark) — alert leads to QC-fail / MCC-
+    positive / repeat-sample remarks the moment one is newly set on a sample."""
+    try:
+        import exome_notifications
+        exome_notifications.record_flag_remarks(changes)
+    except Exception as e:
+        print(f"[reports_client] flag notification not recorded: {e}")
+
+
 def bulk_add(reports: list[dict]) -> int:
     if not reports:
         return 0
@@ -443,6 +454,7 @@ def bulk_add(reports: list[dict]) -> int:
     _post(PATH_BULK, {"sample_data": recs})
     _notify([(r, "", r.get("pri_rev", "")) for r in reports])
     _notify_uploads(reports)
+    _notify_flags([(r, "", r.get("remarks", "")) for r in reports])
 
     for r, rec in zip(reports, recs):
         r["last_updated_at"] = rec["last_updated_at"]
@@ -520,16 +532,20 @@ def _patch_many(id: list[str], changes: dict) -> int:
 
     count = 0
     moved = []
+    flagged = []
     for id_ in id:
         row = stored.get(str(id_))
         if row is None:
             continue
         before = row.get("pri_rev", "")
+        before_remarks = row.get("remarks", "")
         row.update(changes)
         update_report(str(id_), row)
         moved.append((dict(row), before, row.get("pri_rev", "")))
+        flagged.append((dict(row), before_remarks, row.get("remarks", "")))
         count += 1
     _notify(moved)
+    _notify_flags(flagged)
     return count
 
 

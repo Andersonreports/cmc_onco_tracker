@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import uuid
 from datetime import datetime
@@ -65,6 +66,53 @@ def record_reviewer_changes(changes: list[tuple[dict, str, str]]) -> None:
             _save(_load() + fresh)
     except Exception as e:
         print(f"[exome_notifications] not recorded: {e}")
+
+
+# Remark flags that every team lead should hear about. Patterns mirror the
+# tracker UI's own detectors (exome-tracker/index.html) so the two agree on what
+# counts as QC fail / MCC positive / repeat sample.
+_FLAG_PATTERNS = [
+    ("QC Failed",     re.compile(r"\bq\.?\s*c\.?\s*[-\s]*fail", re.I)),
+    ("MCC Positive",  re.compile(r"\bmcc\s*positive\b", re.I)),
+    ("Repeat Sample", re.compile(r"rep(?:eat|aet)\s*sample", re.I)),
+]
+
+
+def _flags_in(text: str) -> set[str]:
+    t = str(text or "")
+    return {label for label, rx in _FLAG_PATTERNS if rx.search(t)}
+
+
+def record_flag_remarks(changes: list[tuple[dict, str, str]]) -> None:
+    """changes: (row, previous remark, new remark). When a sample's remark newly
+    carries a QC-fail / MCC-positive / repeat-sample flag, notify every team lead
+    once per newly added flag. Best-effort — never blocks the save itself."""
+    now = datetime.now()
+    fresh = []
+    for row, old, new in changes:
+        for flag in _flags_in(new) - _flags_in(old):
+            fresh.append({
+                "id": uuid.uuid4().hex,
+                "audience": "lead",
+                "to": "",
+                "from": "",
+                "kind": "flagged",
+                "flag": flag,
+                "sample": str(row.get("name") or row.get("gen_id") or "").strip(),
+                "gen_id": str(row.get("gen_id") or "").strip(),
+                "run": str(row.get("run_text") or "").strip(),
+                "by": str(row.get("last_updated_by") or "").strip(),
+                "date": now.strftime("%d-%m-%Y"),
+                "at": now.isoformat(timespec="seconds"),
+                "read_by": [],
+            })
+    if not fresh:
+        return
+    try:
+        with _lock:
+            _save(_load() + fresh)
+    except Exception as e:
+        print(f"[exome_notifications] flag not recorded: {e}")
 
 
 def record_run_uploads(rows: list[dict]) -> None:

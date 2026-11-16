@@ -177,14 +177,20 @@ def update_report(
     if not can_edit(request):
         return forbidden()
     try:
-        previous = (reports_client.get_report(report_id) or {}).get("pri_rev", "")
+        prev = reports_client.get_report(report_id) or {}
+        previous = prev.get("pri_rev", "")
+        previous_remarks = prev.get("remarks", "")
     except reports_client.ReportsAPIError:
+        # Couldn't read the prior row — fall back to values that suppress a false
+        # "transferred"/"flagged" alert rather than firing one on a stale guess.
         previous = report.pri_rev
+        previous_remarks = report.remarks
     doc = reports_client.update_report(report_id, _stamped(report, request))
     print(f"[exome_api] PUT /reports/{report_id} returning: {doc}")
     if doc is None:
         return JSONResponse({"error": "Report not found"}, status_code=404)
     reports_client._notify([(doc, previous, doc.get("pri_rev", ""))])
+    reports_client._notify_flags([(doc, previous_remarks, doc.get("remarks", ""))])
     if report.report_release_date.strip():
         _trigger_cmc_release_sync()
     return doc
