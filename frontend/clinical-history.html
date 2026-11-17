@@ -655,6 +655,11 @@ body {
                     <select id="test-filter" class="select-minimal">
                         <option value="all">All Test Categories</option>
                     </select>
+                    <select id="trf-filter" class="select-minimal">
+                        <option value="all">All TRF</option>
+                        <option value="available">TRF Available</option>
+                        <option value="unavailable">TRF Not Available</option>
+                    </select>
                     <div class="tat-badge" id="tat-due-count" onclick="openTATModal()" style="cursor:pointer;">Due in 10 days: 0</div>
                 </div>
                 <div class="table-status-tabs">
@@ -869,7 +874,8 @@ let state = {
     filters: {
         month: 'all',
         test: 'all',
-        status: 'all'
+        status: 'all',
+        trf: 'all'
     },
     currentPage: 1,
     itemsPerPage: 10000, // Effectively unlimited for scrollable view
@@ -904,6 +910,9 @@ function initEventListeners() {
 
     const testFilter = document.getElementById('test-filter');
     if (testFilter) testFilter.addEventListener('change', handleFilterChange);
+
+    const trfFilter = document.getElementById('trf-filter');
+    if (trfFilter) trfFilter.addEventListener('change', handleFilterChange);
 
     const syncBtn = document.getElementById('sync-btn');
     if (syncBtn) syncBtn.addEventListener('click', () => syncData(false));
@@ -978,7 +987,7 @@ function initEventListeners() {
 // THE FIX: Universal Restore Function
 function restoreAllRecords() {
     console.log('Restoring ALL records across ALL months...');
-    state.filters = { month: 'all', test: 'all', status: 'all' };
+    state.filters = { month: 'all', test: 'all', status: 'all', trf: 'all' };
     state.searchQuery = '';
     state.currentPage = 1;
 
@@ -988,6 +997,9 @@ function restoreAllRecords() {
 
     const tFilter = document.getElementById('test-filter');
     if (tFilter) tFilter.value = 'all';
+
+    const trfFilter = document.getElementById('trf-filter');
+    if (trfFilter) trfFilter.value = 'all';
 
     updateCardActiveState('all');
 
@@ -1448,7 +1460,9 @@ function updateStats() {
             item.client.toLowerCase().includes(q);
         const matchesMonth = state.filters.month === 'all' || item.month === state.filters.month;
         const matchesTest  = state.filters.test  === 'all' || item.testCategory === state.filters.test;
-        return matchesSearch && matchesMonth && matchesTest;
+        const matchesTrf = state.filters.trf === 'all' ||
+            (state.filters.trf === 'available' ? isTRFAvailable(item) : !isTRFAvailable(item));
+        return matchesSearch && matchesMonth && matchesTest && matchesTrf;
     });
     const total    = base.length;
     const complete = base.filter(i => i.hasHistory).length;
@@ -1496,9 +1510,16 @@ function handleSearch(e) {
     applyFilters();
 }
 
+function isTRFAvailable(item) {
+    const t = (item.trfReport || '').toString().trim().toLowerCase();
+    return t !== '' && t !== '-' && t !== 'nan';
+}
+
 function handleFilterChange() {
     const tFilter = document.getElementById('test-filter');
     if (tFilter) state.filters.test = tFilter.value;
+    const trfFilter = document.getElementById('trf-filter');
+    if (trfFilter) state.filters.trf = trfFilter.value;
     state.currentPage = 1;
     applyFilters();
 }
@@ -1513,10 +1534,12 @@ function applyFilters() {
             item.client.toLowerCase().includes(query);
         const matchesMonth = state.filters.month === 'all' || item.month === state.filters.month;
         const matchesTest = state.filters.test === 'all' || item.testCategory === state.filters.test;
+        const matchesTrf = state.filters.trf === 'all' ||
+            (state.filters.trf === 'available' ? isTRFAvailable(item) : !isTRFAvailable(item));
         let matchesStatus = true;
         if (state.filters.status === 'available') matchesStatus = item.hasHistory;
         if (state.filters.status === 'needed') matchesStatus = !item.hasHistory;
-        return matchesSearch && matchesMonth && matchesTest && matchesStatus;
+        return matchesSearch && matchesMonth && matchesTest && matchesTrf && matchesStatus;
     });
     renderGrid();
     updateStats();
